@@ -1,5 +1,6 @@
-from pydantic import BaseModel
-from typing import List, Dict, Optional
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional, Union
+from datetime import datetime
 
 class AppUsageInfo(BaseModel):
     package_name: str
@@ -40,7 +41,17 @@ class DeviceData(BaseModel):
     network_usage: NetworkUsage
     wake_locks: List[WakeLockInfo]
     device_id: str
-    timestamp: int
+    timestamp: Union[str, int]
+
+    def model_dump(self, **kwargs):
+        data = super().model_dump(**kwargs)
+        if isinstance(data['timestamp'], str):
+            try:
+                dt = datetime.fromisoformat(data['timestamp'].replace('Z', '+00:00'))
+                data['timestamp'] = int(dt.timestamp())
+            except ValueError:
+                data['timestamp'] = int(datetime.now().timestamp())
+        return data
 
 class Actionable(BaseModel):
     type: str

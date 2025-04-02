@@ -1,6 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
+import sqlalchemy
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./power_guard.db"
 
@@ -12,10 +13,17 @@ class UsagePattern(Base):
     __tablename__ = "usage_patterns"
     
     id = Column(Integer, primary_key=True, index=True)
-    device_id = Column(String, index=True)
-    package_name = Column(String, index=True)
-    pattern = Column(Text)
-    timestamp = Column(Integer)
+    device_id = Column(String, index=True, nullable=False)
+    package_name = Column(String, index=True, nullable=False)
+    pattern = Column(Text, nullable=False)
+    timestamp = Column(Integer, nullable=False)
+    
+    # Add a unique constraint on device_id and package_name
+    __table_args__ = (
+        # This ensures each device_id + package_name combination is unique
+        # and helps with querying patterns for a specific device
+        sqlalchemy.UniqueConstraint('device_id', 'package_name', name='uix_device_package'),
+    )
 
 # Create tables
 Base.metadata.create_all(bind=engine)
