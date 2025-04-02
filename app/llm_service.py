@@ -3,19 +3,40 @@ from groq import Groq
 from dotenv import load_dotenv
 import json
 from typing import Dict, Any
+from sqlalchemy.orm import Session
+from app.database import UsagePattern
 
 load_dotenv()
 
 # Initialize Groq client
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def analyze_device_data(device_data: Dict[str, Any]) -> Dict[str, Any]:
+def get_historical_patterns(db: Session, device_id: str) -> Dict[str, str]:
+    """Fetch historical usage patterns for a device from the database"""
+    patterns = db.query(UsagePattern).filter(UsagePattern.device_id == device_id).all()
+    return {pattern.package_name: pattern.pattern for pattern in patterns}
+
+def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     """Process device data through Groq LLM and get optimization recommendations"""
+    
+    # Get historical patterns for this device
+    historical_patterns = get_historical_patterns(db, device_data['device_id'])
+    
+    # Format historical patterns for the prompt
+    historical_patterns_text = "Historical Usage Patterns:\n"
+    if historical_patterns:
+        for package_name, pattern in historical_patterns.items():
+            historical_patterns_text += f"- {package_name}: {pattern}\n"
+    else:
+        historical_patterns_text += "No historical patterns found.\n"
     
     # Convert device data to a more readable format for the prompt
     prompt = f"""
     As an AI battery optimization expert, analyze this Android device data:
     
+    {historical_patterns_text}
+    
+    Current Device Data:
     App Usage:
     {format_app_usage(device_data['app_usage'])}
     
@@ -30,7 +51,7 @@ def analyze_device_data(device_data: Dict[str, Any]) -> Dict[str, Any]:
     Network Usage:
     {format_network_usage(device_data['network_usage'])}
     
-    Based on this data, generate:
+    Based on both the historical patterns and current data, generate:
     
     1. actionables: A list of specific actions to take (JSON format)
        [
@@ -52,7 +73,7 @@ def analyze_device_data(device_data: Dict[str, Any]) -> Dict[str, Any]:
         completion = groq_client.chat.completions.create(
             model="llama3-8b-8192",  # or other Groq model
             messages=[
-                {"role": "system", "content": "You are an AI battery optimization expert that analyzes device data and provides actionable recommendations."},
+                {"role": "system", "content": "You are an AI battery optimization expert that analyzes device data and provides actionable recommendations, taking into account historical usage patterns."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,

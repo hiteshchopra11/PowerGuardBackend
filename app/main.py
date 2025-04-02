@@ -20,7 +20,7 @@ async def analyze_data(
     """Analyze device data and return optimization recommendations"""
     try:
         # Process data through LLM
-        response = analyze_device_data(data.model_dump())
+        response = analyze_device_data(data.model_dump(), db)
         
         # Store usage patterns in DB
         if response and 'usage_patterns' in response:
