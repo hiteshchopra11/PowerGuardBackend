@@ -38,13 +38,28 @@ async def analyze_data(
         if response and 'usage_patterns' in response:
             logger.info(f"[PowerGuard] Storing {len(response['usage_patterns'])} usage patterns")
             for package_name, pattern in response['usage_patterns'].items():
-                db_pattern = UsagePattern(
-                    device_id=data.device_id,
-                    package_name=package_name,
-                    pattern=pattern,
-                    timestamp=data.timestamp
-                )
-                db.add(db_pattern)
+                # Check if pattern already exists
+                existing_pattern = db.query(UsagePattern).filter(
+                    UsagePattern.device_id == data.device_id,
+                    UsagePattern.package_name == package_name
+                ).first()
+                
+                if existing_pattern:
+                    # Update existing pattern
+                    existing_pattern.pattern = pattern
+                    existing_pattern.timestamp = data.timestamp
+                    logger.debug(f"Updated pattern for device {data.device_id}, package {package_name}")
+                else:
+                    # Create new pattern
+                    db_pattern = UsagePattern(
+                        device_id=data.device_id,
+                        package_name=package_name,
+                        pattern=pattern,
+                        timestamp=data.timestamp
+                    )
+                    db.add(db_pattern)
+                    logger.debug(f"Created new pattern for device {data.device_id}, package {package_name}")
+            
             db.commit()
             logger.info("[PowerGuard] Successfully stored usage patterns")
             
