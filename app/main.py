@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from typing import List
 
-from .models import DeviceData, ActionResponse
-from .llm_service import analyze_device_data
-from .database import get_db, UsagePattern
+from app.models import DeviceData, ActionResponse
+from app.llm_service import analyze_device_data
+from app.database import get_db, UsagePattern
 
 app = FastAPI(
     title="PowerGuard AI Backend",
@@ -13,11 +13,14 @@ app = FastAPI(
 )
 
 @app.post("/api/analyze", response_model=ActionResponse)
-async def analyze_data(data: DeviceData, db: Session = Depends(get_db)):
+async def analyze_data(
+    data: DeviceData = Body(..., description="Device usage data to analyze"),
+    db: Session = Depends(get_db)
+):
     """Analyze device data and return optimization recommendations"""
     try:
         # Process data through LLM
-        response = analyze_device_data(data.dict())
+        response = analyze_device_data(data.model_dump())
         
         # Store usage patterns in DB
         if response and 'usage_patterns' in response:
