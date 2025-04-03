@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict
 import logging
 import os
 from app.database import Base, engine
+from datetime import datetime
+from app.rate_limit import setup_rate_limiting
 
 from app.models import DeviceData, ActionResponse
 from app.llm_service import analyze_device_data
@@ -18,13 +20,46 @@ logger = logging.getLogger('powerguard_api')
 
 app = FastAPI(
     title="PowerGuard AI Backend",
-    description="Backend service for PowerGuard with Groq LLM integration",
+    description="""
+    PowerGuard AI Backend is a battery optimization service that uses AI to analyze device usage patterns
+    and provide actionable recommendations for better battery life.
+    
+    ## Features
+    * Device usage analysis
+    * Battery optimization recommendations
+    * Usage pattern tracking
+    * Historical data analysis
+    
+    ## API Endpoints
+    * `/api/analyze` - Analyze device data and get optimization recommendations
+    * `/api/patterns/{device_id}` - Get usage patterns for a specific device
+    * `/api/reset-db` - Reset the database (use with caution)
+    * `/api/all-entries` - Get all database entries
+    
+    ## Rate Limits
+    * Default: 100 requests per minute
+    * Analyze endpoint: 30 requests per minute
+    * Patterns endpoint: 60 requests per minute
+    * Reset DB endpoint: 5 requests per hour
+    """,
     version="1.0.0"
 )
 
+# Setup rate limiting
+setup_rate_limiting(app)
+
 @app.post("/api/reset-db")
 async def reset_database():
-    """Reset the database by removing the existing file and recreating tables"""
+    """
+    Reset the database by removing the existing file and recreating tables.
+    
+    ⚠️ WARNING: This endpoint will delete all existing data in the database.
+    Use with caution in production environments.
+    
+    Returns:
+    * Success message if database is reset successfully
+    * Error message with details if reset fails
+    """
     try:
         # Get the database path from the engine URL
         db_path = "power_guard.db"
@@ -58,7 +93,20 @@ async def analyze_data(
     data: DeviceData = Body(..., description="Device usage data to analyze"),
     db: Session = Depends(get_db)
 ):
-    """Analyze device data and return optimization recommendations"""
+    """
+    Analyze device data and return optimization recommendations.
+    
+    This endpoint processes device usage data through an AI model to generate:
+    * Actionable recommendations for battery optimization
+    * Usage pattern analysis
+    * Historical trend analysis
+    
+    The response includes:
+    * List of specific actions to take
+    * Human-readable summary of changes
+    * Identified usage patterns
+    * Timestamp of analysis
+    """
     try:
         logger.info(f"[PowerGuard] Received request for device: {data.device_id}")
         logger.debug(f"[PowerGuard] Request data: {data.model_dump_json(indent=2)}")
@@ -103,7 +151,15 @@ async def analyze_data(
 
 @app.get("/api/patterns/{device_id}", response_model=dict)
 async def get_patterns(device_id: str, db: Session = Depends(get_db)):
-    """Get stored usage patterns for a device"""
+    """
+    Get stored usage patterns for a specific device.
+    
+    Parameters:
+    * device_id: Unique identifier of the device
+    
+    Returns:
+    * Dictionary of package names and their corresponding usage patterns
+    """
     logger.info(f"[PowerGuard] Fetching patterns for device: {device_id}")
     patterns = db.query(UsagePattern).filter(UsagePattern.device_id == device_id).all()
     
@@ -114,6 +170,43 @@ async def get_patterns(device_id: str, db: Session = Depends(get_db)):
     logger.debug(f"[PowerGuard] Found {len(result)} patterns")
     return result
 
+@app.get("/api/all-entries", response_model=List[Dict])
+async def get_all_entries(db: Session = Depends(get_db)):
+    """
+    Fetch all entries from the database.
+    
+    Returns a list of all usage patterns with their details including:
+    * Device ID
+    * Package name
+    * Usage pattern
+    * Timestamp (in human-readable format)
+    """
+    try:
+        entries = db.query(UsagePattern).all()
+        result = []
+        for entry in entries:
+            result.append({
+                "id": entry.id,
+                "device_id": entry.device_id,
+                "package_name": entry.package_name,
+                "pattern": entry.pattern,
+                "timestamp": datetime.fromtimestamp(entry.timestamp).strftime('%Y-%m-%d %H:%M:%S'),
+                "raw_timestamp": entry.timestamp
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching database entries: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch database entries: {str(e)}"
+        )
+
 @app.get("/")
 async def root():
+    """
+    Root endpoint to check if the service is running.
+    
+    Returns:
+    * Simple message indicating the service is operational
+    """
     return {"message": "PowerGuard AI Backend is running"} 
