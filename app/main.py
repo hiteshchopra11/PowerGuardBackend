@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from typing import List
 import logging
+import os
+from app.database import Base, engine
 
 from app.models import DeviceData, ActionResponse
 from app.llm_service import analyze_device_data
@@ -19,6 +21,37 @@ app = FastAPI(
     description="Backend service for PowerGuard with Groq LLM integration",
     version="1.0.0"
 )
+
+@app.post("/api/reset-db")
+async def reset_database():
+    """Reset the database by removing the existing file and recreating tables"""
+    try:
+        # Get the database path from the engine URL
+        db_path = "power_guard.db"
+        
+        # Close any existing connections
+        engine.dispose()
+        
+        # Remove the existing database file if it exists
+        if os.path.exists(db_path):
+            logger.info(f"Removing existing database: {db_path}")
+            os.remove(db_path)
+        
+        # Create new database and tables
+        logger.info("Creating new database and tables...")
+        Base.metadata.create_all(bind=engine)
+        
+        # Set correct permissions (readable and writable)
+        os.chmod(db_path, 0o666)
+        
+        logger.info("Database reset complete!")
+        return {"status": "success", "message": "Database reset successfully completed"}
+    except Exception as e:
+        logger.error(f"Error resetting database: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to reset database: {str(e)}"
+        )
 
 @app.post("/api/analyze", response_model=ActionResponse)
 async def analyze_data(
