@@ -47,13 +47,13 @@ def setup_rate_limiting(app):
                 else:
                     limit = RATE_LIMITS["default"]
                 
-                # Apply rate limit using a dummy function
-                def dummy_endpoint():
-                    pass
-                dummy_endpoint.__name__ = path
+                # Create a rate-limited function for this request
+                @limiter.limit(limit)
+                def rate_limited(request: Request):
+                    return None
                 
                 # Apply rate limit
-                limiter.limit(limit)(dummy_endpoint)(request)
+                rate_limited(request)
                 
                 # Log rate limit info
                 logger.debug(f"Rate limit applied: {limit} for path: {path}")
