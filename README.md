@@ -10,6 +10,8 @@ A battery optimization service that uses AI to analyze device usage patterns and
 - Historical data analysis
 - AI-powered insights
 - Rate limiting and DDoS protection
+- User-directed optimizations via prompts
+- Hybrid rule-based and LLM prompt classification
 
 ## API Endpoints
 
@@ -17,6 +19,8 @@ A battery optimization service that uses AI to analyze device usage patterns and
 - `GET /api/patterns/{device_id}` - Get usage patterns for a specific device
 - `POST /api/reset-db` - Reset the database (use with caution)
 - `GET /api/all-entries` - Get all database entries
+- `GET /api/test/with-prompt/{prompt}` - Test endpoint that generates a sample response based on a prompt
+- `GET /api/test/no-prompt` - Test endpoint that generates a sample response with default settings
 
 ## Rate Limits
 
@@ -119,12 +123,15 @@ CREATE TABLE usage_patterns (
    - Battery statistics
    - Network usage data
    - Wake lock information
+   - Optional prompt field for user-directed optimizations
 
 2. **ActionResponse**
    - List of actionable recommendations
    - Summary of changes
    - Usage patterns
    - Timestamp
+   - Battery, data, and performance scores
+   - Estimated resource savings
 
 ### Key Components
 1. **Data Collection**
@@ -137,6 +144,8 @@ CREATE TABLE usage_patterns (
    - Pattern recognition
    - Historical data analysis
    - Recommendation generation
+   - Prompt analysis and classification
+   - User-directed optimization focus
 
 3. **Storage Layer**
    - SQLite database
@@ -169,6 +178,46 @@ CREATE TABLE usage_patterns (
 Access the interactive API documentation at:
 - Swagger UI: `/docs`
 - ReDoc: `/redoc`
+
+## Using Prompts for Directed Optimization
+
+The PowerGuard system supports user-directed optimizations through the optional `prompt` field in the `/api/analyze` endpoint. This feature allows users to specify their optimization goals in natural language, and the system will adjust its analysis and recommendations accordingly.
+
+### Prompt Types
+
+- **Battery Optimization**: "Optimize battery life", "Save power", "Extend battery"
+- **Data Optimization**: "Reduce data usage", "Save network data", "Optimize internet usage"
+- **Combined Optimization**: "Optimize both battery and data", "Save resources"
+- **Specific Actions**: "Kill battery-draining apps", "Restrict background data"
+
+### How It Works
+
+1. The system first uses rule-based classification to identify the user's intent
+2. If rule-based classification is inconclusive, it falls back to LLM-based classification
+3. Based on the classification, the system customizes its analysis focus
+4. The recommendations and insights are filtered and prioritized according to the user's goals
+
+### Example
+
+```json
+{
+  "deviceId": "example-device-001",
+  "timestamp": 1686123456,
+  "battery": { ... },
+  "memory": { ... },
+  "cpu": { ... },
+  "network": { ... },
+  "apps": [ ... ],
+  "prompt": "Save my battery life, I'm running low"
+}
+```
+
+### Testing Prompts
+
+You can test how the system interprets different prompts using the test endpoints:
+
+- `/api/test/with-prompt/{prompt}` - Test with a specific prompt
+- `/api/test/no-prompt` - Test with default settings (optimize both battery and data)
 
 ## Development
 
