@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 
 # Base URL for the API
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://powerguardbackend.onrender.com"
 
 def test_prompt(prompt="Optimize my battery life"):
     current_time = int(datetime.now().timestamp())

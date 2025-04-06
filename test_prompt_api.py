@@ -4,7 +4,7 @@ from datetime import datetime
 import time
 
 # Base URL for the API
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://powerguardbackend.onrender.com"
 
 def test_api_with_prompt(prompt=None):
     """Test the API with the given prompt or without a prompt if None"""
