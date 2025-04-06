@@ -2,67 +2,6 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Union, Any
 from datetime import datetime
 
-class AppUsageInfo(BaseModel):
-    package_name: str
-    app_name: str
-    foreground_time_ms: int
-    background_time_ms: int
-    last_used: int
-    launch_count: int
-
-class BatteryStats(BaseModel):
-    level: int
-    temperature: float
-    is_charging: bool
-    charging_type: str
-    voltage: int
-    health: str
-    estimated_remaining_time: Optional[int] = None
-
-class AppNetworkInfo(BaseModel):
-    package_name: str
-    data_usage_bytes: int
-    wifi_usage_bytes: int
-
-class NetworkUsage(BaseModel):
-    app_network_usage: List[AppNetworkInfo]
-    wifi_connected: bool
-    mobile_data_connected: bool
-    network_type: str
-
-class WakeLockInfo(BaseModel):
-    package_name: str
-    wake_lock_name: str
-    time_held_ms: int
-
-class DeviceData(BaseModel):
-    deviceId: str
-    timestamp: float
-    battery: BatteryInfo
-    memory: MemoryInfo
-    cpu: CpuInfo
-    network: NetworkInfo
-    apps: List[AppInfo]
-    prompt: Optional[str] = None
-
-    def model_dump(self, **kwargs):
-        data = super().model_dump(**kwargs)
-        # Ensure timestamp is a number
-        if isinstance(data['timestamp'], str):
-            try:
-                dt = datetime.fromisoformat(data['timestamp'].replace('Z', '+00:00'))
-                data['timestamp'] = float(dt.timestamp())
-            except ValueError:
-                data['timestamp'] = float(datetime.now().timestamp())
-        return data
-
-class Actionable(BaseModel):
-    type: str
-    app: Optional[str] = None
-    new_mode: Optional[str] = None
-    reason: Optional[str] = None
-    enabled: Optional[bool] = None
-
 # Battery info model
 class BatteryInfo(BaseModel):
     level: float
@@ -119,6 +58,69 @@ class AppInfo(BaseModel):
     targetSdkVersion: int
     installTime: float
     updatedTime: float
+
+class DeviceData(BaseModel):
+    deviceId: str
+    timestamp: float
+    battery: BatteryInfo
+    memory: MemoryInfo
+    cpu: CpuInfo
+    network: NetworkInfo
+    apps: List[AppInfo]
+    prompt: Optional[str] = None
+
+    def model_dump(self, **kwargs):
+        data = super().model_dump(**kwargs)
+        # Ensure timestamp is a number
+        if isinstance(data['timestamp'], str):
+            try:
+                dt = datetime.fromisoformat(data['timestamp'].replace('Z', '+00:00'))
+                data['timestamp'] = float(dt.timestamp())
+            except ValueError:
+                data['timestamp'] = float(datetime.now().timestamp())
+        return data
+
+# Other models
+
+class AppUsageInfo(BaseModel):
+    package_name: str
+    app_name: str
+    foreground_time_ms: int
+    background_time_ms: int
+    last_used: int
+    launch_count: int
+
+class BatteryStats(BaseModel):
+    level: int
+    temperature: float
+    is_charging: bool
+    charging_type: str
+    voltage: int
+    health: str
+    estimated_remaining_time: Optional[int] = None
+
+class AppNetworkInfo(BaseModel):
+    package_name: str
+    data_usage_bytes: int
+    wifi_usage_bytes: int
+
+class NetworkUsage(BaseModel):
+    app_network_usage: List[AppNetworkInfo]
+    wifi_connected: bool
+    mobile_data_connected: bool
+    network_type: str
+
+class WakeLockInfo(BaseModel):
+    package_name: str
+    wake_lock_name: str
+    time_held_ms: int
+
+class Actionable(BaseModel):
+    type: str
+    app: Optional[str] = None
+    new_mode: Optional[str] = None
+    reason: Optional[str] = None
+    enabled: Optional[bool] = None
 
 # Response Models
 class ActionableItem(BaseModel):
@@ -226,4 +228,4 @@ class ActionResponse(BaseModel):
                 batteryMinutes=30.0 if battery_focus else 0.0,
                 dataMB=20.0 if data_focus else 0.0
             )
-        ) 
+        )
