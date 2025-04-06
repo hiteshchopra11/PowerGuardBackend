@@ -7,7 +7,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Base URL for the API
-BASE_URL = "https://powerguardbackend.onrender.com"
+BASE_URL = "http://localhost:8000"
 
 def generate_test_payload(prompt: Optional[str] = None) -> Dict[str, Any]:
     """Generate a test payload with fixed data for consistent testing"""

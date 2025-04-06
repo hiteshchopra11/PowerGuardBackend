@@ -14,6 +14,8 @@ from app.prompt_analyzer import (
     generate_optimization_prompt,
     ALLOWED_ACTIONABLE_TYPES
 )
+import time
+import random
 
 # Configure logging
 logging.basicConfig(
@@ -21,6 +23,11 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger('powerguard_llm')
+
+# Retry configuration
+MAX_RETRIES = 5  # Increased from 3 to 5
+INITIAL_RETRY_DELAY = 2  # Increased from 1 to 2 seconds
+MAX_RETRY_DELAY = 120  # Increased from 60 to 120 seconds
 
 load_dotenv()
 
@@ -47,306 +54,247 @@ def get_historical_patterns(db: Session, device_id: str) -> Dict[str, str]:
 
 def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     """Process device data through Groq LLM and get optimization recommendations"""
-    logger.info(f"[PowerGuard] Starting analysis for device: {device_data['deviceId']}")
-    logger.debug(f"[PowerGuard] Received device data: {json.dumps(device_data, indent=2)}")
+    logger = logging.getLogger("powerguard_api")
     
-    # Get historical patterns for this device
-    historical_patterns = get_historical_patterns(db, device_data['deviceId'])
+    # Extract and clean prompt if present
+    prompt = device_data.get("prompt", "").strip() if device_data.get("prompt") is not None else ""
     
-    # Format historical patterns for the prompt
-    historical_patterns_text = "Historical Usage Patterns:\n"
-    if historical_patterns:
-        for package_name, pattern in historical_patterns.items():
-            historical_patterns_text += f"- {package_name}: {pattern}\n"
+    # Determine optimization focus based on prompt or default to combined
+    optimization_type = "combined"
+    if prompt:
+        prompt_lower = prompt.lower()
+        if any(term in prompt_lower for term in ["battery", "power", "energy"]) and not any(term in prompt_lower for term in ["data", "network", "internet"]):
+            optimization_type = "battery"
+        elif any(term in prompt_lower for term in ["data", "network", "internet"]) and not any(term in prompt_lower for term in ["battery", "power", "energy"]):
+            optimization_type = "data"
+        elif "not" in prompt_lower:
+            # Handle negation cases
+            if "not data" in prompt_lower or "not network" in prompt_lower:
+                optimization_type = "battery"
+            elif "not battery" in prompt_lower or "not power" in prompt_lower:
+                optimization_type = "data"
+    
+    # Generate system content based on optimization type
+    system_content = """You are PowerGuard, an AI system that analyzes device usage data and provides actionable recommendations for optimizing battery life and data usage. 
+Your responses must be in valid JSON format with the following required fields:
+{
+  "id": "string",
+  "success": boolean,
+  "timestamp": number,
+  "message": "string",
+  "actionable": [
+    {
+      "id": "string",
+      "type": "OPTIMIZE_BATTERY" | "RESTRICT_BACKGROUND" | "ENABLE_DATA_SAVER" | "DISABLE_FEATURES",
+      "packageName": "string",
+      "description": "string",
+      "reason": "string",
+      "newMode": "string",
+      "parameters": object
+    }
+  ],
+  "insights": [
+    {
+      "type": "string",
+      "title": "string",
+      "description": "string",
+      "severity": "low" | "medium" | "high"
+    }
+  ],
+  "batteryScore": number (0-100),
+  "dataScore": number (0-100),
+  "performanceScore": number (0-100),
+  "estimatedSavings": {
+    "batteryMinutes": number,
+    "dataMB": number
+  }
+}
+
+You MUST provide at least one actionable item and one insight.
+"""
+
+    # Add optimization-specific instructions
+    if optimization_type == "battery":
+        system_content += "\nFocus on battery optimization actions (OPTIMIZE_BATTERY, RESTRICT_BACKGROUND)."
+    elif optimization_type == "data":
+        system_content += "\nFocus on data optimization actions (ENABLE_DATA_SAVER, DISABLE_FEATURES)."
     else:
-        historical_patterns_text += "No historical patterns found.\n"
-    
-    logger.debug(f"[PowerGuard] Formatted historical patterns: {historical_patterns_text}")
-    
-    # Check if a user prompt is provided
-    user_prompt = device_data.get('prompt')
-    prompt_classification = None
-    
-    if user_prompt:
-        logger.info(f"[PowerGuard] User provided prompt: '{user_prompt}'")
-        
-        # Try rule-based classification first
-        rule_classification = classify_user_prompt(user_prompt)
-        
-        # If rule-based classification finds the prompt relevant, use it
-        if rule_classification["is_relevant"]:
-            logger.info(f"[PowerGuard] Rule-based classification identified relevant prompt")
-            prompt_classification = rule_classification
-        else:
-            # Fall back to LLM-based classification
-            logger.info(f"[PowerGuard] Attempting LLM-based classification")
-            llm_classification = classify_with_llm(user_prompt, groq_client)
+        system_content += "\nProvide a balanced mix of battery and data optimization actions."
+
+    # Generate user content with device data analysis request
+    apps_data = device_data.get("apps", [])
+    battery_heavy_apps = [app for app in apps_data if app.get("batteryUsage", 0) > 10]
+    data_heavy_apps = [app for app in apps_data if app.get("dataUsage", {}).get("background", 0) > 10]
+
+    user_content = f"""Analyze the following device data and provide optimization recommendations:
+
+Battery Status:
+- Level: {device_data.get("batteryLevel", 0)}%
+- Temperature: {device_data.get("batteryTemperature", 0)}°C
+- Charging: {device_data.get("isCharging", False)}
+
+Memory Usage:
+- Available: {device_data.get("availableMemory", 0)} MB
+- Total: {device_data.get("totalMemory", 0)} MB
+
+CPU Usage: {device_data.get("cpuUsage", 0)}%
+
+Network Data:
+- Rx Bytes: {device_data.get("networkData", {}).get("rxBytes", 0)}
+- Tx Bytes: {device_data.get("networkData", {}).get("txBytes", 0)}
+
+Heavy Battery Usage Apps: {", ".join(app.get("appName", "") for app in battery_heavy_apps)}
+Heavy Data Usage Apps: {", ".join(app.get("appName", "") for app in data_heavy_apps)}
+
+User Prompt: {prompt if prompt else "Provide general optimization recommendations"}
+
+Provide specific, actionable recommendations to optimize the device based on this data."""
+
+    # Call Groq API with retry logic
+    for attempt in range(MAX_RETRIES):
+        try:
+            # Add jitter to retry delay
+            current_delay = min(INITIAL_RETRY_DELAY * (2 ** attempt) + random.uniform(0, 1), MAX_RETRY_DELAY)
             
-            if llm_classification["is_relevant"]:
-                logger.info(f"[PowerGuard] LLM-based classification identified relevant prompt")
-                prompt_classification = llm_classification
-            else:
-                logger.info(f"[PowerGuard] Prompt classified as not relevant, using default analysis")
-                
-        # Add the original prompt to the classification for reference
-        if prompt_classification:
-            prompt_classification["original_prompt"] = user_prompt
-    
-    # Generate the appropriate prompt based on classification
-    if prompt_classification and prompt_classification["is_relevant"]:
-        prompt = generate_optimization_prompt(prompt_classification, device_data, historical_patterns_text)
-        logger.debug(f"[PowerGuard] Generated specialized prompt for LLM: {prompt}")
-        
-        # Adjust system content based on classification
-        system_content = "You are an AI resource optimization expert that analyzes device data and provides actionable recommendations. "
-        
-        if prompt_classification["optimize_battery"] and prompt_classification["optimize_data"]:
-            system_content += "Focus on optimizing both battery life and data usage. "
-        elif prompt_classification["optimize_battery"]:
-            system_content += "Focus on optimizing battery life. "
-        elif prompt_classification["optimize_data"]:
-            system_content += "Focus on optimizing data usage. "
+            logger.info(f"[PowerGuard] Calling Groq API (attempt {attempt + 1}/{MAX_RETRIES})")
+            response = groq_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_content},
+                    {"role": "user", "content": user_content}
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.7,
+                max_tokens=1000,
+                top_p=0.9
+            )
             
-        system_content += "Only use the exact action types provided, and respond with valid JSON only, no additional text."
-    else:
-        # Use the standard prompt and system content
-        prompt = f"""
-        As an AI resource optimization expert, analyze this Android device data:
-        
-        {historical_patterns_text}
-        
-        Current Device Data:
-        Battery:
-        - Level: {device_data['battery']['level']}%
-        - Temperature: {device_data['battery']['temperature']}°C
-        - Charging: {device_data['battery']['isCharging']}
-        - Voltage: {device_data['battery']['voltage']}
-        - Health: {device_data['battery']['health']}
-        
-        Memory:
-        - Total RAM: {device_data['memory']['totalRam']} MB
-        - Available RAM: {device_data['memory']['availableRam']} MB
-        - Low Memory: {device_data['memory']['lowMemory']}
-        
-        CPU:
-        - Usage: {device_data['cpu']['usage']}%
-        - Temperature: {device_data['cpu']['temperature']}°C
-        
-        Network:
-        - Type: {device_data['network']['type']}
-        - Strength: {device_data['network']['strength']}
-        - Roaming: {device_data['network']['isRoaming']}
-        - Data Usage: {device_data['network']['dataUsage']['foreground'] + device_data['network']['dataUsage']['background']} MB
-        - Cellular Generation: {device_data['network']['cellularGeneration']}
-        
-        App Data:
-        {format_apps(device_data['apps'])}
-        
-        Based on this data, generate a comprehensive analysis with:
-        
-        1. actionable: A list of specific actions to take, including:
-           - id: unique identifier for the action
-           - type: the type of action (MUST be one of these EXACT values: KILL_APP, RESTRICT_BACKGROUND, OPTIMIZE_BATTERY, MARK_APP_INACTIVE, SET_STANDBY_BUCKET, ENABLE_BATTERY_SAVER, ENABLE_DATA_SAVER, ADJUST_SYNC_SETTINGS, CATEGORIZE_APP)
-           - packageName: affected app's package name
-           - description: what the action will do
-           - reason: why this action is recommended
-           - newMode: target state (e.g., "restricted")
-           - parameters: additional context as key-value pairs
-        
-        2. insights: List of insights discovered about the device's behavior:
-           - type: insight category (e.g., "BatteryDrain")
-           - title: summary title
-           - description: detailed explanation
-           - severity: e.g., "low", "medium", "high"
-        
-        3. scores and estimates:
-           - batteryScore: from 0-100 evaluating battery health
-           - dataScore: from 0-100 evaluating data usage efficiency
-           - performanceScore: from 0-100 evaluating overall performance
-           - estimatedSavings: with batteryMinutes and dataMB values
-        
-        Return ONLY valid JSON with an id, success flag (true), timestamp, message, and the above fields.
-        """
-        
-        logger.debug(f"[PowerGuard] Generated standard prompt for LLM: {prompt}")
-        system_content = "You are an AI battery and resource optimization expert that analyzes device data and provides actionable recommendations. Always respond with valid JSON only, no additional text."
-    
-    # Call Groq API
-    try:
-        logger.info("[PowerGuard] Calling Groq API for analysis")
-        completion = groq_client.chat.completions.create(
-            model="llama3-8b-8192",  # or other Groq model
-            messages=[
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.3,
-            max_tokens=1024,
-        )
-        
-        logger.debug(f"[PowerGuard] Received response from Groq API: {completion.choices[0].message.content}")
-        
-        # Extract JSON from response
-        response_text = completion.choices[0].message.content.strip()
-        
-        # Try to find JSON content between triple backticks if present
-        if "```json" in response_text:
-            json_start = response_text.find("```json") + 7
-            json_end = response_text.find("```", json_start)
-            if json_end > json_start:
-                response_text = response_text[json_start:json_end].strip()
-        
-        # Try to find JSON content between curly braces
-        json_start = response_text.find('{')
-        json_end = response_text.rfind('}') + 1
-        if json_start >= 0 and json_end > json_start:
-            json_str = response_text[json_start:json_end]
+            response_text = response.choices[0].message.content.strip()
+            logger.debug(f"[PowerGuard] Raw LLM response: {response_text}")
+            
             try:
-                response_data = json.loads(json_str)
+                # Remove code block markers if present
+                if response_text.startswith("```json"):
+                    response_text = response_text[7:]
+                if response_text.endswith("```"):
+                    response_text = response_text[:-3]
+                response_text = response_text.strip()
                 
-                # Ensure timestamp is a number
-                if 'timestamp' in response_data:
-                    if isinstance(response_data['timestamp'], str):
-                        try:
-                            dt = datetime.fromisoformat(response_data['timestamp'].replace('Z', '+00:00'))
-                            response_data['timestamp'] = int(dt.timestamp())
-                        except ValueError:
-                            response_data['timestamp'] = int(device_data['timestamp'])
-                    elif not isinstance(response_data['timestamp'], (int, float)):
-                        response_data['timestamp'] = int(device_data['timestamp'])
-                else:
-                    response_data['timestamp'] = int(device_data['timestamp'])
+                response_data = json.loads(response_text)
                 
-                # Validate actionable types to ensure they match allowed types
-                if 'actionable' in response_data and isinstance(response_data['actionable'], list):
-                    for i, action in enumerate(response_data['actionable']):
-                        # Ensure required fields exist and have valid values
-                        if 'type' not in action or action['type'] not in ALLOWED_ACTIONABLE_TYPES:
-                            logger.warning(f"[PowerGuard] Invalid action type '{action.get('type')}' found, replacing with OPTIMIZE_BATTERY")
-                            response_data['actionable'][i]['type'] = "OPTIMIZE_BATTERY"
-                        
-                        # Ensure packageName exists and is a string
-                        if 'packageName' not in action or not isinstance(action.get('packageName'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid packageName in action, setting default")
-                            response_data['actionable'][i]['packageName'] = "com.android.system"
-                        
-                        # Ensure description exists and is a string
-                        if 'description' not in action or not isinstance(action.get('description'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid description in action, setting default")
-                            response_data['actionable'][i]['description'] = f"Perform {action.get('type', 'OPTIMIZE_BATTERY')} action"
-                        
-                        # Ensure reason exists and is a string
-                        if 'reason' not in action or not isinstance(action.get('reason'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid reason in action, setting default")
-                            response_data['actionable'][i]['reason'] = "Resource optimization needed"
-                        
-                        # Ensure newMode exists and is a string
-                        if 'newMode' not in action or not isinstance(action.get('newMode'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid newMode in action, setting default")
-                            response_data['actionable'][i]['newMode'] = "optimized"
-                        
-                        # Ensure parameters exists and is a dict
-                        if 'parameters' not in action or not isinstance(action.get('parameters'), dict):
-                            logger.warning(f"[PowerGuard] Missing or invalid parameters in action, setting default")
-                            response_data['actionable'][i]['parameters'] = {}
-                        
-                        # Ensure id exists and is a string
-                        if 'id' not in action or not isinstance(action.get('id'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid id in action, setting default")
-                            response_data['actionable'][i]['id'] = f"action-{i+1}"
+                # Validate required fields
+                required_fields = ["id", "success", "timestamp", "message", "actionable", "insights", 
+                                 "batteryScore", "dataScore", "performanceScore", "estimatedSavings"]
+                missing_fields = [field for field in required_fields if field not in response_data]
+                if missing_fields:
+                    raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
                 
-                # Validate insights to ensure they have required fields
-                if 'insights' in response_data and isinstance(response_data['insights'], list):
-                    for i, insight in enumerate(response_data['insights']):
-                        # Ensure type exists and is a string
-                        if 'type' not in insight or not isinstance(insight.get('type'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid type in insight, setting default")
-                            response_data['insights'][i]['type'] = "ResourceUsage"
-                        
-                        # Ensure title exists and is a string
-                        if 'title' not in insight or not isinstance(insight.get('title'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid title in insight, setting default")
-                            response_data['insights'][i]['title'] = "Resource optimization insight"
-                        
-                        # Ensure description exists and is a string
-                        if 'description' not in insight or not isinstance(insight.get('description'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid description in insight, setting default")
-                            response_data['insights'][i]['description'] = "Resource usage pattern detected"
-                        
-                        # Ensure severity exists and is a string
-                        if 'severity' not in insight or not isinstance(insight.get('severity'), str):
-                            logger.warning(f"[PowerGuard] Missing or invalid severity in insight, setting default")
-                            response_data['insights'][i]['severity'] = "medium"
+                # Validate actionable items
+                if not response_data["actionable"]:
+                    raise ValueError("At least one actionable item is required")
                 
-                # Ensure required fields are present
-                if 'id' not in response_data:
-                    response_data['id'] = f"analysis-{device_data['deviceId']}-{int(device_data['timestamp'])}"
-                if 'success' not in response_data:
-                    response_data['success'] = True
-                if 'message' not in response_data:
-                    response_data['message'] = "Analysis completed successfully."
-                if 'actionable' not in response_data:
-                    response_data['actionable'] = []
-                if 'insights' not in response_data:
-                    response_data['insights'] = []
-                if 'batteryScore' not in response_data:
-                    response_data['batteryScore'] = 50
-                if 'dataScore' not in response_data:
-                    response_data['dataScore'] = 50
-                if 'performanceScore' not in response_data:
-                    response_data['performanceScore'] = 50
-                if 'estimatedSavings' not in response_data:
-                    response_data['estimatedSavings'] = {"batteryMinutes": 0, "dataMB": 0}
+                for action in response_data["actionable"]:
+                    required_action_fields = ["id", "type", "packageName", "description", "reason", "newMode"]
+                    missing_action_fields = [field for field in required_action_fields if field not in action]
+                    if missing_action_fields:
+                        raise ValueError(f"Missing required action fields: {', '.join(missing_action_fields)}")
+                    
+                    if action["type"] not in ALLOWED_ACTIONABLE_TYPES:
+                        raise ValueError(f"Invalid action type: {action['type']}")
                 
-                logger.info("[PowerGuard] Successfully processed LLM response")
+                # Validate insights
+                if not response_data["insights"]:
+                    raise ValueError("At least one insight is required")
+                
+                for insight in response_data["insights"]:
+                    required_insight_fields = ["type", "title", "description", "severity"]
+                    missing_insight_fields = [field for field in required_insight_fields if field not in insight]
+                    if missing_insight_fields:
+                        raise ValueError(f"Missing required insight fields: {', '.join(missing_insight_fields)}")
+                    
+                    if insight["severity"] not in ["low", "medium", "high"]:
+                        raise ValueError(f"Invalid severity level: {insight['severity']}")
+                
+                # Validate scores
+                for score_field in ["batteryScore", "dataScore", "performanceScore"]:
+                    score = response_data.get(score_field)
+                    if not isinstance(score, (int, float)) or score < 0 or score > 100:
+                        raise ValueError(f"Invalid {score_field}: {score}")
+                
+                # Validate estimated savings
+                savings = response_data.get("estimatedSavings")
+                if not isinstance(savings, dict):
+                    raise ValueError("estimatedSavings must be an object")
+                
+                for field in ["batteryMinutes", "dataMB"]:
+                    value = savings.get(field)
+                    if not isinstance(value, (int, float)) or value < 0:
+                        raise ValueError(f"Invalid {field}: {value}")
+                
+                logger.info("[PowerGuard] Successfully validated LLM response")
                 return response_data
+                
             except json.JSONDecodeError as e:
-                logger.error(f"[PowerGuard] JSON parsing error: {e}")
-                logger.error(f"[PowerGuard] Problematic JSON string: {json_str}")
+                logger.error(f"[PowerGuard] Failed to parse LLM response as JSON: {str(e)}")
+                raise ValueError("Invalid JSON response from LLM")
+            except ValueError as e:
+                logger.error(f"[PowerGuard] Validation error: {str(e)}")
                 raise
-        else:
-            logger.error("[PowerGuard] Failed to extract JSON from LLM response")
-            logger.error(f"[PowerGuard] Full response: {response_text}")
-            # Fallback with empty response structure
-            return {
-                "id": f"analysis-{device_data['deviceId']}-{int(device_data['timestamp'])}",
-                "success": False,
-                "timestamp": int(device_data['timestamp']),
-                "message": "Failed to generate optimization suggestions.",
-                "actionable": [],
-                "insights": [],
-                "batteryScore": 50,
-                "dataScore": 50,
-                "performanceScore": 50,
-                "estimatedSavings": {
-                    "batteryMinutes": 0,
-                    "dataMB": 0
-                }
-            }
-    except Exception as e:
-        logger.error(f"[PowerGuard] Error calling Groq API: {e}", exc_info=True)
-        # Return fallback response
-        return {
-            "id": f"analysis-{device_data['deviceId']}-{int(device_data['timestamp'])}",
-            "success": False,
-            "timestamp": int(device_data['timestamp']),
-            "message": f"Error analyzing device data: {str(e)}",
-            "actionable": [],
-            "insights": [],
-            "batteryScore": 50,
-            "dataScore": 50,
-            "performanceScore": 50,
-            "estimatedSavings": {
-                "batteryMinutes": 0,
-                "dataMB": 0
-            }
-        }
+            
+        except Exception as e:
+            logger.error(f"[PowerGuard] Error calling Groq API: {str(e)}")
+            if attempt < MAX_RETRIES - 1:
+                logger.info(f"[PowerGuard] Retrying in {current_delay:.2f} seconds...")
+                time.sleep(current_delay)
+            else:
+                logger.error("[PowerGuard] Max retries reached, failing")
+                raise
 
 def format_apps(apps):
     """Format apps data for the prompt"""
     logger.debug(f"[PowerGuard] Formatting data for {len(apps)} apps")
     result = ""
-    for app in apps[:5]:  # Limit to top 5 apps to keep prompt size reasonable
-        result += f"- {app['appName']} ({app['packageName']}): {app['foregroundTime']/60:.1f}min foreground, {app['backgroundTime']/60:.1f}min background\n"
-        result += f"  Battery: {app['batteryUsage']}%, Data: {app['dataUsage']['foreground'] + app['dataUsage']['background']:.1f}MB\n"
-    return result 
+    try:
+        # Ensure apps is a list
+        if not isinstance(apps, list):
+            logger.warning("[PowerGuard] Apps data is not a list")
+            return "No valid app data available.\n"
+        
+        # Sort apps by battery usage (descending) and take top 5
+        sorted_apps = sorted(apps, key=lambda x: float(x.get('batteryUsage', 0)), reverse=True)[:5]
+        
+        for app in sorted_apps:
+            try:
+                # Get app name and package name safely
+                app_name = app.get('appName', 'Unknown App')
+                package_name = app.get('packageName', 'unknown.package')
+                
+                # Get time values safely and convert to minutes
+                foreground_time = float(app.get('foregroundTime', 0)) / 60
+                background_time = float(app.get('backgroundTime', 0)) / 60
+                
+                # Get battery usage safely
+                battery_usage = float(app.get('batteryUsage', 0))
+                
+                # Get data usage safely
+                data_usage = app.get('dataUsage', {})
+                if not isinstance(data_usage, dict):
+                    data_usage = {}
+                foreground_data = float(data_usage.get('foreground', 0))
+                background_data = float(data_usage.get('background', 0))
+                total_data = foreground_data + background_data
+                
+                # Format the app entry
+                result += f"- {app_name} ({package_name}): {foreground_time:.1f}min foreground, {background_time:.1f}min background\n"
+                result += f"  Battery: {battery_usage:.1f}%, Data: {total_data:.1f}MB\n"
+            except (ValueError, TypeError, AttributeError) as e:
+                logger.warning(f"[PowerGuard] Error formatting app data: {str(e)}")
+                continue
+        
+        # If no apps were successfully formatted
+        if not result:
+            result = "No valid app data available.\n"
+        
+        return result
+    except Exception as e:
+        logger.error(f"[PowerGuard] Error in format_apps: {str(e)}")
+        return "Error formatting app data.\n" 

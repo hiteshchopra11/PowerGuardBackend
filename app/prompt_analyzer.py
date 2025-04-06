@@ -10,17 +10,20 @@ logging.basicConfig(
 logger = logging.getLogger('powerguard_prompt_analyzer')
 
 # Define all supported actionable types
-ALLOWED_ACTIONABLE_TYPES = [
-    "KILL_APP",
-    "RESTRICT_BACKGROUND",
+ALLOWED_ACTIONABLE_TYPES = {
     "OPTIMIZE_BATTERY",
-    "MARK_APP_INACTIVE",
-    "SET_STANDBY_BUCKET",
-    "ENABLE_BATTERY_SAVER",
     "ENABLE_DATA_SAVER",
-    "ADJUST_SYNC_SETTINGS",
-    "CATEGORIZE_APP"
-]
+    "RESTRICT_BACKGROUND",
+    "ADJUST_SCREEN",
+    "MANAGE_LOCATION",
+    "UPDATE_APP",
+    "UNINSTALL_APP",
+    "CLEAR_CACHE",
+    "ENABLE_BATTERY_SAVER",
+    "ENABLE_AIRPLANE_MODE",
+    "DISABLE_FEATURES",
+    "SCHEDULE_TASKS"
+}
 
 def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     """
@@ -34,29 +37,29 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     """
     if not prompt or not isinstance(prompt, str):
         return {
-            "optimize_battery": False,
-            "optimize_data": False,
-            "actionable_focus": [],
-            "is_relevant": False
+            "optimize_battery": True,  # Default to True for empty prompts
+            "optimize_data": True,     # Default to True for empty prompts
+            "actionable_focus": ["OPTIMIZE_BATTERY", "ENABLE_DATA_SAVER"],
+            "is_relevant": True        # Consider empty prompts as relevant
         }
     
     # Map containing keywords and their associated goals and actions
     keywords = {
         "battery": {
             "goals": ["optimize_battery"],
-            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER", "KILL_APP", "MARK_APP_INACTIVE"]
+            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER", "RESTRICT_BACKGROUND", "ADJUST_SCREEN"]
         },
         "power": {
             "goals": ["optimize_battery"],
-            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER", "KILL_APP"]
+            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER", "DISABLE_FEATURES"]
         },
         "charge": {
             "goals": ["optimize_battery"],
-            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER"]
+            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER", "ENABLE_AIRPLANE_MODE"]
         },
         "data": {
             "goals": ["optimize_data"],
-            "actions": ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND", "ADJUST_SYNC_SETTINGS"]
+            "actions": ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND", "MANAGE_LOCATION"]
         },
         "network": {
             "goals": ["optimize_data"],
@@ -70,17 +73,17 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
             "goals": ["optimize_data"],
             "actions": ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]
         },
-        "kill": {
+        "clean": {
             "goals": [],
-            "actions": ["KILL_APP"]
+            "actions": ["CLEAR_CACHE", "UNINSTALL_APP"]
         },
         "background": {
             "goals": ["optimize_battery", "optimize_data"],
-            "actions": ["RESTRICT_BACKGROUND"]
+            "actions": ["RESTRICT_BACKGROUND", "SCHEDULE_TASKS"]
         },
         "performance": {
             "goals": [],
-            "actions": ["SET_STANDBY_BUCKET", "CATEGORIZE_APP"]
+            "actions": ["UPDATE_APP", "CLEAR_CACHE"]
         }
     }
     
@@ -94,8 +97,8 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     lowered = prompt.lower()
     
     # Add flags for keywords before attempting to detect negations
-    has_battery_keyword = any(keyword in lowered for keyword in ["battery", "power", "charge"])
-    has_data_keyword = any(keyword in lowered for keyword in ["data", "network", "internet", "wifi"])
+    has_battery_keyword = any(keyword in lowered for keyword in ["battery", "power", "charge", "drain", "consumption"])
+    has_data_keyword = any(keyword in lowered for keyword in ["data", "network", "internet", "wifi", "cellular", "mobile"])
     
     # Check for other action-specific keywords
     has_kill_keyword = "kill" in lowered
@@ -105,6 +108,13 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     # If any relevant keyword is found, mark the prompt as relevant
     if has_battery_keyword or has_data_keyword or has_kill_keyword or has_background_keyword or has_performance_keyword:
         result["is_relevant"] = True
+    else:
+        # If no specific keywords found, consider it a general optimization request
+        result["optimize_battery"] = True
+        result["optimize_data"] = True
+        result["actionable_focus"] = ["OPTIMIZE_BATTERY", "ENABLE_DATA_SAVER"]
+        result["is_relevant"] = True
+        return result
     
     # Populate actionable_focus based on keywords
     if has_battery_keyword:
@@ -134,7 +144,7 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     
     # Now check for negations and override the simple matches if found
     battery_negation_patterns = [
-        r"don't\s+(?:optimize|save|worry|care|about)\s+(?:the\s+)?battery",
+        r"(?:don't|do not|dont)\s+(?:optimize|save|worry|care|about)\s+(?:the\s+)?battery",
         r"not\s+(?:optimizing|saving|worrying|caring|about)\s+(?:the\s+)?battery",
         r"no\s+(?:battery|power)\s+(?:optimization|saving)",
         r"ignore\s+(?:the\s+)?battery",
@@ -143,9 +153,10 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     
     if any(re.search(pattern, lowered) for pattern in battery_negation_patterns):
         result["optimize_battery"] = False
+        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER"]]
     
     data_negation_patterns = [
-        r"don't\s+(?:optimize|save|worry|care|about)\s+(?:the\s+)?(?:data|network)",
+        r"(?:don't|do not|dont)\s+(?:optimize|save|worry|care|about)\s+(?:the\s+)?(?:data|network)",
         r"not\s+(?:optimizing|saving|worrying|caring|about)\s+(?:the\s+)?(?:data|network)",
         r"no\s+(?:data|network)\s+(?:optimization|saving)",
         r"ignore\s+(?:the\s+)?(?:data|network)",
@@ -154,16 +165,19 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     
     if any(re.search(pattern, lowered) for pattern in data_negation_patterns):
         result["optimize_data"] = False
+        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]]
     
     # Handle specific case of "but not data" constructions
     if "battery" in lowered and ("but not data" in lowered or "but no data" in lowered):
         result["optimize_battery"] = True
         result["optimize_data"] = False
+        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]]
     
     # Handle specific case of "but not battery" constructions
     if "data" in lowered and ("but not battery" in lowered or "but no battery" in lowered):
         result["optimize_data"] = True
         result["optimize_battery"] = False
+        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER"]]
     
     # If we found keywords but no specific optimization goals after negation processing,
     # check if we have actionable_focus and set defaults accordingly
@@ -183,6 +197,7 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
             if not any([result["optimize_battery"], result["optimize_data"]]):
                 result["optimize_battery"] = True
                 result["optimize_data"] = True
+                result["actionable_focus"].extend(["OPTIMIZE_BATTERY", "ENABLE_DATA_SAVER"])
     
     logger.debug(f"[PowerGuard] Classified prompt '{prompt}': {result}")
     return result
@@ -386,12 +401,12 @@ def generate_optimization_prompt(classification: Dict[str, Any], device_data: Di
         action_focus = "\nConsider all available action types as appropriate.\n"
     
     # Complete the prompt with structured output requirements
-    output_instructions = """
+    output_instructions = f"""
     Based on this data and the optimization goal, generate a comprehensive analysis with:
     
     1. actionable: A list of specific actions to take, including:
        - id: unique identifier for the action
-       - type: the type of action (MUST be one of these EXACT values: KILL_APP, RESTRICT_BACKGROUND, OPTIMIZE_BATTERY, MARK_APP_INACTIVE, SET_STANDBY_BUCKET, ENABLE_BATTERY_SAVER, ENABLE_DATA_SAVER, ADJUST_SYNC_SETTINGS, CATEGORIZE_APP)
+       - type: the type of action (MUST be one of these EXACT values: {", ".join(ALLOWED_ACTIONABLE_TYPES)})
        - packageName: affected app's package name
        - description: what the action will do
        - reason: why this action is recommended
@@ -421,7 +436,48 @@ def generate_optimization_prompt(classification: Dict[str, Any], device_data: Di
 def format_apps_for_prompt(apps):
     """Format apps data for the prompt"""
     result = ""
-    for app in apps[:5]:  # Limit to top 5 apps to keep prompt size reasonable
-        result += f"- {app['appName']} ({app['packageName']}): {app['foregroundTime']/60:.1f}min foreground, {app['backgroundTime']/60:.1f}min background\n"
-        result += f"  Battery: {app['batteryUsage']}%, Data: {app['dataUsage']['foreground'] + app['dataUsage']['background']:.1f}MB\n"
-    return result 
+    try:
+        # Ensure apps is a list
+        if not isinstance(apps, list):
+            logger.warning("[PowerGuard] Apps data is not a list")
+            return "No valid app data available.\n"
+        
+        # Sort apps by battery usage (descending) and take top 5
+        sorted_apps = sorted(apps, key=lambda x: float(x.get('batteryUsage', 0)), reverse=True)[:5]
+        
+        for app in sorted_apps:
+            try:
+                # Get app name and package name safely
+                app_name = app.get('appName', 'Unknown App')
+                package_name = app.get('packageName', 'unknown.package')
+                
+                # Get time values safely and convert to minutes
+                foreground_time = float(app.get('foregroundTime', 0)) / 60
+                background_time = float(app.get('backgroundTime', 0)) / 60
+                
+                # Get battery usage safely
+                battery_usage = float(app.get('batteryUsage', 0))
+                
+                # Get data usage safely
+                data_usage = app.get('dataUsage', {})
+                if not isinstance(data_usage, dict):
+                    data_usage = {}
+                foreground_data = float(data_usage.get('foreground', 0))
+                background_data = float(data_usage.get('background', 0))
+                total_data = foreground_data + background_data
+                
+                # Format the app entry
+                result += f"- {app_name} ({package_name}): {foreground_time:.1f}min foreground, {background_time:.1f}min background\n"
+                result += f"  Battery: {battery_usage:.1f}%, Data: {total_data:.1f}MB\n"
+            except (ValueError, TypeError, AttributeError) as e:
+                logger.warning(f"[PowerGuard] Error formatting app data: {str(e)}")
+                continue
+        
+        # If no apps were successfully formatted
+        if not result:
+            result = "No valid app data available.\n"
+        
+        return result
+    except Exception as e:
+        logger.error(f"[PowerGuard] Error in format_apps_for_prompt: {str(e)}")
+        return "Error formatting app data.\n" 

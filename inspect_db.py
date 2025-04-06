@@ -20,7 +20,7 @@ def inspect_database():
     db = SessionLocal()
     try:
         # Get all unique device IDs
-        device_ids = db.query(UsagePattern.device_id).distinct().all()
+        device_ids = db.query(UsagePattern.deviceId).distinct().all()
         device_ids = [d[0] for d in device_ids]
         
         logger.info(f"\n=== Database Inspection Report ===")
@@ -28,7 +28,7 @@ def inspect_database():
         
         # Overall statistics
         total_patterns = db.query(UsagePattern).count()
-        unique_packages = db.query(UsagePattern.package_name).distinct().count()
+        unique_packages = db.query(UsagePattern.packageName).distinct().count()
         logger.info(f"\nOverall Statistics:")
         logger.info(f"- Total patterns: {total_patterns}")
         logger.info(f"- Unique packages across all devices: {unique_packages}")
@@ -39,7 +39,7 @@ def inspect_database():
             
             # Get patterns for this device
             patterns = db.query(UsagePattern).filter(
-                UsagePattern.device_id == device_id
+                UsagePattern.deviceId == device_id
             ).order_by(UsagePattern.timestamp.desc()).all()
             
             logger.info(f"Total patterns for device: {len(patterns)}")
@@ -47,7 +47,7 @@ def inspect_database():
             # Group by package name
             package_patterns = defaultdict(list)
             for pattern in patterns:
-                package_patterns[pattern.package_name].append(pattern)
+                package_patterns[pattern.packageName].append(pattern)
             
             logger.info(f"Unique packages for device: {len(package_patterns)}")
             
@@ -77,7 +77,7 @@ def inspect_database():
         logger.info("\n=== Cross-Device Analysis ===")
         package_usage = defaultdict(list)
         for pattern in db.query(UsagePattern).all():
-            package_usage[pattern.package_name].append(pattern.device_id)
+            package_usage[pattern.packageName].append(pattern.deviceId)
         
         logger.info("Package usage across devices:")
         for package, devices in package_usage.items():

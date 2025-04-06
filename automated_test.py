@@ -8,10 +8,10 @@ from typing import Dict, Any, List, Optional, Tuple
 import random
 
 # Base URL for the deployed API
-BASE_URL = "https://powerguardbackend.onrender.com"
+BASE_URL = "http://localhost:8000"
 
 # Global variable for verbose output
-VERBOSE = True
+VERBOSE = False
 
 # Test cases - each test case has a name, prompt, and expected output validation function
 TEST_CASES = [

@@ -17,40 +17,40 @@ def seed_test_data():
         test_patterns = [
             # Device 1 patterns
             UsagePattern(
-                device_id="android_device_123",
-                package_name="com.android.chrome",
+                deviceId="android_device_123",
+                packageName="com.android.chrome",
                 pattern="High background usage during night hours",
                 timestamp=int(datetime.now().timestamp())
             ),
             UsagePattern(
-                device_id="android_device_123",
-                package_name="com.whatsapp",
+                deviceId="android_device_123",
+                packageName="com.whatsapp",
                 pattern="Frequent background syncs",
                 timestamp=int(datetime.now().timestamp())
             ),
             # Device 2 patterns
             UsagePattern(
-                device_id="android_device_456",
-                package_name="com.android.chrome",
+                deviceId="android_device_456",
+                packageName="com.android.chrome",
                 pattern="Moderate usage throughout the day",
                 timestamp=int(datetime.now().timestamp())
             ),
             UsagePattern(
-                device_id="android_device_456",
-                package_name="com.spotify.music",
+                deviceId="android_device_456",
+                packageName="com.spotify.music",
                 pattern="Heavy background music streaming",
                 timestamp=int(datetime.now().timestamp())
             ),
             # Device 3 patterns
             UsagePattern(
-                device_id="android_device_789",
-                package_name="com.netflix.mediaclient",
+                deviceId="android_device_789",
+                packageName="com.netflix.mediaclient",
                 pattern="Evening video streaming sessions",
                 timestamp=int(datetime.now().timestamp())
             ),
             UsagePattern(
-                device_id="android_device_789",
-                package_name="com.google.android.youtube",
+                deviceId="android_device_789",
+                packageName="com.google.android.youtube",
                 pattern="Regular short video consumption",
                 timestamp=int(datetime.now().timestamp())
             )
@@ -62,19 +62,19 @@ def seed_test_data():
             try:
                 # Check if a pattern for this device and package already exists
                 existing = db.query(UsagePattern).filter(
-                    UsagePattern.device_id == pattern.device_id,
-                    UsagePattern.package_name == pattern.package_name
+                    UsagePattern.deviceId == pattern.deviceId,
+                    UsagePattern.packageName == pattern.packageName
                 ).first()
                 
                 if existing:
                     # Update the existing pattern
                     existing.pattern = pattern.pattern
                     existing.timestamp = pattern.timestamp
-                    logger.debug(f"Updated pattern for device {pattern.device_id}, package {pattern.package_name}")
+                    logger.debug(f"Updated pattern for device {pattern.deviceId}, package {pattern.packageName}")
                 else:
                     # Add new pattern
                     db.add(pattern)
-                    logger.debug(f"Added new pattern for device {pattern.device_id}, package {pattern.package_name}")
+                    logger.debug(f"Added new pattern for device {pattern.deviceId}, package {pattern.packageName}")
                 
                 added_count += 1
             except Exception as e:
@@ -83,7 +83,7 @@ def seed_test_data():
         db.commit()
         logger.info(f"Test data added successfully! Added/updated {added_count} patterns.")
         logger.info("\nAdded patterns for devices:")
-        for device_id in set(p.device_id for p in test_patterns):
+        for device_id in set(p.deviceId for p in test_patterns):
             logger.info(f"- {device_id}")
         
     except Exception as e:

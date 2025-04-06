@@ -9,7 +9,7 @@ import random
 import concurrent.futures
 
 # Base URL for the API
-BASE_URL = "https://powerguardbackend.onrender.com"
+BASE_URL = "http://localhost:8000"
 
 # Test prompts
 TEST_PROMPTS = {

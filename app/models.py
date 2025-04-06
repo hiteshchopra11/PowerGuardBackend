@@ -126,7 +126,7 @@ class Actionable(BaseModel):
 class ActionableItem(BaseModel):
     id: str
     type: str
-    packageName: str
+    packageName: Optional[str] = None
     description: str
     reason: str
     newMode: str
@@ -149,9 +149,9 @@ class ActionResponse(BaseModel):
     message: str
     actionable: List[ActionableItem]
     insights: List[InsightItem]
-    batteryScore: float
-    dataScore: float
-    performanceScore: float
+    batteryScore: float = Field(ge=0, le=100, description="Battery health score from 0-100")
+    dataScore: float = Field(ge=0, le=100, description="Data usage efficiency score from 0-100")
+    performanceScore: float = Field(ge=0, le=100, description="Overall performance score from 0-100")
     estimatedSavings: EstimatedSavings
     
     @classmethod
