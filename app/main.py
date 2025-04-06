@@ -97,49 +97,54 @@ async def analyze_data(
     Analyze device data and return optimization recommendations.
     
     This endpoint processes device usage data through an AI model to generate:
-    * Actionable recommendations for battery optimization
-    * Usage pattern analysis
-    * Historical trend analysis
+    * Actionable recommendations for battery and data optimization
+    * Insights about device usage patterns
+    * Battery, data, and performance scores
+    * Estimated resource savings
     
     The response includes:
     * List of specific actions to take
-    * Human-readable summary of changes
-    * Identified usage patterns
-    * Timestamp of analysis
+    * Insights discovered during analysis
+    * Scores measuring efficiency and health
+    * Estimated savings in battery life and data usage
     """
     try:
-        logger.info(f"[PowerGuard] Received request for device: {data.device_id}")
+        logger.info(f"[PowerGuard] Received request for device: {data.deviceId}")
         logger.debug(f"[PowerGuard] Request data: {data.model_dump_json(indent=2)}")
         
         # Process data through LLM
         response = analyze_device_data(data.model_dump(), db)
         logger.debug(f"[PowerGuard] LLM response: {response}")
         
-        # Store usage patterns in DB
-        if response and 'usage_patterns' in response:
-            logger.info(f"[PowerGuard] Storing {len(response['usage_patterns'])} usage patterns")
-            for package_name, pattern in response['usage_patterns'].items():
-                # Check if pattern already exists
-                existing_pattern = db.query(UsagePattern).filter(
-                    UsagePattern.device_id == data.device_id,
-                    UsagePattern.package_name == package_name
-                ).first()
-                
-                if existing_pattern:
-                    # Update existing pattern
-                    existing_pattern.pattern = pattern
-                    existing_pattern.timestamp = data.timestamp
-                    logger.debug(f"Updated pattern for device {data.device_id}, package {package_name}")
-                else:
-                    # Create new pattern
-                    db_pattern = UsagePattern(
-                        device_id=data.device_id,
-                        package_name=package_name,
-                        pattern=pattern,
-                        timestamp=data.timestamp
-                    )
-                    db.add(db_pattern)
-                    logger.debug(f"Created new pattern for device {data.device_id}, package {package_name}")
+        # Store usage patterns in DB if present
+        if response and response.get('insights'):
+            logger.info(f"[PowerGuard] Storing insights as usage patterns")
+            for insight in response['insights']:
+                if 'packageName' in insight.get('parameters', {}):
+                    package_name = insight['parameters']['packageName']
+                    pattern_text = f"{insight['title']}: {insight['description']}"
+                    
+                    # Check if pattern already exists
+                    existing_pattern = db.query(UsagePattern).filter(
+                        UsagePattern.deviceId == data.deviceId,
+                        UsagePattern.packageName == package_name
+                    ).first()
+                    
+                    if existing_pattern:
+                        # Update existing pattern
+                        existing_pattern.pattern = pattern_text
+                        existing_pattern.timestamp = int(data.timestamp)
+                        logger.debug(f"Updated pattern for device {data.deviceId}, package {package_name}")
+                    else:
+                        # Create new pattern
+                        db_pattern = UsagePattern(
+                            deviceId=data.deviceId,
+                            packageName=package_name,
+                            pattern=pattern_text,
+                            timestamp=int(data.timestamp)
+                        )
+                        db.add(db_pattern)
+                        logger.debug(f"Created new pattern for device {data.deviceId}, package {package_name}")
             
             db.commit()
             logger.info("[PowerGuard] Successfully stored usage patterns")
@@ -161,11 +166,11 @@ async def get_patterns(device_id: str, db: Session = Depends(get_db)):
     * Dictionary of package names and their corresponding usage patterns
     """
     logger.info(f"[PowerGuard] Fetching patterns for device: {device_id}")
-    patterns = db.query(UsagePattern).filter(UsagePattern.device_id == device_id).all()
+    patterns = db.query(UsagePattern).filter(UsagePattern.deviceId == device_id).all()
     
     result = {}
     for pattern in patterns:
-        result[pattern.package_name] = pattern.pattern
+        result[pattern.packageName] = pattern.pattern
         
     logger.debug(f"[PowerGuard] Found {len(result)} patterns")
     return result

@@ -13,16 +13,16 @@ class UsagePattern(Base):
     __tablename__ = "usage_patterns"
     
     id = Column(Integer, primary_key=True, index=True)
-    device_id = Column(String, index=True, nullable=False)
-    package_name = Column(String, index=True, nullable=False)
+    deviceId = Column(String, index=True, nullable=False)
+    packageName = Column(String, index=True, nullable=False)
     pattern = Column(Text, nullable=False)
     timestamp = Column(Integer, nullable=False)
     
-    # Add a unique constraint on device_id and package_name
+    # Add a unique constraint on deviceId and packageName
     __table_args__ = (
-        # This ensures each device_id + package_name combination is unique
+        # This ensures each deviceId + packageName combination is unique
         # and helps with querying patterns for a specific device
-        sqlalchemy.UniqueConstraint('device_id', 'package_name', name='uix_device_package'),
+        sqlalchemy.UniqueConstraint('deviceId', 'packageName', name='uix_device_package'),
     )
 
 # Create tables
