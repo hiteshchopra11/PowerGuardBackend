@@ -36,21 +36,24 @@ class WakeLockInfo(BaseModel):
     time_held_ms: int
 
 class DeviceData(BaseModel):
-    app_usage: List[AppUsageInfo]
-    battery_stats: BatteryStats
-    network_usage: NetworkUsage
-    wake_locks: List[WakeLockInfo]
-    device_id: str
-    timestamp: Union[str, int]
+    deviceId: str
+    timestamp: float
+    battery: BatteryInfo
+    memory: MemoryInfo
+    cpu: CpuInfo
+    network: NetworkInfo
+    apps: List[AppInfo]
+    prompt: Optional[str] = None
 
     def model_dump(self, **kwargs):
         data = super().model_dump(**kwargs)
+        # Ensure timestamp is a number
         if isinstance(data['timestamp'], str):
             try:
                 dt = datetime.fromisoformat(data['timestamp'].replace('Z', '+00:00'))
-                data['timestamp'] = int(dt.timestamp())
+                data['timestamp'] = float(dt.timestamp())
             except ValueError:
-                data['timestamp'] = int(datetime.now().timestamp())
+                data['timestamp'] = float(datetime.now().timestamp())
         return data
 
 class Actionable(BaseModel):
@@ -60,13 +63,7 @@ class Actionable(BaseModel):
     reason: Optional[str] = None
     enabled: Optional[bool] = None
 
-class ActionResponse(BaseModel):
-    actionables: List[Actionable]
-    summary: str
-    usage_patterns: Dict[str, str]
-    timestamp: int
-
-# New Request Models
+# Battery info model
 class BatteryInfo(BaseModel):
     level: float
     temperature: float
@@ -123,27 +120,7 @@ class AppInfo(BaseModel):
     installTime: float
     updatedTime: float
 
-class DeviceData(BaseModel):
-    deviceId: str
-    timestamp: float
-    battery: BatteryInfo
-    memory: MemoryInfo
-    cpu: CpuInfo
-    network: NetworkInfo
-    apps: List[AppInfo]
-
-    def model_dump(self, **kwargs):
-        data = super().model_dump(**kwargs)
-        # Ensure timestamp is a number
-        if isinstance(data['timestamp'], str):
-            try:
-                dt = datetime.fromisoformat(data['timestamp'].replace('Z', '+00:00'))
-                data['timestamp'] = float(dt.timestamp())
-            except ValueError:
-                data['timestamp'] = float(datetime.now().timestamp())
-        return data
-
-# New Response Models
+# Response Models
 class ActionableItem(BaseModel):
     id: str
     type: str
@@ -173,4 +150,80 @@ class ActionResponse(BaseModel):
     batteryScore: float
     dataScore: float
     performanceScore: float
-    estimatedSavings: EstimatedSavings 
+    estimatedSavings: EstimatedSavings
+    
+    @classmethod
+    def example_response(cls, prompt: Optional[str] = None):
+        """Create a sample response for testing/documentation purposes"""
+        current_time = datetime.now().timestamp()
+        
+        battery_focus = prompt and ("battery" in prompt.lower() or "power" in prompt.lower())
+        data_focus = prompt and ("data" in prompt.lower() or "network" in prompt.lower())
+        
+        # Default to both if no specific focus or prompt is None
+        if not battery_focus and not data_focus:
+            battery_focus = True
+            data_focus = True
+            
+        insights = []
+        actionable = []
+        
+        if battery_focus:
+            actionable.append(
+                ActionableItem(
+                    id="bat-1",
+                    type="OPTIMIZE_BATTERY",
+                    packageName="com.example.heavybattery",
+                    description="Optimize battery usage for Heavy Battery App",
+                    reason="App is consuming excessive battery",
+                    newMode="optimized",
+                    parameters={}
+                )
+            )
+            
+            insights.append(
+                InsightItem(
+                    type="BatteryDrain",
+                    title="Battery Drain Detected",
+                    description="Heavy Battery App is using significant battery resources",
+                    severity="high"
+                )
+            )
+            
+        if data_focus:
+            actionable.append(
+                ActionableItem(
+                    id="data-1",
+                    type="ENABLE_DATA_SAVER",
+                    packageName="com.example.heavydata",
+                    description="Enable data saver mode for Heavy Data App",
+                    reason="App is consuming excessive data",
+                    newMode="restricted",
+                    parameters={}
+                )
+            )
+            
+            insights.append(
+                InsightItem(
+                    type="DataUsage",
+                    title="High Data Usage Detected",
+                    description="Heavy Data App is using significant data resources",
+                    severity="medium"
+                )
+            )
+            
+        return cls(
+            id=f"example-{int(current_time)}",
+            success=True,
+            timestamp=current_time,
+            message=f"Analysis completed based on {'prompt' if prompt else 'default settings'}",
+            actionable=actionable,
+            insights=insights,
+            batteryScore=60.0 if battery_focus else 80.0,
+            dataScore=60.0 if data_focus else 80.0,
+            performanceScore=70.0,
+            estimatedSavings=EstimatedSavings(
+                batteryMinutes=30.0 if battery_focus else 0.0,
+                dataMB=20.0 if data_focus else 0.0
+            )
+        ) 

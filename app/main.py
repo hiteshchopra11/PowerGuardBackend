@@ -90,7 +90,7 @@ async def reset_database():
 
 @app.post("/api/analyze", response_model=ActionResponse)
 async def analyze_data(
-    data: DeviceData = Body(..., description="Device usage data to analyze"),
+    data: DeviceData = Body(..., description="Device usage data to analyze, with an optional 'prompt' field for user-directed optimizations"),
     db: Session = Depends(get_db)
 ):
     """
@@ -107,6 +107,11 @@ async def analyze_data(
     * Insights discovered during analysis
     * Scores measuring efficiency and health
     * Estimated savings in battery life and data usage
+    
+    Optional 'prompt' field:
+    * Allows users to specify optimization goals (e.g., "save battery life", "reduce data usage")
+    * Customizes the analysis to focus on the user's specific needs
+    * Examples: "Optimize battery life", "Reduce network data usage", "I'm low on battery"
     """
     try:
         logger.info(f"[PowerGuard] Received request for device: {data.deviceId}")
@@ -214,4 +219,41 @@ async def root():
     Returns:
     * Simple message indicating the service is operational
     """
-    return {"message": "PowerGuard AI Backend is running"} 
+    return {"message": "PowerGuard AI Backend is running"}
+
+@app.get("/api/test/with-prompt/{prompt}")
+async def test_with_prompt(prompt: str):
+    """
+    Test endpoint that returns a sample response based on the provided prompt.
+    This endpoint does not call the LLM, it just returns a sample response.
+    
+    Parameters:
+    * prompt: The user prompt to simulate
+    
+    Returns:
+    * A sample ActionResponse based on the prompt
+    """
+    logger.info(f"[PowerGuard] Test endpoint called with prompt: '{prompt}'")
+    
+    # Generate a sample response based on the prompt
+    response = ActionResponse.example_response(prompt)
+    
+    logger.info(f"[PowerGuard] Generated sample response with {len(response.actionable)} actionable items and {len(response.insights)} insights")
+    return response
+
+@app.get("/api/test/no-prompt")
+async def test_no_prompt():
+    """
+    Test endpoint that returns a sample response without a prompt.
+    This endpoint does not call the LLM, it just returns a sample response.
+    
+    Returns:
+    * A sample ActionResponse without considering a prompt
+    """
+    logger.info("[PowerGuard] Test endpoint called without prompt")
+    
+    # Generate a sample response without a prompt
+    response = ActionResponse.example_response()
+    
+    logger.info(f"[PowerGuard] Generated sample response with {len(response.actionable)} actionable items and {len(response.insights)} insights")
+    return response 

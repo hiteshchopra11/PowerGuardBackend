@@ -7,6 +7,13 @@ from sqlalchemy.orm import Session
 from app.database import UsagePattern
 import logging
 from datetime import datetime
+from app.prompt_analyzer import (
+    classify_user_prompt, 
+    is_prompt_relevant, 
+    classify_with_llm, 
+    generate_optimization_prompt,
+    ALLOWED_ACTIONABLE_TYPES
+)
 
 # Configure logging
 logging.basicConfig(
@@ -56,66 +63,113 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
     
     logger.debug(f"[PowerGuard] Formatted historical patterns: {historical_patterns_text}")
     
-    # Convert device data to a more readable format for the prompt
-    prompt = f"""
-    As an AI battery optimization expert, analyze this Android device data:
+    # Check if a user prompt is provided
+    user_prompt = device_data.get('prompt')
+    prompt_classification = None
     
-    {historical_patterns_text}
+    if user_prompt:
+        logger.info(f"[PowerGuard] User provided prompt: '{user_prompt}'")
+        
+        # Try rule-based classification first
+        rule_classification = classify_user_prompt(user_prompt)
+        
+        # If rule-based classification finds the prompt relevant, use it
+        if rule_classification["is_relevant"]:
+            logger.info(f"[PowerGuard] Rule-based classification identified relevant prompt")
+            prompt_classification = rule_classification
+        else:
+            # Fall back to LLM-based classification
+            logger.info(f"[PowerGuard] Attempting LLM-based classification")
+            llm_classification = classify_with_llm(user_prompt, groq_client)
+            
+            if llm_classification["is_relevant"]:
+                logger.info(f"[PowerGuard] LLM-based classification identified relevant prompt")
+                prompt_classification = llm_classification
+            else:
+                logger.info(f"[PowerGuard] Prompt classified as not relevant, using default analysis")
+                
+        # Add the original prompt to the classification for reference
+        if prompt_classification:
+            prompt_classification["original_prompt"] = user_prompt
     
-    Current Device Data:
-    Battery:
-    - Level: {device_data['battery']['level']}%
-    - Temperature: {device_data['battery']['temperature']}°C
-    - Charging: {device_data['battery']['isCharging']}
-    - Voltage: {device_data['battery']['voltage']}
-    - Health: {device_data['battery']['health']}
-    
-    Memory:
-    - Total RAM: {device_data['memory']['totalRam']} MB
-    - Available RAM: {device_data['memory']['availableRam']} MB
-    - Low Memory: {device_data['memory']['lowMemory']}
-    
-    CPU:
-    - Usage: {device_data['cpu']['usage']}%
-    - Temperature: {device_data['cpu']['temperature']}°C
-    
-    Network:
-    - Type: {device_data['network']['type']}
-    - Strength: {device_data['network']['strength']}
-    - Roaming: {device_data['network']['isRoaming']}
-    - Data Usage: {device_data['network']['dataUsage']['foreground'] + device_data['network']['dataUsage']['background']} MB
-    - Cellular Generation: {device_data['network']['cellularGeneration']}
-    
-    App Data:
-    {format_apps(device_data['apps'])}
-    
-    Based on this data, generate a comprehensive analysis with:
-    
-    1. actionable: A list of specific actions to take, including:
-       - id: unique identifier for the action
-       - type: the type of action (e.g., "KillBackground")
-       - packageName: affected app's package name
-       - description: what the action will do
-       - reason: why this action is recommended
-       - newMode: target state (e.g., "restricted")
-       - parameters: additional context as key-value pairs
-    
-    2. insights: List of insights discovered about the device's behavior:
-       - type: insight category (e.g., "BatteryDrain")
-       - title: summary title
-       - description: detailed explanation
-       - severity: e.g., "low", "medium", "high"
-    
-    3. scores and estimates:
-       - batteryScore: from 0-100 evaluating battery health
-       - dataScore: from 0-100 evaluating data usage efficiency
-       - performanceScore: from 0-100 evaluating overall performance
-       - estimatedSavings: with batteryMinutes and dataMB values
-    
-    Return ONLY valid JSON with an id, success flag (true), timestamp, message, and the above fields.
-    """
-    
-    logger.debug(f"[PowerGuard] Generated prompt for LLM: {prompt}")
+    # Generate the appropriate prompt based on classification
+    if prompt_classification and prompt_classification["is_relevant"]:
+        prompt = generate_optimization_prompt(prompt_classification, device_data, historical_patterns_text)
+        logger.debug(f"[PowerGuard] Generated specialized prompt for LLM: {prompt}")
+        
+        # Adjust system content based on classification
+        system_content = "You are an AI resource optimization expert that analyzes device data and provides actionable recommendations. "
+        
+        if prompt_classification["optimize_battery"] and prompt_classification["optimize_data"]:
+            system_content += "Focus on optimizing both battery life and data usage. "
+        elif prompt_classification["optimize_battery"]:
+            system_content += "Focus on optimizing battery life. "
+        elif prompt_classification["optimize_data"]:
+            system_content += "Focus on optimizing data usage. "
+            
+        system_content += "Only use the exact action types provided, and respond with valid JSON only, no additional text."
+    else:
+        # Use the standard prompt and system content
+        prompt = f"""
+        As an AI resource optimization expert, analyze this Android device data:
+        
+        {historical_patterns_text}
+        
+        Current Device Data:
+        Battery:
+        - Level: {device_data['battery']['level']}%
+        - Temperature: {device_data['battery']['temperature']}°C
+        - Charging: {device_data['battery']['isCharging']}
+        - Voltage: {device_data['battery']['voltage']}
+        - Health: {device_data['battery']['health']}
+        
+        Memory:
+        - Total RAM: {device_data['memory']['totalRam']} MB
+        - Available RAM: {device_data['memory']['availableRam']} MB
+        - Low Memory: {device_data['memory']['lowMemory']}
+        
+        CPU:
+        - Usage: {device_data['cpu']['usage']}%
+        - Temperature: {device_data['cpu']['temperature']}°C
+        
+        Network:
+        - Type: {device_data['network']['type']}
+        - Strength: {device_data['network']['strength']}
+        - Roaming: {device_data['network']['isRoaming']}
+        - Data Usage: {device_data['network']['dataUsage']['foreground'] + device_data['network']['dataUsage']['background']} MB
+        - Cellular Generation: {device_data['network']['cellularGeneration']}
+        
+        App Data:
+        {format_apps(device_data['apps'])}
+        
+        Based on this data, generate a comprehensive analysis with:
+        
+        1. actionable: A list of specific actions to take, including:
+           - id: unique identifier for the action
+           - type: the type of action (MUST be one of these EXACT values: KILL_APP, RESTRICT_BACKGROUND, OPTIMIZE_BATTERY, MARK_APP_INACTIVE, SET_STANDBY_BUCKET, ENABLE_BATTERY_SAVER, ENABLE_DATA_SAVER, ADJUST_SYNC_SETTINGS, CATEGORIZE_APP)
+           - packageName: affected app's package name
+           - description: what the action will do
+           - reason: why this action is recommended
+           - newMode: target state (e.g., "restricted")
+           - parameters: additional context as key-value pairs
+        
+        2. insights: List of insights discovered about the device's behavior:
+           - type: insight category (e.g., "BatteryDrain")
+           - title: summary title
+           - description: detailed explanation
+           - severity: e.g., "low", "medium", "high"
+        
+        3. scores and estimates:
+           - batteryScore: from 0-100 evaluating battery health
+           - dataScore: from 0-100 evaluating data usage efficiency
+           - performanceScore: from 0-100 evaluating overall performance
+           - estimatedSavings: with batteryMinutes and dataMB values
+        
+        Return ONLY valid JSON with an id, success flag (true), timestamp, message, and the above fields.
+        """
+        
+        logger.debug(f"[PowerGuard] Generated standard prompt for LLM: {prompt}")
+        system_content = "You are an AI battery and resource optimization expert that analyzes device data and provides actionable recommendations. Always respond with valid JSON only, no additional text."
     
     # Call Groq API
     try:
@@ -123,7 +177,7 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
         completion = groq_client.chat.completions.create(
             model="llama3-8b-8192",  # or other Groq model
             messages=[
-                {"role": "system", "content": "You are an AI battery and resource optimization expert that analyzes device data and provides actionable recommendations. Always respond with valid JSON only, no additional text."},
+                {"role": "system", "content": system_content},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,
@@ -162,6 +216,67 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
                         response_data['timestamp'] = int(device_data['timestamp'])
                 else:
                     response_data['timestamp'] = int(device_data['timestamp'])
+                
+                # Validate actionable types to ensure they match allowed types
+                if 'actionable' in response_data and isinstance(response_data['actionable'], list):
+                    for i, action in enumerate(response_data['actionable']):
+                        # Ensure required fields exist and have valid values
+                        if 'type' not in action or action['type'] not in ALLOWED_ACTIONABLE_TYPES:
+                            logger.warning(f"[PowerGuard] Invalid action type '{action.get('type')}' found, replacing with OPTIMIZE_BATTERY")
+                            response_data['actionable'][i]['type'] = "OPTIMIZE_BATTERY"
+                        
+                        # Ensure packageName exists and is a string
+                        if 'packageName' not in action or not isinstance(action.get('packageName'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid packageName in action, setting default")
+                            response_data['actionable'][i]['packageName'] = "com.android.system"
+                        
+                        # Ensure description exists and is a string
+                        if 'description' not in action or not isinstance(action.get('description'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid description in action, setting default")
+                            response_data['actionable'][i]['description'] = f"Perform {action.get('type', 'OPTIMIZE_BATTERY')} action"
+                        
+                        # Ensure reason exists and is a string
+                        if 'reason' not in action or not isinstance(action.get('reason'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid reason in action, setting default")
+                            response_data['actionable'][i]['reason'] = "Resource optimization needed"
+                        
+                        # Ensure newMode exists and is a string
+                        if 'newMode' not in action or not isinstance(action.get('newMode'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid newMode in action, setting default")
+                            response_data['actionable'][i]['newMode'] = "optimized"
+                        
+                        # Ensure parameters exists and is a dict
+                        if 'parameters' not in action or not isinstance(action.get('parameters'), dict):
+                            logger.warning(f"[PowerGuard] Missing or invalid parameters in action, setting default")
+                            response_data['actionable'][i]['parameters'] = {}
+                        
+                        # Ensure id exists and is a string
+                        if 'id' not in action or not isinstance(action.get('id'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid id in action, setting default")
+                            response_data['actionable'][i]['id'] = f"action-{i+1}"
+                
+                # Validate insights to ensure they have required fields
+                if 'insights' in response_data and isinstance(response_data['insights'], list):
+                    for i, insight in enumerate(response_data['insights']):
+                        # Ensure type exists and is a string
+                        if 'type' not in insight or not isinstance(insight.get('type'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid type in insight, setting default")
+                            response_data['insights'][i]['type'] = "ResourceUsage"
+                        
+                        # Ensure title exists and is a string
+                        if 'title' not in insight or not isinstance(insight.get('title'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid title in insight, setting default")
+                            response_data['insights'][i]['title'] = "Resource optimization insight"
+                        
+                        # Ensure description exists and is a string
+                        if 'description' not in insight or not isinstance(insight.get('description'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid description in insight, setting default")
+                            response_data['insights'][i]['description'] = "Resource usage pattern detected"
+                        
+                        # Ensure severity exists and is a string
+                        if 'severity' not in insight or not isinstance(insight.get('severity'), str):
+                            logger.warning(f"[PowerGuard] Missing or invalid severity in insight, setting default")
+                            response_data['insights'][i]['severity'] = "medium"
                 
                 # Ensure required fields are present
                 if 'id' not in response_data:

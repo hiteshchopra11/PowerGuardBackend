@@ -11,7 +11,9 @@ def test_read_root():
 
 def test_device_data_validation():
     current_time = int(datetime.now().timestamp())
-    test_data = {
+    
+    # Base test data
+    base_test_data = {
         "deviceId": "test_device_001",
         "timestamp": current_time,
         "battery": {
@@ -77,7 +79,45 @@ def test_device_data_validation():
             }
         ]
     }
-    response = client.post("/api/analyze", json=test_data)
+    
+    # Test 1: Without prompt field
+    response = client.post("/api/analyze", json=base_test_data)
+    assert response.status_code == 200
+    assert "id" in response.json()
+    assert "success" in response.json()
+    
+    # Test 2: With battery optimization prompt
+    battery_test_data = base_test_data.copy()
+    battery_test_data["prompt"] = "Optimize battery life"
+    
+    response = client.post("/api/analyze", json=battery_test_data)
+    assert response.status_code == 200
+    assert "id" in response.json()
+    assert "success" in response.json()
+    
+    # Test 3: With data optimization prompt
+    data_test_data = base_test_data.copy()
+    data_test_data["prompt"] = "Save network data"
+    
+    response = client.post("/api/analyze", json=data_test_data)
+    assert response.status_code == 200
+    assert "id" in response.json()
+    assert "success" in response.json()
+    
+    # Test 4: With both optimizations prompt
+    combined_test_data = base_test_data.copy() 
+    combined_test_data["prompt"] = "Optimize both battery and network data"
+    
+    response = client.post("/api/analyze", json=combined_test_data)
+    assert response.status_code == 200
+    assert "id" in response.json()
+    assert "success" in response.json()
+    
+    # Test 5: With irrelevant prompt
+    irrelevant_test_data = base_test_data.copy()
+    irrelevant_test_data["prompt"] = "What's the weather like today?"
+    
+    response = client.post("/api/analyze", json=irrelevant_test_data)
     assert response.status_code == 200
     assert "id" in response.json()
     assert "success" in response.json() 
