@@ -11,7 +11,7 @@ import random
 BASE_URL = "https://powerguardbackend.onrender.com"
 
 # Global variable for verbose output
-VERBOSE = False
+VERBOSE = True
 
 # Test cases - each test case has a name, prompt, and expected output validation function
 TEST_CASES = [
