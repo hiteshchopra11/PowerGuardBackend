@@ -136,10 +136,10 @@ class DeviceData(BaseModel):
                 app.batteryUsage is not None or 
                 app.memoryUsage is not None or
                 app.cpuUsage is not None or
-                app.dataUsage.rxBytes > 0 or 
-                app.dataUsage.txBytes > 0 or
-                app.foregroundTime > 0 or 
-                app.backgroundTime > 0
+                (hasattr(app.dataUsage, 'rxBytes') and app.dataUsage.rxBytes is not None and app.dataUsage.rxBytes > 0) or 
+                (hasattr(app.dataUsage, 'txBytes') and app.dataUsage.txBytes is not None and app.dataUsage.txBytes > 0) or
+                (app.foregroundTime is not None and app.foregroundTime > 0) or 
+                (app.backgroundTime is not None and app.backgroundTime > 0)
             )
             if has_valid_data:
                 valid_apps.append(app)

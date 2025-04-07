@@ -344,8 +344,8 @@ def generate_optimization_prompt(classification: Dict[str, Any], device_data: Di
     - Low Memory: {device_data['memory']['lowMemory']}
     
     CPU:
-    - Usage: {device_data['cpu']['usage']}%
-    - Temperature: {device_data['cpu']['temperature']}°C
+    - Usage: {device_data['cpu']['usage'] if device_data['cpu'].get('usage') is not None else 'N/A'}%
+    - Temperature: {device_data['cpu']['temperature'] if device_data['cpu'].get('temperature') is not None else 'N/A'}°C
     
     Network:
     - Type: {device_data['network']['type']}
@@ -443,7 +443,7 @@ def format_apps_for_prompt(apps):
             return "No valid app data available.\n"
         
         # Sort apps by battery usage (descending) and take top 5
-        sorted_apps = sorted(apps, key=lambda x: float(x.get('batteryUsage', 0)), reverse=True)[:5]
+        sorted_apps = sorted(apps, key=lambda x: float(x.get('batteryUsage', 0) or 0), reverse=True)[:5]
         
         for app in sorted_apps:
             try:
@@ -452,18 +452,18 @@ def format_apps_for_prompt(apps):
                 package_name = app.get('packageName', 'unknown.package')
                 
                 # Get time values safely and convert to minutes
-                foreground_time = float(app.get('foregroundTime', 0)) / 60
-                background_time = float(app.get('backgroundTime', 0)) / 60
+                foreground_time = float(app.get('foregroundTime', 0) or 0) / 60
+                background_time = float(app.get('backgroundTime', 0) or 0) / 60
                 
                 # Get battery usage safely
-                battery_usage = float(app.get('batteryUsage', 0))
+                battery_usage = float(app.get('batteryUsage', 0) or 0)
                 
                 # Get data usage safely
                 data_usage = app.get('dataUsage', {})
                 if not isinstance(data_usage, dict):
                     data_usage = {}
-                foreground_data = float(data_usage.get('foreground', 0))
-                background_data = float(data_usage.get('background', 0))
+                foreground_data = float(data_usage.get('foreground', 0) or 0)
+                background_data = float(data_usage.get('background', 0) or 0)
                 total_data = foreground_data + background_data
                 
                 # Format the app entry

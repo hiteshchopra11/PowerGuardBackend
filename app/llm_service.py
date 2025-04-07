@@ -528,7 +528,7 @@ def format_apps(apps):
             return "No valid app data available.\n"
         
         # Sort apps by battery usage (descending) and take top 5
-        sorted_apps = sorted(apps, key=lambda x: float(x.get('batteryUsage', 0)), reverse=True)[:5]
+        sorted_apps = sorted(apps, key=lambda x: float(x.get('batteryUsage', 0) or 0), reverse=True)[:5]
         
         for app in sorted_apps:
             try:
@@ -541,14 +541,14 @@ def format_apps(apps):
                 background_time = float(app.get('backgroundTime', 0)) / 60
                 
                 # Get battery usage safely
-                battery_usage = float(app.get('batteryUsage', 0))
+                battery_usage = float(app.get('batteryUsage', 0) or 0)
                 
                 # Get data usage safely
                 data_usage = app.get('dataUsage', {})
                 if not isinstance(data_usage, dict):
                     data_usage = {}
-                foreground_data = float(data_usage.get('foreground', 0))
-                background_data = float(data_usage.get('background', 0))
+                foreground_data = float(data_usage.get('foreground', 0) or 0)
+                background_data = float(data_usage.get('background', 0) or 0)
                 total_data = foreground_data + background_data
                 
                 # Format the app entry
