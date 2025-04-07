@@ -1,0 +1,2757 @@
+POWERGUARD AI BACKEND - REAL API TEST RESULTS
+================================================================================
+Total prompts tested: 16
+
+SUMMARY TABLE:
+--------------------------------------------------------------------------------
+PROMPT                                        | BATTERY  | ACTIONABLES  | INSIGHTS   | BATTERY SAVED   | DATA SAVED
+--------------------------------------------------------------------------------
+My battery is at 5% and I need it to last ... | 7        | 8            | 4          | 19.0            | 0.0       
+Save my battery, it's critically low          | 8        | 8            | 3          | 25.0            | 0.0       
+I'm traveling for 3 hours with 15% battery... | 10       | 8            | 4          | 20.0            | 0.0       
+Optimize battery but keep WhatsApp working    | 50       | 6            | 3          | 5.0             | 0.0       
+I only have 50MB data left until tomorrow     | 50       | 7            | 3          | 0.0             | 208.0     
+Save data but ensure my email still works     | 50       | 7            | 3          | 0.0             | 37.0      
+Traveling abroad with limited data plan       | 50       | 7            | 2          | 0.0             | 63.0      
+Which apps are draining my battery?           | 50       | 0            | 2          | 0.0             | 0.0       
+What's using all my data?                     | 50       | 0            | 2          | 0.0             | 0.0       
+Show me my battery usage for the past day     | 50       | 0            | 2          | 0.0             | 0.0       
+Need Maps and WhatsApp for 4 hours but bat... | 20       | 8            | 5          | 13.0            | 0.0       
+Can I stream Netflix for 2 hours with 30% ... | 30       | 8            | 5          | 20.0            | 0.0       
+I need to make an important call in 1 hour... | 5        | 8            | 4          | 20.0            | 0.0       
+Optimize battery and data but keep messagi... | 50       | 13           | 3          | 8.0             | 77.0      
+I have 15% battery and 100MB data left for... | 7        | 15           | 6          | 16.0            | 243.0     
+Save battery but make sure I can still use... | 50       | 6            | 3          | 6.0             | 0.0       
+
+================================================================================
+PROMPT: "My battery is at 5% and I need it to last for 2 more hours"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 7%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_BATTERY_SAVER
+    Package: system
+    Description: Enable battery saver mode
+    Mode: enabled
+
+  - Type: ADJUST_SCREEN
+    Package: system
+    Description: Reduce screen brightness and timeout
+    Mode: optimized
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.whatsapp
+    Description: Restrict background activity for WhatsApp
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background activity for Gmail
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.apps.maps
+    Description: Restrict background activity for Google Maps
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background activity for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background activity for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background activity for com.netflix.mediaclient
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Designed a custom battery strategy for you
+    Description: As battery is critically low (7.0%), taking aggressive measures
+Restricted background activity for non-critical apps
+Applied aggressive battery optimization
+Optimized for 2 hours of usage
+Estimated battery extension: 19 minutes
+    Severity: info
+
+  - Title: Critical Battery Level
+    Description: Battery level is critically low at 7.0%. Taking aggressive measures to extend battery life.
+    Severity: high
+
+  - Title: Optimized for 2 Hours Usage
+    Description: Adjusting power management to ensure device lasts for 2 hours.
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 19 minutes
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 19.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051697",
+  "success": true,
+  "timestamp": 1744051697.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-batt-d04b1355",
+      "type": "ENABLE_BATTERY_SAVER",
+      "packageName": "system",
+      "description": "Enable battery saver mode",
+      "reason": "Battery level is low (7.0%)",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "global-screen-18c57727",
+      "type": "ADJUST_SCREEN",
+      "packageName": "system",
+      "description": "Reduce screen brightness and timeout",
+      "reason": "Optimize battery usage",
+      "newMode": "optimized",
+      "parameters": {
+        "brightness": "auto",
+        "timeout": "30"
+      }
+    },
+    {
+      "id": "batt-com.whatsapp-a9e01759",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.whatsapp",
+      "description": "Restrict background activity for WhatsApp",
+      "reason": "Consuming 15.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.gm-d75b4243",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background activity for Gmail",
+      "reason": "Consuming 18.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-c5446229",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Restrict background activity for Google Maps",
+      "reason": "Consuming 20.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-bdef28d6",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background activity for com.facebook.katana",
+      "reason": "Consuming 25.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-121b2485",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background activity for com.spotify.music",
+      "reason": "Consuming 10.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-b53e6cd5",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background activity for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom battery strategy for you",
+      "description": "As battery is critically low (7.0%), taking aggressive measures\nRestricted background activity for non-critical apps\nApplied aggressive battery optimization\nOptimized for 2 hours of usage\nEstimated battery extension: 19 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "BatteryWarning",
+      "title": "Critical Battery Level",
+      "description": "Battery level is critically low at 7.0%. Taking aggressive measures to extend battery life.",
+      "severity": "high"
+    },
+    {
+      "type": "TimeConstraint",
+      "title": "Optimized for 2 Hours Usage",
+      "description": "Adjusting power management to ensure device lasts for 2 hours.",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 19 minutes",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 65.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 19.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Save my battery, it's critically low"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 8%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_BATTERY_SAVER
+    Package: system
+    Description: Enable battery saver mode
+    Mode: enabled
+
+  - Type: ADJUST_SCREEN
+    Package: system
+    Description: Reduce screen brightness and timeout
+    Mode: optimized
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.whatsapp
+    Description: Restrict background activity for WhatsApp
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background activity for Gmail
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.apps.maps
+    Description: Restrict background activity for Google Maps
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background activity for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background activity for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background activity for com.netflix.mediaclient
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Designed a custom battery strategy for you
+    Description: As battery is critically low (8.0%), taking aggressive measures
+Restricted background activity for non-critical apps
+Applied aggressive battery optimization
+Estimated battery extension: 25 minutes
+    Severity: info
+
+  - Title: Critical Battery Level
+    Description: Battery level is critically low at 8.0%. Taking aggressive measures to extend battery life.
+    Severity: high
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 25 minutes
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 25.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051698",
+  "success": true,
+  "timestamp": 1744051698.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-batt-ea628fa2",
+      "type": "ENABLE_BATTERY_SAVER",
+      "packageName": "system",
+      "description": "Enable battery saver mode",
+      "reason": "Battery level is low (8.0%)",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "global-screen-332bb8c3",
+      "type": "ADJUST_SCREEN",
+      "packageName": "system",
+      "description": "Reduce screen brightness and timeout",
+      "reason": "Optimize battery usage",
+      "newMode": "optimized",
+      "parameters": {
+        "brightness": "auto",
+        "timeout": "30"
+      }
+    },
+    {
+      "id": "batt-com.whatsapp-7825c1af",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.whatsapp",
+      "description": "Restrict background activity for WhatsApp",
+      "reason": "Consuming 15.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.gm-a079d131",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background activity for Gmail",
+      "reason": "Consuming 18.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-7c41253a",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Restrict background activity for Google Maps",
+      "reason": "Consuming 20.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-0bd8be2f",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background activity for com.facebook.katana",
+      "reason": "Consuming 25.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-d9d4d8c4",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background activity for com.spotify.music",
+      "reason": "Consuming 10.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-0e6348fb",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background activity for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom battery strategy for you",
+      "description": "As battery is critically low (8.0%), taking aggressive measures\nRestricted background activity for non-critical apps\nApplied aggressive battery optimization\nEstimated battery extension: 25 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "BatteryWarning",
+      "title": "Critical Battery Level",
+      "description": "Battery level is critically low at 8.0%. Taking aggressive measures to extend battery life.",
+      "severity": "high"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 25 minutes",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 65.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 25.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "I'm traveling for 3 hours with 15% battery left"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 10%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_BATTERY_SAVER
+    Package: system
+    Description: Enable battery saver mode
+    Mode: enabled
+
+  - Type: ADJUST_SCREEN
+    Package: system
+    Description: Reduce screen brightness and timeout
+    Mode: optimized
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.whatsapp
+    Description: Restrict background activity for WhatsApp
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background activity for Gmail
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.apps.maps
+    Description: Restrict background activity for Google Maps
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background activity for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background activity for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background activity for com.netflix.mediaclient
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Designed a custom battery strategy for you
+    Description: As battery is critically low (10.0%), taking aggressive measures
+Restricted background activity for non-critical apps
+Applied aggressive battery optimization
+Optimized for 3 hours of usage
+Estimated battery extension: 20 minutes
+    Severity: info
+
+  - Title: Critical Battery Level
+    Description: Battery level is critically low at 10.0%. Taking aggressive measures to extend battery life.
+    Severity: high
+
+  - Title: Optimized for 3 Hours Usage
+    Description: Adjusting power management to ensure device lasts for 3 hours.
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 20 minutes
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 20.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051699",
+  "success": true,
+  "timestamp": 1744051699.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-batt-4ea1b3d4",
+      "type": "ENABLE_BATTERY_SAVER",
+      "packageName": "system",
+      "description": "Enable battery saver mode",
+      "reason": "Battery level is low (10.0%)",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "global-screen-b42905d2",
+      "type": "ADJUST_SCREEN",
+      "packageName": "system",
+      "description": "Reduce screen brightness and timeout",
+      "reason": "Optimize battery usage",
+      "newMode": "optimized",
+      "parameters": {
+        "brightness": "auto",
+        "timeout": "30"
+      }
+    },
+    {
+      "id": "batt-com.whatsapp-bb708752",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.whatsapp",
+      "description": "Restrict background activity for WhatsApp",
+      "reason": "Consuming 15.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.gm-198157dc",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background activity for Gmail",
+      "reason": "Consuming 18.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-ac2f51ad",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Restrict background activity for Google Maps",
+      "reason": "Consuming 20.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-74fb01fd",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background activity for com.facebook.katana",
+      "reason": "Consuming 25.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-87a68dd3",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background activity for com.spotify.music",
+      "reason": "Consuming 10.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-ff0be6e2",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background activity for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom battery strategy for you",
+      "description": "As battery is critically low (10.0%), taking aggressive measures\nRestricted background activity for non-critical apps\nApplied aggressive battery optimization\nOptimized for 3 hours of usage\nEstimated battery extension: 20 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "BatteryWarning",
+      "title": "Critical Battery Level",
+      "description": "Battery level is critically low at 10.0%. Taking aggressive measures to extend battery life.",
+      "severity": "high"
+    },
+    {
+      "type": "TimeConstraint",
+      "title": "Optimized for 3 Hours Usage",
+      "description": "Adjusting power management to ensure device lasts for 3 hours.",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 20 minutes",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 65.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 20.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Optimize battery but keep WhatsApp working"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.whatsapp
+    Description: Set WhatsApp to normal priority
+    Mode: normal
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.google.android.gm
+    Description: Optimize battery usage for Gmail
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.google.android.apps.maps
+    Description: Optimize battery usage for Google Maps
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.facebook.katana
+    Description: Optimize battery usage for com.facebook.katana
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.spotify.music
+    Description: Optimize battery usage for com.spotify.music
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.netflix.mediaclient
+    Description: Optimize battery usage for com.netflix.mediaclient
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Designed a custom battery strategy for you
+    Description: Protected critical apps: WhatsApp
+Applied moderate optimization for non-critical apps
+Estimated battery extension: 5 minutes
+    Severity: info
+
+  - Title: Protected Critical Apps
+    Description: Maintaining full functionality for: WhatsApp
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 5 minutes
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 5.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051700",
+  "success": true,
+  "timestamp": 1744051700.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "critical-com.whatsapp-05857a5b",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.whatsapp",
+      "description": "Set WhatsApp to normal priority",
+      "reason": "Critical app needed for user's current task",
+      "newMode": "normal",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.gm-388d0205",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.google.android.gm",
+      "description": "Optimize battery usage for Gmail",
+      "reason": "Consuming 18.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-ffbfa425",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Optimize battery usage for Google Maps",
+      "reason": "Consuming 20.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-a7aa0b61",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.facebook.katana",
+      "description": "Optimize battery usage for com.facebook.katana",
+      "reason": "Consuming 25.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-98d288ce",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.spotify.music",
+      "description": "Optimize battery usage for com.spotify.music",
+      "reason": "Consuming 10.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-75db970b",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Optimize battery usage for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom battery strategy for you",
+      "description": "Protected critical apps: WhatsApp\nApplied moderate optimization for non-critical apps\nEstimated battery extension: 5 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "CriticalApps",
+      "title": "Protected Critical Apps",
+      "description": "Maintaining full functionality for: WhatsApp",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 5 minutes",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 5.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "I only have 50MB data left until tomorrow"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 1950 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: system
+    Description: Enable data saver mode
+    Mode: enabled
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.whatsapp
+    Description: Restrict background data for WhatsApp
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background data for Gmail
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.apps.maps
+    Description: Restrict background data for Google Maps
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background data for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background data for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background data for com.netflix.mediaclient
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Designed a custom network strategy for you
+    Description: Restricted background activity for non-critical apps
+Limited background data usage
+Estimated data savings: 208 MB
+    Severity: info
+
+  - Title: Limited Data Remaining
+    Description: You have 50.0MB of data remaining. Restricting background data usage to conserve data.
+    Severity: medium
+
+  - Title: Reduced Data Usage
+    Description: Estimated data savings: 208 MB
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 208.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051701",
+  "success": true,
+  "timestamp": 1744051701.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-data-b8aeb7a2",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "system",
+      "description": "Enable data saver mode",
+      "reason": "Optimize network data usage",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.whatsapp-e1b03a60",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.whatsapp",
+      "description": "Restrict background data for WhatsApp",
+      "reason": "Consuming 81.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "data-com.google.android.gm-37083548",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background data for Gmail",
+      "reason": "Consuming 99.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "data-com.google.android.apps.maps-b05ea59f",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Restrict background data for Google Maps",
+      "reason": "Consuming 21.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "data-com.facebook.katana-2b52cc3a",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background data for com.facebook.katana",
+      "reason": "Consuming 54.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "data-com.spotify.music-10bd8aa2",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background data for com.spotify.music",
+      "reason": "Consuming 42.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "data-com.netflix.mediaclient-bafc124f",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background data for com.netflix.mediaclient",
+      "reason": "Consuming 26.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom network strategy for you",
+      "description": "Restricted background activity for non-critical apps\nLimited background data usage\nEstimated data savings: 208 MB",
+      "severity": "info"
+    },
+    {
+      "type": "DataWarning",
+      "title": "Limited Data Remaining",
+      "description": "You have 50.0MB of data remaining. Restricting background data usage to conserve data.",
+      "severity": "medium"
+    },
+    {
+      "type": "DataSavings",
+      "title": "Reduced Data Usage",
+      "description": "Estimated data savings: 208 MB",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 208.0
+  }
+}
+
+================================================================================
+PROMPT: "Save data but ensure my email still works"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 1972 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: system
+    Description: Enable data saver mode
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.whatsapp
+    Description: Enable data saver for WhatsApp
+    Mode: enabled
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.google.android.gm
+    Description: Set Gmail to normal priority
+    Mode: normal
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.google.android.apps.maps
+    Description: Enable data saver for Google Maps
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.facebook.katana
+    Description: Enable data saver for com.facebook.katana
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.spotify.music
+    Description: Enable data saver for com.spotify.music
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.netflix.mediaclient
+    Description: Enable data saver for com.netflix.mediaclient
+    Mode: enabled
+
+INSIGHTS:
+  - Title: Designed a custom network strategy for you
+    Description: Protected critical apps: Gmail
+Applied moderate optimization for non-critical apps
+Estimated data savings: 37 MB
+    Severity: info
+
+  - Title: Protected Critical Apps
+    Description: Maintaining full functionality for: Gmail
+    Severity: info
+
+  - Title: Reduced Data Usage
+    Description: Estimated data savings: 37 MB
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 37.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051703",
+  "success": true,
+  "timestamp": 1744051703.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-data-24a063b5",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "system",
+      "description": "Enable data saver mode",
+      "reason": "Optimize network data usage",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.whatsapp-5d856813",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.whatsapp",
+      "description": "Enable data saver for WhatsApp",
+      "reason": "Consuming 114.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "critical-com.google.android.gm-3e9a6910",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.google.android.gm",
+      "description": "Set Gmail to normal priority",
+      "reason": "Critical app needed for user's current task",
+      "newMode": "normal",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.google.android.apps.maps-11542a4d",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Enable data saver for Google Maps",
+      "reason": "Consuming 145.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.facebook.katana-b4d4bc67",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.facebook.katana",
+      "description": "Enable data saver for com.facebook.katana",
+      "reason": "Consuming 169.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.spotify.music-ed960914",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.spotify.music",
+      "description": "Enable data saver for com.spotify.music",
+      "reason": "Consuming 279.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.netflix.mediaclient-6a198854",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Enable data saver for com.netflix.mediaclient",
+      "reason": "Consuming 197.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom network strategy for you",
+      "description": "Protected critical apps: Gmail\nApplied moderate optimization for non-critical apps\nEstimated data savings: 37 MB",
+      "severity": "info"
+    },
+    {
+      "type": "CriticalApps",
+      "title": "Protected Critical Apps",
+      "description": "Maintaining full functionality for: Gmail",
+      "severity": "info"
+    },
+    {
+      "type": "DataSavings",
+      "title": "Reduced Data Usage",
+      "description": "Estimated data savings: 37 MB",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 37.0
+  }
+}
+
+================================================================================
+PROMPT: "Traveling abroad with limited data plan"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 1940 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: system
+    Description: Enable data saver mode
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.whatsapp
+    Description: Enable data saver for WhatsApp
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.google.android.gm
+    Description: Enable data saver for Gmail
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.google.android.apps.maps
+    Description: Enable data saver for Google Maps
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.facebook.katana
+    Description: Enable data saver for com.facebook.katana
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.spotify.music
+    Description: Enable data saver for com.spotify.music
+    Mode: enabled
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.netflix.mediaclient
+    Description: Enable data saver for com.netflix.mediaclient
+    Mode: enabled
+
+INSIGHTS:
+  - Title: Designed a custom network strategy for you
+    Description: Applied moderate optimization for non-critical apps
+Estimated data savings: 63 MB
+    Severity: info
+
+  - Title: Reduced Data Usage
+    Description: Estimated data savings: 63 MB
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 63.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051704",
+  "success": true,
+  "timestamp": 1744051704.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-data-bb0c65f3",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "system",
+      "description": "Enable data saver mode",
+      "reason": "Optimize network data usage",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.whatsapp-d3728af0",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.whatsapp",
+      "description": "Enable data saver for WhatsApp",
+      "reason": "Consuming 129.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.google.android.gm-d78be7af",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.google.android.gm",
+      "description": "Enable data saver for Gmail",
+      "reason": "Consuming 168.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.google.android.apps.maps-c73018bd",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Enable data saver for Google Maps",
+      "reason": "Consuming 243.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.facebook.katana-f2678286",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.facebook.katana",
+      "description": "Enable data saver for com.facebook.katana",
+      "reason": "Consuming 255.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.spotify.music-9d2c8f59",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.spotify.music",
+      "description": "Enable data saver for com.spotify.music",
+      "reason": "Consuming 153.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.netflix.mediaclient-1d0ae0ab",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Enable data saver for com.netflix.mediaclient",
+      "reason": "Consuming 125.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom network strategy for you",
+      "description": "Applied moderate optimization for non-critical apps\nEstimated data savings: 63 MB",
+      "severity": "info"
+    },
+    {
+      "type": "DataSavings",
+      "title": "Reduced Data Usage",
+      "description": "Estimated data savings: 63 MB",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 63.0
+  }
+}
+
+================================================================================
+PROMPT: "Which apps are draining my battery?"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  No actionables generated
+INSIGHTS:
+  - Title: Battery Status
+    Description: Current battery level is 50.0% and discharging.
+    Severity: low
+
+  - Title: Top Battery Consuming Apps
+    Description: The following apps are consuming the most battery:
+- com.netflix.mediaclient: 30.0%
+- com.facebook.katana: 25.0%
+- Google Maps: 20.0%
+- Gmail: 18.0%
+- WhatsApp: 15.0%
+
+Consider restricting background activity for com.netflix.mediaclient, com.facebook.katana to save battery.
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051705",
+  "success": true,
+  "timestamp": 1744051705.0,
+  "message": "Analysis completed successfully",
+  "actionable": [],
+  "insights": [
+    {
+      "type": "BatteryStatus",
+      "title": "Battery Status",
+      "description": "Current battery level is 50.0% and discharging.",
+      "severity": "low"
+    },
+    {
+      "type": "BatteryUsage",
+      "title": "Top Battery Consuming Apps",
+      "description": "The following apps are consuming the most battery:\n- com.netflix.mediaclient: 30.0%\n- com.facebook.katana: 25.0%\n- Google Maps: 20.0%\n- Gmail: 18.0%\n- WhatsApp: 15.0%\n\nConsider restricting background activity for com.netflix.mediaclient, com.facebook.katana to save battery.",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "What's using all my data?"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 2000 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  No actionables generated
+INSIGHTS:
+  - Title: Network Status
+    Description: Connected to wifi with 85.0% signal strength. Your data usage is good with 2000MB remaining.
+    Severity: low
+
+  - Title: Top Data Consuming Apps
+    Description: The following apps are consuming the most data:
+- Gmail: 279.0 MB
+- com.netflix.mediaclient: 252.0 MB
+- com.facebook.katana: 246.0 MB
+- com.spotify.music: 242.0 MB
+- WhatsApp: 156.0 MB
+
+Consider restricting background data for Gmail, com.netflix.mediaclient, com.facebook.katana, com.spotify.music, WhatsApp to save mobile data.
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051706",
+  "success": true,
+  "timestamp": 1744051706.0,
+  "message": "Analysis completed successfully",
+  "actionable": [],
+  "insights": [
+    {
+      "type": "NetworkStatus",
+      "title": "Network Status",
+      "description": "Connected to wifi with 85.0% signal strength. Your data usage is good with 2000MB remaining.",
+      "severity": "low"
+    },
+    {
+      "type": "DataUsage",
+      "title": "Top Data Consuming Apps",
+      "description": "The following apps are consuming the most data:\n- Gmail: 279.0 MB\n- com.netflix.mediaclient: 252.0 MB\n- com.facebook.katana: 246.0 MB\n- com.spotify.music: 242.0 MB\n- WhatsApp: 156.0 MB\n\nConsider restricting background data for Gmail, com.netflix.mediaclient, com.facebook.katana, com.spotify.music, WhatsApp to save mobile data.",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Show me my battery usage for the past day"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  No actionables generated
+INSIGHTS:
+  - Title: Battery Status
+    Description: Current battery level is 50.0% and discharging.
+    Severity: low
+
+  - Title: Top Battery Consuming Apps
+    Description: The following apps are consuming the most battery:
+- com.netflix.mediaclient: 30.0%
+- com.facebook.katana: 25.0%
+- Google Maps: 20.0%
+- Gmail: 18.0%
+- WhatsApp: 15.0%
+
+Consider restricting background activity for com.netflix.mediaclient, com.facebook.katana to save battery.
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051707",
+  "success": true,
+  "timestamp": 1744051707.0,
+  "message": "Analysis completed successfully",
+  "actionable": [],
+  "insights": [
+    {
+      "type": "BatteryStatus",
+      "title": "Battery Status",
+      "description": "Current battery level is 50.0% and discharging.",
+      "severity": "low"
+    },
+    {
+      "type": "BatteryUsage",
+      "title": "Top Battery Consuming Apps",
+      "description": "The following apps are consuming the most battery:\n- com.netflix.mediaclient: 30.0%\n- com.facebook.katana: 25.0%\n- Google Maps: 20.0%\n- Gmail: 18.0%\n- WhatsApp: 15.0%\n\nConsider restricting background activity for com.netflix.mediaclient, com.facebook.katana to save battery.",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Need Maps and WhatsApp for 4 hours but battery at 20%"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 20%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_BATTERY_SAVER
+    Package: system
+    Description: Enable battery saver mode
+    Mode: enabled
+
+  - Type: ADJUST_SCREEN
+    Package: system
+    Description: Reduce screen brightness and timeout
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.whatsapp
+    Description: Set WhatsApp to normal priority
+    Mode: normal
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background activity for Gmail
+    Mode: restricted
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.google.android.apps.maps
+    Description: Set Google Maps to normal priority
+    Mode: normal
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background activity for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background activity for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background activity for com.netflix.mediaclient
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Designed a custom battery strategy for you
+    Description: As battery is low (20.0%), optimizing usage
+Protected critical apps: WhatsApp, Google Maps
+Restricted background activity for non-critical apps
+Applied aggressive battery optimization
+Optimized for 4 hours of usage
+Estimated battery extension: 13 minutes
+    Severity: info
+
+  - Title: Low Battery Level
+    Description: Battery level is low at 20.0%. Optimizing usage to extend battery life.
+    Severity: medium
+
+  - Title: Optimized for 4 Hours Usage
+    Description: Adjusting power management to ensure device lasts for 4 hours.
+    Severity: info
+
+  - Title: Protected Critical Apps
+    Description: Maintaining full functionality for: WhatsApp, Google Maps
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 13 minutes
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 13.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051708",
+  "success": true,
+  "timestamp": 1744051708.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-batt-833b7000",
+      "type": "ENABLE_BATTERY_SAVER",
+      "packageName": "system",
+      "description": "Enable battery saver mode",
+      "reason": "Battery level is low (20.0%)",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "global-screen-8e42b733",
+      "type": "ADJUST_SCREEN",
+      "packageName": "system",
+      "description": "Reduce screen brightness and timeout",
+      "reason": "Optimize battery usage",
+      "newMode": "optimized",
+      "parameters": {
+        "brightness": "auto",
+        "timeout": "30"
+      }
+    },
+    {
+      "id": "critical-com.whatsapp-17bd1d49",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.whatsapp",
+      "description": "Set WhatsApp to normal priority",
+      "reason": "Critical app needed for user's current task",
+      "newMode": "normal",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.gm-35ebcc83",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background activity for Gmail",
+      "reason": "Consuming 18.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "critical-com.google.android.apps.maps-b7a51448",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Set Google Maps to normal priority",
+      "reason": "Critical app needed for user's current task",
+      "newMode": "normal",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-5c5a2b67",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background activity for com.facebook.katana",
+      "reason": "Consuming 25.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-3843d3c1",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background activity for com.spotify.music",
+      "reason": "Consuming 10.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-e372d70e",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background activity for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom battery strategy for you",
+      "description": "As battery is low (20.0%), optimizing usage\nProtected critical apps: WhatsApp, Google Maps\nRestricted background activity for non-critical apps\nApplied aggressive battery optimization\nOptimized for 4 hours of usage\nEstimated battery extension: 13 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "BatteryWarning",
+      "title": "Low Battery Level",
+      "description": "Battery level is low at 20.0%. Optimizing usage to extend battery life.",
+      "severity": "medium"
+    },
+    {
+      "type": "TimeConstraint",
+      "title": "Optimized for 4 Hours Usage",
+      "description": "Adjusting power management to ensure device lasts for 4 hours.",
+      "severity": "info"
+    },
+    {
+      "type": "CriticalApps",
+      "title": "Protected Critical Apps",
+      "description": "Maintaining full functionality for: WhatsApp, Google Maps",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 13 minutes",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 75.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 13.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Can I stream Netflix for 2 hours with 30% battery?"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 30%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_BATTERY_SAVER
+    Package: system
+    Description: Enable battery saver mode
+    Mode: enabled
+
+  - Type: ADJUST_SCREEN
+    Package: system
+    Description: Reduce screen brightness and timeout
+    Mode: optimized
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.whatsapp
+    Description: Restrict background activity for WhatsApp
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background activity for Gmail
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.apps.maps
+    Description: Restrict background activity for Google Maps
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background activity for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background activity for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background activity for com.netflix.mediaclient
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Direct Answer
+    Description: Yes, but you'll need to optimize. With 30.0% battery, you can stream Netflix for 2 hours if you follow the optimization recommendations. Our optimizations can extend your battery by about 20 minutes.
+    Severity: medium
+
+  - Title: Designed a custom battery strategy for you
+    Description: As battery is low (30.0%), optimizing usage
+Restricted background activity for non-critical apps
+Applied aggressive battery optimization
+Optimized for 2 hours of usage
+Estimated battery extension: 20 minutes
+    Severity: info
+
+  - Title: Low Battery Level
+    Description: Battery level is low at 30.0%. Optimizing usage to extend battery life.
+    Severity: medium
+
+  - Title: Optimized for 2 Hours Usage
+    Description: Adjusting power management to ensure device lasts for 2 hours.
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 20 minutes
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 20.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051709",
+  "success": true,
+  "timestamp": 1744051709.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-batt-f2b99f64",
+      "type": "ENABLE_BATTERY_SAVER",
+      "packageName": "system",
+      "description": "Enable battery saver mode",
+      "reason": "Battery level is low (30.0%)",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "global-screen-3b305a27",
+      "type": "ADJUST_SCREEN",
+      "packageName": "system",
+      "description": "Reduce screen brightness and timeout",
+      "reason": "Optimize battery usage",
+      "newMode": "optimized",
+      "parameters": {
+        "brightness": "auto",
+        "timeout": "30"
+      }
+    },
+    {
+      "id": "batt-com.whatsapp-dcccab09",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.whatsapp",
+      "description": "Restrict background activity for WhatsApp",
+      "reason": "Consuming 15.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.gm-fe0e6317",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background activity for Gmail",
+      "reason": "Consuming 18.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-8d2abb07",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Restrict background activity for Google Maps",
+      "reason": "Consuming 20.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-56392896",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background activity for com.facebook.katana",
+      "reason": "Consuming 25.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-c0287992",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background activity for com.spotify.music",
+      "reason": "Consuming 10.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-8d1c74cf",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background activity for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "DirectAnswer",
+      "title": "Direct Answer",
+      "description": "Yes, but you'll need to optimize. With 30.0% battery, you can stream Netflix for 2 hours if you follow the optimization recommendations. Our optimizations can extend your battery by about 20 minutes.",
+      "severity": "medium"
+    },
+    {
+      "type": "Strategy",
+      "title": "Designed a custom battery strategy for you",
+      "description": "As battery is low (30.0%), optimizing usage\nRestricted background activity for non-critical apps\nApplied aggressive battery optimization\nOptimized for 2 hours of usage\nEstimated battery extension: 20 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "BatteryWarning",
+      "title": "Low Battery Level",
+      "description": "Battery level is low at 30.0%. Optimizing usage to extend battery life.",
+      "severity": "medium"
+    },
+    {
+      "type": "TimeConstraint",
+      "title": "Optimized for 2 Hours Usage",
+      "description": "Adjusting power management to ensure device lasts for 2 hours.",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 20 minutes",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 75.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 20.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "I need to make an important call in 1 hour but battery is at 10%"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 5%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_BATTERY_SAVER
+    Package: system
+    Description: Enable battery saver mode
+    Mode: enabled
+
+  - Type: ADJUST_SCREEN
+    Package: system
+    Description: Reduce screen brightness and timeout
+    Mode: optimized
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.whatsapp
+    Description: Restrict background activity for WhatsApp
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background activity for Gmail
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.apps.maps
+    Description: Restrict background activity for Google Maps
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background activity for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background activity for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background activity for com.netflix.mediaclient
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Designed a custom battery strategy for you
+    Description: As battery is critically low (5.0%), taking aggressive measures
+Restricted background activity for non-critical apps
+Applied aggressive battery optimization
+Optimized for 1 hour of usage
+Estimated battery extension: 20 minutes
+    Severity: info
+
+  - Title: Critical Battery Level
+    Description: Battery level is critically low at 5.0%. Taking aggressive measures to extend battery life.
+    Severity: high
+
+  - Title: Optimized for 1 Hour Usage
+    Description: Adjusting power management to ensure device lasts for 1 hour.
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 20 minutes
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 20.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051710",
+  "success": true,
+  "timestamp": 1744051710.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-batt-d8d51682",
+      "type": "ENABLE_BATTERY_SAVER",
+      "packageName": "system",
+      "description": "Enable battery saver mode",
+      "reason": "Battery level is low (5.0%)",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "global-screen-1e540e2b",
+      "type": "ADJUST_SCREEN",
+      "packageName": "system",
+      "description": "Reduce screen brightness and timeout",
+      "reason": "Optimize battery usage",
+      "newMode": "optimized",
+      "parameters": {
+        "brightness": "auto",
+        "timeout": "30"
+      }
+    },
+    {
+      "id": "batt-com.whatsapp-825c7230",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.whatsapp",
+      "description": "Restrict background activity for WhatsApp",
+      "reason": "Consuming 15.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.gm-207e7c07",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background activity for Gmail",
+      "reason": "Consuming 18.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-433567ba",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Restrict background activity for Google Maps",
+      "reason": "Consuming 20.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-2055e2bb",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background activity for com.facebook.katana",
+      "reason": "Consuming 25.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-8263e941",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background activity for com.spotify.music",
+      "reason": "Consuming 10.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-d8d2edd4",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background activity for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom battery strategy for you",
+      "description": "As battery is critically low (5.0%), taking aggressive measures\nRestricted background activity for non-critical apps\nApplied aggressive battery optimization\nOptimized for 1 hour of usage\nEstimated battery extension: 20 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "BatteryWarning",
+      "title": "Critical Battery Level",
+      "description": "Battery level is critically low at 5.0%. Taking aggressive measures to extend battery life.",
+      "severity": "high"
+    },
+    {
+      "type": "TimeConstraint",
+      "title": "Optimized for 1 Hour Usage",
+      "description": "Adjusting power management to ensure device lasts for 1 hour.",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 20 minutes",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 65.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 20.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Optimize battery and data but keep messaging apps working"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 1983 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: system
+    Description: Enable data saver mode
+    Mode: enabled
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.whatsapp
+    Description: Optimize battery usage for WhatsApp
+    Mode: optimized
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.whatsapp
+    Description: Enable data saver for WhatsApp
+    Mode: enabled
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.google.android.gm
+    Description: Optimize battery usage for Gmail
+    Mode: optimized
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.google.android.gm
+    Description: Enable data saver for Gmail
+    Mode: enabled
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.google.android.apps.maps
+    Description: Optimize battery usage for Google Maps
+    Mode: optimized
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.google.android.apps.maps
+    Description: Enable data saver for Google Maps
+    Mode: enabled
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.facebook.katana
+    Description: Optimize battery usage for com.facebook.katana
+    Mode: optimized
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.facebook.katana
+    Description: Enable data saver for com.facebook.katana
+    Mode: enabled
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.spotify.music
+    Description: Optimize battery usage for com.spotify.music
+    Mode: optimized
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.spotify.music
+    Description: Enable data saver for com.spotify.music
+    Mode: enabled
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.netflix.mediaclient
+    Description: Optimize battery usage for com.netflix.mediaclient
+    Mode: optimized
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.netflix.mediaclient
+    Description: Enable data saver for com.netflix.mediaclient
+    Mode: enabled
+
+INSIGHTS:
+  - Title: Designed a custom resource strategy for you
+    Description: Applied moderate optimization for non-critical apps
+Estimated battery extension: 8 minutes
+Estimated data savings: 77 MB
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 8 minutes
+    Severity: info
+
+  - Title: Reduced Data Usage
+    Description: Estimated data savings: 77 MB
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 8.0 minutes
+  Data: 77.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051711",
+  "success": true,
+  "timestamp": 1744051711.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-data-f1b78633",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "system",
+      "description": "Enable data saver mode",
+      "reason": "Optimize network data usage",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.whatsapp-a0504ab3",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.whatsapp",
+      "description": "Optimize battery usage for WhatsApp",
+      "reason": "Consuming 15.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.whatsapp-c9e71b5c",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.whatsapp",
+      "description": "Enable data saver for WhatsApp",
+      "reason": "Consuming 146.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.gm-2eca051e",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.google.android.gm",
+      "description": "Optimize battery usage for Gmail",
+      "reason": "Consuming 18.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.google.android.gm-5950e093",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.google.android.gm",
+      "description": "Enable data saver for Gmail",
+      "reason": "Consuming 88.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-bf497424",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Optimize battery usage for Google Maps",
+      "reason": "Consuming 20.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.google.android.apps.maps-f9a85fcd",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Enable data saver for Google Maps",
+      "reason": "Consuming 214.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-c989faf7",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.facebook.katana",
+      "description": "Optimize battery usage for com.facebook.katana",
+      "reason": "Consuming 25.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.facebook.katana-bfe6e808",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.facebook.katana",
+      "description": "Enable data saver for com.facebook.katana",
+      "reason": "Consuming 130.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-448c46a6",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.spotify.music",
+      "description": "Optimize battery usage for com.spotify.music",
+      "reason": "Consuming 10.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.spotify.music-a834b6be",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.spotify.music",
+      "description": "Enable data saver for com.spotify.music",
+      "reason": "Consuming 151.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-b3ce8506",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Optimize battery usage for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.netflix.mediaclient-75eabb50",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Enable data saver for com.netflix.mediaclient",
+      "reason": "Consuming 122.0 MB of data",
+      "newMode": "enabled",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom resource strategy for you",
+      "description": "Applied moderate optimization for non-critical apps\nEstimated battery extension: 8 minutes\nEstimated data savings: 77 MB",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 8 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "DataSavings",
+      "title": "Reduced Data Usage",
+      "description": "Estimated data savings: 77 MB",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 8.0,
+    "dataMB": 77.0
+  }
+}
+
+================================================================================
+PROMPT: "I have 15% battery and 100MB data left for a 2 hour trip"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 7%
+  Data Used: 1900 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_BATTERY_SAVER
+    Package: system
+    Description: Enable battery saver mode
+    Mode: enabled
+
+  - Type: ADJUST_SCREEN
+    Package: system
+    Description: Reduce screen brightness and timeout
+    Mode: optimized
+
+  - Type: ENABLE_DATA_SAVER
+    Package: system
+    Description: Enable data saver mode
+    Mode: enabled
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.whatsapp
+    Description: Restrict background activity for WhatsApp
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.whatsapp
+    Description: Restrict background data for WhatsApp
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background activity for Gmail
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.gm
+    Description: Restrict background data for Gmail
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.apps.maps
+    Description: Restrict background activity for Google Maps
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.google.android.apps.maps
+    Description: Restrict background data for Google Maps
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background activity for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.facebook.katana
+    Description: Restrict background data for com.facebook.katana
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background activity for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.spotify.music
+    Description: Restrict background data for com.spotify.music
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background activity for com.netflix.mediaclient
+    Mode: restricted
+
+  - Type: RESTRICT_BACKGROUND
+    Package: com.netflix.mediaclient
+    Description: Restrict background data for com.netflix.mediaclient
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Designed a custom resource strategy for you
+    Description: As battery is critically low (7.0%), taking aggressive measures
+Restricted background activity for non-critical apps
+Limited background data usage
+Applied aggressive battery optimization
+Optimized for 2 hours of usage
+Estimated battery extension: 16 minutes
+Estimated data savings: 243 MB
+    Severity: info
+
+  - Title: Critical Battery Level
+    Description: Battery level is critically low at 7.0%. Taking aggressive measures to extend battery life.
+    Severity: high
+
+  - Title: Limited Data Remaining
+    Description: You have 100.0MB of data remaining. Restricting background data usage to conserve data.
+    Severity: medium
+
+  - Title: Optimized for 2 Hours Usage
+    Description: Adjusting power management to ensure device lasts for 2 hours.
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 16 minutes
+    Severity: info
+
+  - Title: Reduced Data Usage
+    Description: Estimated data savings: 243 MB
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 16.0 minutes
+  Data: 243.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051712",
+  "success": true,
+  "timestamp": 1744051712.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "global-batt-6c88baea",
+      "type": "ENABLE_BATTERY_SAVER",
+      "packageName": "system",
+      "description": "Enable battery saver mode",
+      "reason": "Battery level is low (7.0%)",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "global-screen-50c29337",
+      "type": "ADJUST_SCREEN",
+      "packageName": "system",
+      "description": "Reduce screen brightness and timeout",
+      "reason": "Optimize battery usage",
+      "newMode": "optimized",
+      "parameters": {
+        "brightness": "auto",
+        "timeout": "30"
+      }
+    },
+    {
+      "id": "global-data-c2b96778",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "system",
+      "description": "Enable data saver mode",
+      "reason": "Optimize network data usage",
+      "newMode": "enabled",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.whatsapp-0ae87b72",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.whatsapp",
+      "description": "Restrict background activity for WhatsApp",
+      "reason": "Consuming 15.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.whatsapp-df471425",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.whatsapp",
+      "description": "Restrict background data for WhatsApp",
+      "reason": "Consuming 70.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "batt-com.google.android.gm-7c6b3626",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background activity for Gmail",
+      "reason": "Consuming 18.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.google.android.gm-945bca39",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.gm",
+      "description": "Restrict background data for Gmail",
+      "reason": "Consuming 53.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-b6ff701e",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Restrict background activity for Google Maps",
+      "reason": "Consuming 20.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.google.android.apps.maps-5f40bb4a",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Restrict background data for Google Maps",
+      "reason": "Consuming 63.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "batt-com.facebook.katana-fadb4e1d",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background activity for com.facebook.katana",
+      "reason": "Consuming 25.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.facebook.katana-74e67621",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.facebook.katana",
+      "description": "Restrict background data for com.facebook.katana",
+      "reason": "Consuming 79.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "batt-com.spotify.music-2c67cf9a",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background activity for com.spotify.music",
+      "reason": "Consuming 10.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.spotify.music-cfde3c58",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.spotify.music",
+      "description": "Restrict background data for com.spotify.music",
+      "reason": "Consuming 58.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-f5e6988e",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background activity for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery in background",
+      "newMode": "restricted",
+      "parameters": {}
+    },
+    {
+      "id": "data-com.netflix.mediaclient-c5335f20",
+      "type": "RESTRICT_BACKGROUND",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Restrict background data for com.netflix.mediaclient",
+      "reason": "Consuming 52.0 MB of data in background",
+      "newMode": "restricted",
+      "parameters": {
+        "restrictData": true
+      }
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom resource strategy for you",
+      "description": "As battery is critically low (7.0%), taking aggressive measures\nRestricted background activity for non-critical apps\nLimited background data usage\nApplied aggressive battery optimization\nOptimized for 2 hours of usage\nEstimated battery extension: 16 minutes\nEstimated data savings: 243 MB",
+      "severity": "info"
+    },
+    {
+      "type": "BatteryWarning",
+      "title": "Critical Battery Level",
+      "description": "Battery level is critically low at 7.0%. Taking aggressive measures to extend battery life.",
+      "severity": "high"
+    },
+    {
+      "type": "DataWarning",
+      "title": "Limited Data Remaining",
+      "description": "You have 100.0MB of data remaining. Restricting background data usage to conserve data.",
+      "severity": "medium"
+    },
+    {
+      "type": "TimeConstraint",
+      "title": "Optimized for 2 Hours Usage",
+      "description": "Adjusting power management to ensure device lasts for 2 hours.",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 16 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "DataSavings",
+      "title": "Reduced Data Usage",
+      "description": "Estimated data savings: 243 MB",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 65.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 16.0,
+    "dataMB": 243.0
+  }
+}
+
+================================================================================
+PROMPT: "Save battery but make sure I can still use Gmail"
+--------------------------------------------------------------------------------
+DEVICE DATA:
+  Battery Level: 50%
+  Data Used: 1500 MB
+  Number of Apps: 6
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.whatsapp
+    Description: Optimize battery usage for WhatsApp
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.google.android.gm
+    Description: Set Gmail to normal priority
+    Mode: normal
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.google.android.apps.maps
+    Description: Optimize battery usage for Google Maps
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.facebook.katana
+    Description: Optimize battery usage for com.facebook.katana
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.spotify.music
+    Description: Optimize battery usage for com.spotify.music
+    Mode: optimized
+
+  - Type: OPTIMIZE_BATTERY
+    Package: com.netflix.mediaclient
+    Description: Optimize battery usage for com.netflix.mediaclient
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Designed a custom battery strategy for you
+    Description: Protected critical apps: Gmail
+Applied moderate optimization for non-critical apps
+Estimated battery extension: 6 minutes
+    Severity: info
+
+  - Title: Protected Critical Apps
+    Description: Maintaining full functionality for: Gmail
+    Severity: info
+
+  - Title: Extended Battery Life
+    Description: Estimated battery extension: 6 minutes
+    Severity: info
+
+ESTIMATED SAVINGS:
+  Battery: 6.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "gen_1744051713",
+  "success": true,
+  "timestamp": 1744051713.0,
+  "message": "Analysis completed successfully",
+  "actionable": [
+    {
+      "id": "batt-com.whatsapp-f4fdd395",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.whatsapp",
+      "description": "Optimize battery usage for WhatsApp",
+      "reason": "Consuming 15.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "critical-com.google.android.gm-e2cdba6a",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.google.android.gm",
+      "description": "Set Gmail to normal priority",
+      "reason": "Critical app needed for user's current task",
+      "newMode": "normal",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.google.android.apps.maps-44e0c2e3",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.google.android.apps.maps",
+      "description": "Optimize battery usage for Google Maps",
+      "reason": "Consuming 20.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.facebook.katana-31c7d75e",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.facebook.katana",
+      "description": "Optimize battery usage for com.facebook.katana",
+      "reason": "Consuming 25.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.spotify.music-e3bfaf99",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.spotify.music",
+      "description": "Optimize battery usage for com.spotify.music",
+      "reason": "Consuming 10.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "batt-com.netflix.mediaclient-c1c4e196",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.netflix.mediaclient",
+      "description": "Optimize battery usage for com.netflix.mediaclient",
+      "reason": "Consuming 30.0% battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "Strategy",
+      "title": "Designed a custom battery strategy for you",
+      "description": "Protected critical apps: Gmail\nApplied moderate optimization for non-critical apps\nEstimated battery extension: 6 minutes",
+      "severity": "info"
+    },
+    {
+      "type": "CriticalApps",
+      "title": "Protected Critical Apps",
+      "description": "Maintaining full functionality for: Gmail",
+      "severity": "info"
+    },
+    {
+      "type": "BatterySavings",
+      "title": "Extended Battery Life",
+      "description": "Estimated battery extension: 6 minutes",
+      "severity": "info"
+    }
+  ],
+  "batteryScore": 85.0,
+  "dataScore": 80.0,
+  "performanceScore": 90.0,
+  "estimatedSavings": {
+    "batteryMinutes": 6.0,
+    "dataMB": 0.0
+  }
+}

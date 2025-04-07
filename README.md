@@ -12,6 +12,10 @@ A battery optimization service that uses AI to analyze device usage patterns and
 - Rate limiting and DDoS protection
 - User-directed optimizations via prompts
 - Hybrid rule-based and LLM prompt classification
+- Smart context-aware prompt analysis with critical app protection
+- Battery level based optimization strategy
+- Time and data constraint-aware recommendations
+- Information requests vs. optimization requests handling
 
 ## API Endpoints
 
@@ -185,30 +189,81 @@ The PowerGuard system supports user-directed optimizations through the optional 
 
 ### Prompt Types
 
+#### Optimization Prompts
+
 - **Battery Optimization**: "Optimize battery life", "Save power", "Extend battery"
 - **Data Optimization**: "Reduce data usage", "Save network data", "Optimize internet usage"
 - **Combined Optimization**: "Optimize both battery and data", "Save resources"
 - **Specific Actions**: "Kill battery-draining apps", "Restrict background data"
+- **Critical App Protection**: "Keep WhatsApp working", "I need maps and messages"
+- **Time Constraints**: "Need battery to last 4 hours", "Make phone last until tonight"
+- **Data Constraints**: "I only have 500MB left", "Save data, almost at my limit"
+
+#### Information Prompts
+
+- **Battery Usage Information**: "What apps are using the most battery?", "Show me battery-draining apps"
+- **Data Usage Information**: "Which apps are using the most data?", "Top network consuming apps"
+- **General Information**: "Show me my usage patterns", "What's consuming my resources?"
 
 ### How It Works
 
-1. The system first uses rule-based classification to identify the user's intent
-2. If rule-based classification is inconclusive, it falls back to LLM-based classification
-3. Based on the classification, the system customizes its analysis focus
-4. The recommendations and insights are filtered and prioritized according to the user's goals
+The system uses a multi-step analysis approach:
 
-### Example
+1. First, it determines if the prompt is an information request or an optimization request
+2. For information requests, it generates insights without actionable recommendations
+3. For optimization requests, it:
+   - Identifies critical apps mentioned in the prompt (e.g., messaging, navigation)
+   - Analyzes battery level to determine strategy aggressiveness
+   - Considers time and data constraints mentioned in the prompt
+   - Generates actionable recommendations that protect critical apps
+   - Provides estimated resource savings based on the recommended actions
+
+### Battery Level Based Strategies
+
+The system adapts its strategy based on the current battery level:
+
+- **Critical** (≤10%): Very aggressive optimization with maximum savings
+- **Low** (≤30%): Aggressive optimization with significant savings
+- **Moderate** (≤80%): Moderate optimization with balanced approach
+- **High** (>80%): Minimal optimization focusing only on problematic apps
+
+### Critical App Protection
+
+When users mention specific app categories (e.g., "need maps and messages"), the system:
+
+1. Identifies the critical apps in those categories
+2. Ensures these apps remain in normal mode and are not restricted
+3. Applies more aggressive optimizations to non-critical apps
+4. Provides a balance between preserving functionality and maximizing resource savings
+
+### Examples
 
 ```json
+// Example 1: Battery optimization with low battery
 {
   "deviceId": "example-device-001",
   "timestamp": 1686123456,
-  "battery": { ... },
-  "memory": { ... },
-  "cpu": { ... },
-  "network": { ... },
+  "battery": { "level": 15 },
   "apps": [ ... ],
-  "prompt": "Save my battery life, I'm running low"
+  "prompt": "Need to save battery"
+}
+
+// Example 2: Information request
+{
+  "deviceId": "example-device-001",
+  "timestamp": 1686123456,
+  "battery": { "level": 75 },
+  "apps": [ ... ],
+  "prompt": "What apps are using the most battery?"
+}
+
+// Example 3: Critical app protection with time constraint
+{
+  "deviceId": "example-device-001",
+  "timestamp": 1686123456,
+  "battery": { "level": 30 },
+  "apps": [ ... ],
+  "prompt": "I'm traveling for 3 hours and need maps and messaging"
 }
 ```
 

@@ -256,6 +256,10 @@ CREATE TABLE usage_patterns (
    - Recommendation generation
    - Prompt analysis and classification
    - User-directed optimization focus
+   - Critical app protection
+   - Battery level based strategies
+   - Time and data constraint handling
+   - Information vs optimization request detection
 
 3. **Storage Layer**
    - SQLite database
@@ -267,6 +271,86 @@ CREATE TABLE usage_patterns (
    - Input validation
    - Error handling
    - Logging
+
+### Smart Prompt Analysis
+
+The system implements an intelligent prompt analysis pipeline that understands user intentions:
+
+```mermaid
+graph TD
+    A[User Prompt] --> B[Information or Optimization Request?]
+    B -->|Information| C[Extract Resource Type]
+    B -->|Optimization| D[Extract Constraints]
+    C --> E[Generate Information Insights]
+    D --> F[Identify Critical Apps]
+    D --> G[Extract Time Constraints]
+    D --> H[Extract Data Constraints]
+    F --> I[Strategy Generation]
+    G --> I
+    H --> I
+    I --> J[Battery Level Analysis]
+    J --> K[Determine Aggressiveness]
+    K --> L[Generate Actionables]
+    K --> M[Generate Optimization Insights]
+    L --> N[Final Response]
+    M --> N
+    E --> N
+```
+
+#### Information Request Handling
+
+When a user asks for information (e.g., "What apps are using the most battery?"), the system:
+
+1. Identifies the request as an information request
+2. Determines the resource type of interest (battery, data, or both)
+3. Retrieves the relevant resource usage data
+4. Generates insights with the requested information
+5. Returns a response with insights but no actionable recommendations
+
+#### Optimization Request Handling
+
+When a user asks for optimization (e.g., "Save my battery" or "I need maps for 3 hours"), the system:
+
+1. Identifies the request as an optimization request
+2. Identifies any critical app categories mentioned (e.g., messaging, navigation)
+3. Extracts time constraints if mentioned (e.g., "for 3 hours")
+4. Extracts data constraints if mentioned (e.g., "500MB left")
+5. Analyzes battery level to determine base strategy aggressiveness
+6. Adjusts strategy based on time and data constraints
+7. Generates actionables that protect critical apps and optimize others
+8. Generates insights explaining the strategy and expected savings
+9. Returns a comprehensive response with actionables and insights
+
+### Critical App Categories
+
+The system recognizes specific app categories that users often need to keep working:
+
+1. **Messaging Apps**
+   - WhatsApp
+   - Messenger
+   - Viber
+   - Other communication apps
+
+2. **Navigation Apps**
+   - Google Maps
+   - Waze
+   - Mapbox
+   - Other mapping apps
+
+When users mention these categories (e.g., "need messages" or "using maps"), the system ensures these apps remain fully functional while optimizing other resources.
+
+### Battery Level Based Strategies
+
+The system adapts its optimization strategy based on current battery level:
+
+| Battery Level | Strategy | Approach |
+|--------------|----------|----------|
+| ≤10% | Very Aggressive | Maximum restrictions on non-critical apps, significant UI optimizations |
+| ≤30% | Aggressive | Strong restrictions on background activity, moderate UI optimizations |
+| ≤80% | Moderate | Balanced approach focusing on problematic apps |
+| >80% | Minimal | Light optimizations only for the most resource-intensive apps |
+
+This adaptive approach ensures that battery-saving measures are proportional to the urgency of the situation.
 
 ### Implementation Details
 

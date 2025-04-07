@@ -1,0 +1,857 @@
+POWERGUARD AI BACKEND - TEST RESULTS
+================================================================================
+Total prompts tested: 15
+
+SUMMARY TABLE:
+--------------------------------------------------------------------------------
+PROMPT                                             | ACTIONABLES  | INSIGHTS   | BATTERY SAVED   | DATA SAVED
+--------------------------------------------------------------------------------
+My battery is at 5% and I need it to last for 2... | 1            | 1          | 30.0            | 0.0       
+Save my battery, it's critically low               | 1            | 1          | 30.0            | 0.0       
+I'm traveling for 3 hours with 15% battery left    | 1            | 1          | 30.0            | 0.0       
+Optimize battery but keep WhatsApp working         | 1            | 1          | 30.0            | 0.0       
+I only have 50MB data left until tomorrow          | 1            | 1          | 0.0             | 20.0      
+How can I reduce my data usage?                    | 1            | 1          | 0.0             | 20.0      
+Save data but ensure my email still works          | 1            | 1          | 0.0             | 20.0      
+Traveling abroad with limited data plan            | 1            | 1          | 0.0             | 20.0      
+Which apps are draining my battery?                | 1            | 1          | 30.0            | 0.0       
+What's using all my data?                          | 1            | 1          | 0.0             | 20.0      
+Show me my battery usage for the past day          | 1            | 1          | 30.0            | 0.0       
+Low battery and almost out of data, help!          | 2            | 2          | 30.0            | 20.0      
+Need Maps and WhatsApp for 4 hours but battery ... | 1            | 1          | 30.0            | 0.0       
+Can I stream Netflix for 2 hours with 30% battery? | 1            | 1          | 30.0            | 0.0       
+I need to make an important call in 1 hour but ... | 1            | 1          | 30.0            | 0.0       
+
+================================================================================
+PROMPT: "My battery is at 5% and I need it to last for 2 more hours"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/My%20battery%20is%20at%205%%20and%20I%20need%20it%20to%20last%20for%202%20more%20hours"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048481",
+  "success": true,
+  "timestamp": 1744048481.780433,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Save my battery, it's critically low"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Save%20my%20battery,%20it's%20critically%20low"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048482",
+  "success": true,
+  "timestamp": 1744048482.805656,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "I'm traveling for 3 hours with 15% battery left"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/I'm%20traveling%20for%203%20hours%20with%2015%%20battery%20left"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048483",
+  "success": true,
+  "timestamp": 1744048483.829125,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Optimize battery but keep WhatsApp working"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Optimize%20battery%20but%20keep%20WhatsApp%20working"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048484",
+  "success": true,
+  "timestamp": 1744048484.850334,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "I only have 50MB data left until tomorrow"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/I%20only%20have%2050MB%20data%20left%20until%20tomorrow"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: com.example.heavydata
+    Description: Enable data saver mode for Heavy Data App
+    Mode: restricted
+
+INSIGHTS:
+  - Title: High Data Usage Detected
+    Description: Heavy Data App is using significant data resources
+    Severity: medium
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 20.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048485",
+  "success": true,
+  "timestamp": 1744048485.882635,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "data-1",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.example.heavydata",
+      "description": "Enable data saver mode for Heavy Data App",
+      "reason": "App is consuming excessive data",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "DataUsage",
+      "title": "High Data Usage Detected",
+      "description": "Heavy Data App is using significant data resources",
+      "severity": "medium"
+    }
+  ],
+  "batteryScore": 80.0,
+  "dataScore": 60.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 20.0
+  }
+}
+
+================================================================================
+PROMPT: "How can I reduce my data usage?"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/How%20can%20I%20reduce%20my%20data%20usage?"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: com.example.heavydata
+    Description: Enable data saver mode for Heavy Data App
+    Mode: restricted
+
+INSIGHTS:
+  - Title: High Data Usage Detected
+    Description: Heavy Data App is using significant data resources
+    Severity: medium
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 20.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048486",
+  "success": true,
+  "timestamp": 1744048486.90952,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "data-1",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.example.heavydata",
+      "description": "Enable data saver mode for Heavy Data App",
+      "reason": "App is consuming excessive data",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "DataUsage",
+      "title": "High Data Usage Detected",
+      "description": "Heavy Data App is using significant data resources",
+      "severity": "medium"
+    }
+  ],
+  "batteryScore": 80.0,
+  "dataScore": 60.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 20.0
+  }
+}
+
+================================================================================
+PROMPT: "Save data but ensure my email still works"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Save%20data%20but%20ensure%20my%20email%20still%20works"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: com.example.heavydata
+    Description: Enable data saver mode for Heavy Data App
+    Mode: restricted
+
+INSIGHTS:
+  - Title: High Data Usage Detected
+    Description: Heavy Data App is using significant data resources
+    Severity: medium
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 20.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048487",
+  "success": true,
+  "timestamp": 1744048487.930826,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "data-1",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.example.heavydata",
+      "description": "Enable data saver mode for Heavy Data App",
+      "reason": "App is consuming excessive data",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "DataUsage",
+      "title": "High Data Usage Detected",
+      "description": "Heavy Data App is using significant data resources",
+      "severity": "medium"
+    }
+  ],
+  "batteryScore": 80.0,
+  "dataScore": 60.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 20.0
+  }
+}
+
+================================================================================
+PROMPT: "Traveling abroad with limited data plan"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Traveling%20abroad%20with%20limited%20data%20plan"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: com.example.heavydata
+    Description: Enable data saver mode for Heavy Data App
+    Mode: restricted
+
+INSIGHTS:
+  - Title: High Data Usage Detected
+    Description: Heavy Data App is using significant data resources
+    Severity: medium
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 20.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048488",
+  "success": true,
+  "timestamp": 1744048488.964774,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "data-1",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.example.heavydata",
+      "description": "Enable data saver mode for Heavy Data App",
+      "reason": "App is consuming excessive data",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "DataUsage",
+      "title": "High Data Usage Detected",
+      "description": "Heavy Data App is using significant data resources",
+      "severity": "medium"
+    }
+  ],
+  "batteryScore": 80.0,
+  "dataScore": 60.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 20.0
+  }
+}
+
+================================================================================
+PROMPT: "Which apps are draining my battery?"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Which%20apps%20are%20draining%20my%20battery?"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048489",
+  "success": true,
+  "timestamp": 1744048489.994815,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "What's using all my data?"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/What's%20using%20all%20my%20data?"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: ENABLE_DATA_SAVER
+    Package: com.example.heavydata
+    Description: Enable data saver mode for Heavy Data App
+    Mode: restricted
+
+INSIGHTS:
+  - Title: High Data Usage Detected
+    Description: Heavy Data App is using significant data resources
+    Severity: medium
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 20.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048491",
+  "success": true,
+  "timestamp": 1744048491.015345,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "data-1",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.example.heavydata",
+      "description": "Enable data saver mode for Heavy Data App",
+      "reason": "App is consuming excessive data",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "DataUsage",
+      "title": "High Data Usage Detected",
+      "description": "Heavy Data App is using significant data resources",
+      "severity": "medium"
+    }
+  ],
+  "batteryScore": 80.0,
+  "dataScore": 60.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 0.0,
+    "dataMB": 20.0
+  }
+}
+
+================================================================================
+PROMPT: "Show me my battery usage for the past day"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Show%20me%20my%20battery%20usage%20for%20the%20past%20day"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048492",
+  "success": true,
+  "timestamp": 1744048492.053407,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Low battery and almost out of data, help!"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Low%20battery%20and%20almost%20out%20of%20data,%20help!"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+  - Type: ENABLE_DATA_SAVER
+    Package: com.example.heavydata
+    Description: Enable data saver mode for Heavy Data App
+    Mode: restricted
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+  - Title: High Data Usage Detected
+    Description: Heavy Data App is using significant data resources
+    Severity: medium
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 20.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048493",
+  "success": true,
+  "timestamp": 1744048493.088635,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    },
+    {
+      "id": "data-1",
+      "type": "ENABLE_DATA_SAVER",
+      "packageName": "com.example.heavydata",
+      "description": "Enable data saver mode for Heavy Data App",
+      "reason": "App is consuming excessive data",
+      "newMode": "restricted",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    },
+    {
+      "type": "DataUsage",
+      "title": "High Data Usage Detected",
+      "description": "Heavy Data App is using significant data resources",
+      "severity": "medium"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 60.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 20.0
+  }
+}
+
+================================================================================
+PROMPT: "Need Maps and WhatsApp for 4 hours but battery at 20%"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Need%20Maps%20and%20WhatsApp%20for%204%20hours%20but%20battery%20at%2020%"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048494",
+  "success": true,
+  "timestamp": 1744048494.114941,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "Can I stream Netflix for 2 hours with 30% battery?"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/Can%20I%20stream%20Netflix%20for%202%20hours%20with%2030%%20battery?"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048495",
+  "success": true,
+  "timestamp": 1744048495.13247,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}
+
+================================================================================
+PROMPT: "I need to make an important call in 1 hour but battery is at 10%"
+--------------------------------------------------------------------------------
+CURL COMMAND: curl -X GET "http://localhost:8000/api/test/with-prompt/I%20need%20to%20make%20an%20important%20call%20in%201%20hour%20but%20battery%20is%20at%2010%"
+--------------------------------------------------------------------------------
+ACTIONABLES:
+  - Type: OPTIMIZE_BATTERY
+    Package: com.example.heavybattery
+    Description: Optimize battery usage for Heavy Battery App
+    Mode: optimized
+
+INSIGHTS:
+  - Title: Battery Drain Detected
+    Description: Heavy Battery App is using significant battery resources
+    Severity: high
+
+ESTIMATED SAVINGS:
+  Battery: 30.0 minutes
+  Data: 0.0 MB
+--------------------------------------------------------------------------------
+RAW JSON RESPONSE:
+{
+  "id": "example-1744048496",
+  "success": true,
+  "timestamp": 1744048496.168818,
+  "message": "Analysis completed based on prompt",
+  "actionable": [
+    {
+      "id": "bat-1",
+      "type": "OPTIMIZE_BATTERY",
+      "packageName": "com.example.heavybattery",
+      "description": "Optimize battery usage for Heavy Battery App",
+      "reason": "App is consuming excessive battery",
+      "newMode": "optimized",
+      "parameters": {}
+    }
+  ],
+  "insights": [
+    {
+      "type": "BatteryDrain",
+      "title": "Battery Drain Detected",
+      "description": "Heavy Battery App is using significant battery resources",
+      "severity": "high"
+    }
+  ],
+  "batteryScore": 60.0,
+  "dataScore": 80.0,
+  "performanceScore": 70.0,
+  "estimatedSavings": {
+    "batteryMinutes": 30.0,
+    "dataMB": 0.0
+  }
+}

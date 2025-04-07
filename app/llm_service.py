@@ -2,20 +2,18 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from app.database import UsagePattern
 import logging
 from datetime import datetime
-from app.prompt_analyzer import (
-    classify_user_prompt, 
-    is_prompt_relevant, 
-    classify_with_llm, 
-    generate_optimization_prompt,
-    ALLOWED_ACTIONABLE_TYPES
-)
 import time
 import random
+
+# Import our new utility modules
+from app.utils.strategy_analyzer import determine_strategy
+from app.utils.insight_generator import generate_insights
+from app.utils.actionable_generator import generate_actionables, is_information_request, ACTIONABLE_TYPES
 
 # Configure logging
 logging.basicConfig(
@@ -25,9 +23,9 @@ logging.basicConfig(
 logger = logging.getLogger('powerguard_llm')
 
 # Retry configuration
-MAX_RETRIES = 5  # Increased from 3 to 5
-INITIAL_RETRY_DELAY = 2  # Increased from 1 to 2 seconds
-MAX_RETRY_DELAY = 120  # Increased from 60 to 120 seconds
+MAX_RETRIES = 5
+INITIAL_RETRY_DELAY = 2
+MAX_RETRY_DELAY = 120
 
 load_dotenv()
 
@@ -54,200 +52,335 @@ def get_historical_patterns(db: Session, device_id: str) -> Dict[str, str]:
 
 def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     """Process device data through Groq LLM and get optimization recommendations"""
-    logger = logging.getLogger("powerguard_api")
+    logger.info(f"[PowerGuard] Analyzing device data for device: {device_data.get('deviceId', 'unknown')}")
     
-    # Extract and clean prompt if present
+    # Extract prompt if present
     prompt = device_data.get("prompt", "").strip() if device_data.get("prompt") is not None else ""
     
-    # Determine optimization focus based on prompt or default to combined
-    optimization_type = "combined"
-    if prompt:
-        prompt_lower = prompt.lower()
-        if any(term in prompt_lower for term in ["battery", "power", "energy"]) and not any(term in prompt_lower for term in ["data", "network", "internet"]):
-            optimization_type = "battery"
-        elif any(term in prompt_lower for term in ["data", "network", "internet"]) and not any(term in prompt_lower for term in ["battery", "power", "energy"]):
-            optimization_type = "data"
-        elif "not" in prompt_lower:
-            # Handle negation cases
-            if "not data" in prompt_lower or "not network" in prompt_lower:
-                optimization_type = "battery"
-            elif "not battery" in prompt_lower or "not power" in prompt_lower:
-                optimization_type = "data"
-    
-    # Generate system content based on optimization type
-    system_content = """You are PowerGuard, an AI system that analyzes device usage data and provides actionable recommendations for optimizing battery life and data usage. 
-Your responses must be in valid JSON format with the following required fields:
-{
-  "id": "string",
-  "success": boolean,
-  "timestamp": number,
-  "message": "string",
-  "actionable": [
-    {
-      "id": "string",
-      "type": "OPTIMIZE_BATTERY" | "RESTRICT_BACKGROUND" | "ENABLE_DATA_SAVER" | "DISABLE_FEATURES",
-      "packageName": "string",
-      "description": "string",
-      "reason": "string",
-      "newMode": "string",
-      "parameters": object
-    }
-  ],
-  "insights": [
-    {
-      "type": "string",
-      "title": "string",
-      "description": "string",
-      "severity": "low" | "medium" | "high"
-    }
-  ],
-  "batteryScore": number (0-100),
-  "dataScore": number (0-100),
-  "performanceScore": number (0-100),
-  "estimatedSavings": {
-    "batteryMinutes": number,
-    "dataMB": number
-  }
-}
-
-You MUST provide at least one actionable item and one insight.
-"""
-
-    # Add optimization-specific instructions
-    if optimization_type == "battery":
-        system_content += "\nFocus on battery optimization actions (OPTIMIZE_BATTERY, RESTRICT_BACKGROUND)."
-    elif optimization_type == "data":
-        system_content += "\nFocus on data optimization actions (ENABLE_DATA_SAVER, DISABLE_FEATURES)."
-    else:
-        system_content += "\nProvide a balanced mix of battery and data optimization actions."
-
-    # Generate user content with device data analysis request
-    apps_data = device_data.get("apps", [])
-    battery_heavy_apps = [app for app in apps_data if app.get("batteryUsage", 0) > 10]
-    data_heavy_apps = [app for app in apps_data if app.get("dataUsage", {}).get("background", 0) > 10]
-
-    user_content = f"""Analyze the following device data and provide optimization recommendations:
-
-Battery Status:
-- Level: {device_data.get("batteryLevel", 0)}%
-- Temperature: {device_data.get("batteryTemperature", 0)}°C
-- Charging: {device_data.get("isCharging", False)}
-
-Memory Usage:
-- Available: {device_data.get("availableMemory", 0)} MB
-- Total: {device_data.get("totalMemory", 0)} MB
-
-CPU Usage: {device_data.get("cpuUsage", 0)}%
-
-Network Data:
-- Rx Bytes: {device_data.get("networkData", {}).get("rxBytes", 0)}
-- Tx Bytes: {device_data.get("networkData", {}).get("txBytes", 0)}
-
-Heavy Battery Usage Apps: {", ".join(app.get("appName", "") for app in battery_heavy_apps)}
-Heavy Data Usage Apps: {", ".join(app.get("appName", "") for app in data_heavy_apps)}
-
-User Prompt: {prompt if prompt else "Provide general optimization recommendations"}
-
-Provide specific, actionable recommendations to optimize the device based on this data."""
-
-    # Call Groq API with retry logic
-    for attempt in range(MAX_RETRIES):
-        try:
-            # Add jitter to retry delay
-            current_delay = min(INITIAL_RETRY_DELAY * (2 ** attempt) + random.uniform(0, 1), MAX_RETRY_DELAY)
+    try:
+        # Check if this is an information request
+        info_request = False
+        if prompt:
+            info_request = is_information_request(prompt)
+            logger.info(f"[PowerGuard] Prompt classified as {'information request' if info_request else 'optimization request'}")
+        
+        # Always determine the optimization strategy based on device data and prompt
+        # even for information requests (we'll use it for insights)
+        strategy = determine_strategy(device_data, prompt)
+        logger.debug(f"[PowerGuard] Determined strategy: {strategy}")
+        
+        # Handle information requests specifically
+        actionables = []
+        if info_request:
+            # Information requests should never generate actionables
+            actionables = []
             
-            logger.info(f"[PowerGuard] Calling Groq API (attempt {attempt + 1}/{MAX_RETRIES})")
-            response = groq_client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": system_content},
-                    {"role": "user", "content": user_content}
-                ],
-                model="llama-3.3-70b-versatile",
-                temperature=0.7,
-                max_tokens=1000,
-                top_p=0.9
+            # For information requests, set insights to match the query focus
+            strategy["show_battery_savings"] = False  # Don't show savings for info requests
+            strategy["show_data_savings"] = False
+            
+            # Determine query focus based on keywords
+            if "battery" in prompt.lower():
+                strategy["focus"] = "battery"
+                logger.info("[PowerGuard] Information request focused on battery")
+            elif "data" in prompt.lower() or "network" in prompt.lower():
+                strategy["focus"] = "network"
+                logger.info("[PowerGuard] Information request focused on data/network")
+            else:
+                strategy["focus"] = "both"  # If unclear, show both types of information
+                logger.info("[PowerGuard] Information request with general focus")
+        else:
+            # Generate actionables for optimization requests
+            actionables = generate_actionables(strategy, device_data)
+            logger.debug(f"[PowerGuard] Generated {len(actionables)} actionables")
+        
+        # Calculate estimated savings once - for consistency between insights and response
+        savings = {
+            "batteryMinutes": 0,
+            "dataMB": 0
+        }
+        
+        # Only calculate savings for optimization requests
+        if not info_request and (strategy["show_battery_savings"] or strategy["show_data_savings"]):
+            from app.utils.strategy_analyzer import calculate_savings
+            savings = calculate_savings(strategy, strategy["critical_apps"])
+            logger.debug(f"[PowerGuard] Calculated savings: battery={savings['batteryMinutes']}min, data={savings['dataMB']}MB")
+            
+            # Store the savings directly in the strategy for insights to use
+            strategy["calculated_savings"] = savings
+        
+        # Generate insights based on strategy, passing the original prompt for question detection
+        insights = generate_insights(strategy, device_data, info_request, prompt)
+        logger.debug(f"[PowerGuard] Generated {len(insights)} insights")
+        
+        # If no insights were generated (unlikely), add a fallback message
+        if not insights:
+            if info_request:
+                # Fallback for information requests
+                insights = [{
+                    "type": "Information",
+                    "title": "App Usage Information",
+                    "description": "I don't have enough data to provide detailed usage information. Please check your device settings for more accurate usage statistics.",
+                    "severity": "info"
+                }]
+            else:
+                # Fallback for optimization requests
+                insights = [{
+                    "type": "Default",
+                    "title": "Default Insight",
+                    "description": "No specific insights available for optimization.",
+                    "severity": "low"
+                }]
+        
+        # If no actionables were generated for an optimization request, add a default one
+        if not info_request and not actionables:
+            actionables = [{
+                "id": f"default-{int(time.time())}",
+                "type": "OPTIMIZE_BATTERY",
+                "packageName": "system",
+                "description": "Apply default battery optimization",
+                "reason": "General optimization",
+                "newMode": "optimized",
+                "parameters": {}
+            }]
+        
+        # Construct the response - using the previously calculated savings
+        response = {
+            "id": f"gen_{int(datetime.now().timestamp())}",
+            "success": True,
+            "timestamp": int(datetime.now().timestamp()),
+            "message": "Analysis completed successfully",
+            "responseType": "information" if info_request else "optimization",
+            "actionable": actionables,
+            "insights": insights,
+            "batteryScore": calculate_battery_score(device_data),
+            "dataScore": calculate_data_score(device_data),
+            "performanceScore": calculate_performance_score(device_data),
+            "estimatedSavings": savings
+        }
+        
+        # Store device usage patterns in database
+        if not info_request:
+            try:
+                store_usage_patterns(device_data, db, strategy)
+            except Exception as db_error:
+                logger.error(f"[PowerGuard] Database error storing usage patterns: {str(db_error)}")
+                # Don't fail the whole request due to DB error
+        
+        return response
+        
+    except Exception as e:
+        error_message = str(e)
+        logger.error(f"[PowerGuard] Error analyzing device data: {error_message}", exc_info=True)
+        
+        # Customize error message based on type
+        if "rate limit" in error_message.lower() or "429" in error_message:
+            friendly_message = "Service is currently experiencing high demand. Please try again in a few moments."
+            error_type = "RateLimit"
+        elif "timeout" in error_message.lower():
+            friendly_message = "Request timed out. Please try again."
+            error_type = "Timeout"
+        elif "dict" in error_message and "int" in error_message:
+            friendly_message = "Error processing device data format. Please ensure your device data is correctly formatted."
+            error_type = "DataFormat"
+        else:
+            friendly_message = f"An error occurred while analyzing your device data: {error_message}"
+            error_type = "General"
+        
+        # Return a valid response with default values in case of error
+        return {
+            "id": f"error_{int(datetime.now().timestamp())}",
+            "success": False,
+            "timestamp": int(datetime.now().timestamp()),
+            "message": f"Error processing device data: {error_message}",
+            "actionable": [],
+            "insights": [{
+                "type": error_type,
+                "title": "Error Analyzing Device Data",
+                "description": friendly_message,
+                "severity": "high"
+            }],
+            "batteryScore": 50,
+            "dataScore": 50,
+            "performanceScore": 50,
+            "estimatedSavings": {
+                "batteryMinutes": 0,
+                "dataMB": 0
+            }
+        }
+
+def store_usage_patterns(device_data: Dict[str, Any], db: Session, strategy: Dict[str, Any]) -> None:
+    """Store device usage patterns in the database"""
+    try:
+        device_id = device_data.get("deviceId")
+        if not device_id:
+            logger.warning("[PowerGuard] Cannot store patterns: Missing device ID")
+            return
+        
+        # Get app data from device_data
+        apps = device_data.get("apps", [])
+        timestamp = int(datetime.now().timestamp())
+        
+        for app in apps:
+            package_name = app.get("packageName")
+            battery_usage = app.get("batteryUsage", 0)
+            data_usage = app.get("dataUsage", 0)
+            foreground_time = app.get("foregroundTime", 0)
+            
+            if not package_name:
+                continue
+            
+            # Generate a pattern description based on usage
+            pattern = generate_usage_pattern(
+                package_name,
+                battery_usage,
+                data_usage,
+                foreground_time,
+                strategy
             )
             
-            response_text = response.choices[0].message.content.strip()
-            logger.debug(f"[PowerGuard] Raw LLM response: {response_text}")
+            # Check if this pattern exists in the database
+            existing = db.query(UsagePattern).filter(
+                UsagePattern.deviceId == device_id,
+                UsagePattern.packageName == package_name
+            ).first()
             
-            try:
-                # Remove code block markers if present
-                if response_text.startswith("```json"):
-                    response_text = response_text[7:]
-                if response_text.endswith("```"):
-                    response_text = response_text[:-3]
-                response_text = response_text.strip()
-                
-                response_data = json.loads(response_text)
-                
-                # Validate required fields
-                required_fields = ["id", "success", "timestamp", "message", "actionable", "insights", 
-                                 "batteryScore", "dataScore", "performanceScore", "estimatedSavings"]
-                missing_fields = [field for field in required_fields if field not in response_data]
-                if missing_fields:
-                    raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-                
-                # Validate actionable items
-                if not response_data["actionable"]:
-                    raise ValueError("At least one actionable item is required")
-                
-                for action in response_data["actionable"]:
-                    required_action_fields = ["id", "type", "packageName", "description", "reason", "newMode"]
-                    missing_action_fields = [field for field in required_action_fields if field not in action]
-                    if missing_action_fields:
-                        raise ValueError(f"Missing required action fields: {', '.join(missing_action_fields)}")
-                    
-                    if action["type"] not in ALLOWED_ACTIONABLE_TYPES:
-                        raise ValueError(f"Invalid action type: {action['type']}")
-                
-                # Validate insights
-                if not response_data["insights"]:
-                    raise ValueError("At least one insight is required")
-                
-                for insight in response_data["insights"]:
-                    required_insight_fields = ["type", "title", "description", "severity"]
-                    missing_insight_fields = [field for field in required_insight_fields if field not in insight]
-                    if missing_insight_fields:
-                        raise ValueError(f"Missing required insight fields: {', '.join(missing_insight_fields)}")
-                    
-                    if insight["severity"] not in ["low", "medium", "high"]:
-                        raise ValueError(f"Invalid severity level: {insight['severity']}")
-                
-                # Validate scores
-                for score_field in ["batteryScore", "dataScore", "performanceScore"]:
-                    score = response_data.get(score_field)
-                    if not isinstance(score, (int, float)) or score < 0 or score > 100:
-                        raise ValueError(f"Invalid {score_field}: {score}")
-                
-                # Validate estimated savings
-                savings = response_data.get("estimatedSavings")
-                if not isinstance(savings, dict):
-                    raise ValueError("estimatedSavings must be an object")
-                
-                for field in ["batteryMinutes", "dataMB"]:
-                    value = savings.get(field)
-                    if not isinstance(value, (int, float)) or value < 0:
-                        raise ValueError(f"Invalid {field}: {value}")
-                
-                logger.info("[PowerGuard] Successfully validated LLM response")
-                return response_data
-                
-            except json.JSONDecodeError as e:
-                logger.error(f"[PowerGuard] Failed to parse LLM response as JSON: {str(e)}")
-                raise ValueError("Invalid JSON response from LLM")
-            except ValueError as e:
-                logger.error(f"[PowerGuard] Validation error: {str(e)}")
-                raise
-            
-        except Exception as e:
-            logger.error(f"[PowerGuard] Error calling Groq API: {str(e)}")
-            if attempt < MAX_RETRIES - 1:
-                logger.info(f"[PowerGuard] Retrying in {current_delay:.2f} seconds...")
-                time.sleep(current_delay)
+            if existing:
+                # Update existing pattern
+                existing.pattern = pattern
+                existing.timestamp = timestamp
             else:
-                logger.error("[PowerGuard] Max retries reached, failing")
-                raise
+                # Create new pattern
+                new_pattern = UsagePattern(
+                    deviceId=device_id,
+                    packageName=package_name,
+                    pattern=pattern,
+                    timestamp=timestamp
+                )
+                db.add(new_pattern)
+            
+        # Commit changes
+        db.commit()
+        logger.info(f"[PowerGuard] Stored usage patterns for {len(apps)} apps")
+    
+    except Exception as e:
+        logger.error(f"[PowerGuard] Error storing usage patterns: {str(e)}", exc_info=True)
+        db.rollback()
+
+def generate_usage_pattern(
+    package_name: str,
+    battery_usage: float,
+    data_usage: float,
+    foreground_time: int,
+    strategy: Dict[str, Any]
+) -> str:
+    """Generate a usage pattern description based on app usage"""
+    patterns = []
+    
+    # Battery usage patterns
+    if battery_usage > 20:
+        patterns.append("Very high battery usage")
+    elif battery_usage > 10:
+        patterns.append("High battery usage")
+    elif battery_usage > 5:
+        patterns.append("Moderate battery usage")
+    
+    # Data usage patterns
+    if data_usage > 500:
+        patterns.append("Very high data usage")
+    elif data_usage > 200:
+        patterns.append("High data usage")
+    elif data_usage > 50:
+        patterns.append("Moderate data usage")
+    
+    # Foreground time patterns
+    if foreground_time > 3600:  # More than 1 hour
+        patterns.append("Frequently used in foreground")
+    elif foreground_time > 1800:  # More than 30 minutes
+        patterns.append("Moderately used in foreground")
+    elif foreground_time < 300:  # Less than 5 minutes
+        patterns.append("Rarely used in foreground")
+    
+    # Check if it's a critical app
+    if package_name in strategy.get("critical_apps", []):
+        patterns.append("Critical app for user")
+    
+    if not patterns:
+        return "Normal usage pattern"
+    
+    return "; ".join(patterns)
+
+def calculate_battery_score(device_data: Dict[str, Any]) -> int:
+    """Calculate a battery health score (0-100)"""
+    battery_level = device_data.get("battery", {}).get("level", 100)
+    battery_health = device_data.get("battery", {}).get("health", 100)
+    
+    # Start with the battery health value
+    score = battery_health
+    
+    # Adjust based on battery level - lower level means more pressing optimization need
+    if battery_level < 20:
+        score -= 20
+    elif battery_level < 50:
+        score -= 10
+    
+    # Ensure score is within 0-100 range
+    return max(0, min(100, int(score)))
+
+def calculate_data_score(device_data: Dict[str, Any]) -> int:
+    """Calculate a data usage health score (0-100)"""
+    # Extract network data if available
+    network = device_data.get("network", {})
+    data_used = network.get("dataUsed", 0)
+    
+    # Default score - higher is better
+    score = 80
+    
+    # Adjust score based on data used
+    if data_used > 1000:  # More than 1GB
+        score -= 30
+    elif data_used > 500:  # More than 500MB
+        score -= 20
+    elif data_used > 200:  # More than 200MB
+        score -= 10
+    
+    # Ensure score is within 0-100 range
+    return max(0, min(100, int(score)))
+
+def calculate_performance_score(device_data: Dict[str, Any]) -> int:
+    """Calculate a performance health score (0-100)"""
+    memory = device_data.get("memory", {})
+    cpu = device_data.get("cpu", {})
+    
+    # Extract values with defaults
+    total_memory = memory.get("total", 0)
+    used_memory = memory.get("used", 0)
+    cpu_usage = cpu.get("usage", 0)
+    
+    # Calculate memory usage percentage
+    memory_usage_pct = (used_memory / total_memory * 100) if total_memory > 0 else 0
+    
+    # Start with a base score
+    score = 100
+    
+    # Adjust based on memory usage
+    if memory_usage_pct > 90:
+        score -= 30
+    elif memory_usage_pct > 80:
+        score -= 20
+    elif memory_usage_pct > 70:
+        score -= 10
+    
+    # Adjust based on CPU usage
+    if cpu_usage > 80:
+        score -= 30
+    elif cpu_usage > 60:
+        score -= 20
+    elif cpu_usage > 40:
+        score -= 10
+    
+    # Ensure score is within 0-100 range
+    return max(0, min(100, int(score)))
 
 def format_apps(apps):
     """Format apps data for the prompt"""
