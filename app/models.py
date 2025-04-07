@@ -113,7 +113,7 @@ class DeviceData(BaseModel):
     apps: List[AppInfo]
     deviceInfo: Optional[DeviceInfo] = None
     settings: Optional[SettingsData] = None
-    prompt: Optional[str] = None
+    prompt: str
 
     def model_dump(self, **kwargs):
         data = super().model_dump(**kwargs)

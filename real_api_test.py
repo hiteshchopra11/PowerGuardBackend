@@ -3,6 +3,7 @@ import json
 import os
 import time
 import random
+import requests
 
 # Base device data template with all required fields
 BASE_DEVICE_DATA = {
@@ -212,8 +213,15 @@ BASE_DEVICE_DATA = {
     "prompt": ""
 }
 
-# List of test prompts covering different scenarios
+# List of test prompts covering all cases
 TEST_PROMPTS = [
+    # Default prompts (always sent from Android)
+    "Choose the best battery saving strategy",
+    "Choose the best data saving strategy",
+    
+    # Custom user prompts
+    "Save my data",
+    
     # Battery optimization prompts
     "My battery is at 5% and I need it to last for 2 more hours",
     "Save my battery, it's critically low",
@@ -241,194 +249,221 @@ TEST_PROMPTS = [
     "Save battery but make sure I can still use Gmail"
 ]
 
+def reset_database():
+    """Reset the database before running tests"""
+    print("Resetting database...")
+    try:
+        response = requests.post("http://localhost:8000/api/reset-db")
+        if response.status_code == 200:
+            print("Database reset successfully")
+        else:
+            print(f"Failed to reset database: {response.status_code}")
+            print(response.text)
+    except Exception as e:
+        print(f"Error resetting database: {e}")
+
 # Create variations of device data for different test scenarios
 def create_device_data(prompt):
     device_data = json.loads(json.dumps(BASE_DEVICE_DATA))  # Deep copy
     
-    # Modify device data based on prompt content
-    if "5%" in prompt or "critically low" in prompt or "10%" in prompt:
-        device_data["battery"]["level"] = random.randint(5, 10)
-    elif "15%" in prompt:
-        device_data["battery"]["level"] = 15
-    elif "20%" in prompt:
-        device_data["battery"]["level"] = 20
-    elif "30%" in prompt:
-        device_data["battery"]["level"] = 30
+    # Set prompt
+    device_data["prompt"] = prompt
     
-    # Set high data usage for data-related prompts
-    if "data" in prompt.lower() or "MB" in prompt:
+    # Modify device data based on prompt content
+    if "battery" in prompt.lower() or "power" in prompt.lower():
+        # For battery optimization prompt, set lower battery level
+        device_data["battery"]["level"] = random.randint(30, 40)
+        
+        # Set specific values for quantified battery prompts
+        if "5%" in prompt or "critically low" in prompt or "10%" in prompt:
+            device_data["battery"]["level"] = random.randint(5, 10)
+        elif "15%" in prompt:
+            device_data["battery"]["level"] = 15
+        elif "20%" in prompt:
+            device_data["battery"]["level"] = 20
+        elif "30%" in prompt:
+            device_data["battery"]["level"] = 30
+        
+        # Set more battery-hungry apps
+        for app in device_data["apps"]:
+            app["batteryUsage"] = random.randint(15, 35)
+            
+    elif "data" in prompt.lower() or "network" in prompt.lower():
+        # For data optimization prompt, set higher data usage
         device_data["network"]["dataUsage"]["foreground"] = random.randint(1500, 1800)
         device_data["network"]["dataUsage"]["background"] = random.randint(500, 700)
+        device_data["network"]["dataUsage"]["rxBytes"] = device_data["network"]["dataUsage"]["foreground"] * 1000000
+        device_data["network"]["dataUsage"]["txBytes"] = device_data["network"]["dataUsage"]["background"] * 500000
         
         # Set specific values for quantified data prompts
         if "50MB" in prompt:
             device_data["network"]["dataUsage"]["rxBytes"] = device_data["network"]["dataUsage"]["foreground"] * 1000000
             device_data["network"]["dataUsage"]["txBytes"] = device_data["network"]["dataUsage"]["background"] * 500000
-        elif "10MB" in prompt:
-            device_data["network"]["dataUsage"]["rxBytes"] = device_data["network"]["dataUsage"]["foreground"] * 1000000
-            device_data["network"]["dataUsage"]["txBytes"] = device_data["network"]["dataUsage"]["background"] * 500000
         elif "100MB" in prompt:
             device_data["network"]["dataUsage"]["rxBytes"] = device_data["network"]["dataUsage"]["foreground"] * 1000000
             device_data["network"]["dataUsage"]["txBytes"] = device_data["network"]["dataUsage"]["background"] * 500000
-    
-    # Update app data usage for data prompts
-    if "data" in prompt.lower():
+        
+        # Set more data-hungry apps
         for app in device_data["apps"]:
-            if isinstance(app["dataUsage"], dict):
-                app["dataUsage"]["foreground"] = random.randint(50, 200)
-                app["dataUsage"]["background"] = random.randint(20, 100)
-                app["dataUsage"]["rxBytes"] = app["dataUsage"]["foreground"] * 1000000
-                app["dataUsage"]["txBytes"] = app["dataUsage"]["background"] * 500000
-    
-    # Add the prompt to the device data
-    device_data["prompt"] = prompt
+            app["dataUsage"]["foreground"] = random.randint(200, 400)
+            app["dataUsage"]["background"] = random.randint(50, 150)
+            app["dataUsage"]["rxBytes"] = app["dataUsage"]["foreground"] * 1000000
+            app["dataUsage"]["txBytes"] = app["dataUsage"]["background"] * 500000
     
     return device_data
 
-# Function to run a test and return the results
-def run_test(prompt):
+def run_api_test(prompt):
+    """Run API test with the given prompt"""
+    print(f'Testing prompt: "{prompt}"')
+    
+    # Create device data specific to this prompt
     device_data = create_device_data(prompt)
     
-    # Save the device data to a temporary file
+    # Write temporary device data to file
     with open("temp_device_data.json", "w") as f:
         json.dump(device_data, f)
     
-    # Create curl command for the real API
-    curl_command = 'curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json'
+    # Run curl command to send the request
+    curl_command = f'curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json'
     
-    # Execute the curl command and capture output
-    result = subprocess.run(curl_command, shell=True, capture_output=True, text=True)
-    
-    # Remove the temporary file
-    if os.path.exists("temp_device_data.json"):
-        os.remove("temp_device_data.json")
+    result = {
+        "prompt": prompt,
+        "device_data": device_data,
+        "curl_command": curl_command
+    }
     
     try:
-        # Parse the JSON response
-        response_data = json.loads(result.stdout)
-        return {
-            "prompt": prompt,
-            "device_data": device_data,
-            "curl_command": curl_command,
-            "response": response_data,
-            "actionables": response_data.get("actionable", []),
-            "insights": response_data.get("insights", []),
-            "estimated_savings": response_data.get("estimatedSavings", {})
-        }
-    except json.JSONDecodeError:
-        return {
-            "prompt": prompt,
-            "device_data": device_data,
-            "curl_command": curl_command,
-            "error": "Failed to parse JSON response",
-            "raw_response": result.stdout
-        }
+        output = subprocess.check_output(curl_command, shell=True)
+        response = json.loads(output)
+        result["success"] = True
+        result["response"] = response
+    except subprocess.CalledProcessError as e:
+        result["success"] = False
+        result["error"] = str(e)
+        result["output"] = e.output.decode() if hasattr(e, "output") else ""
+    except json.JSONDecodeError as e:
+        result["success"] = False
+        result["error"] = f"Failed to parse JSON response: {str(e)}"
+        result["output"] = output.decode() if isinstance(output, bytes) else str(output)
+    
+    return result
 
-# Function to format results for output
-def format_result(result):
-    output = []
-    output.append("=" * 80)
-    output.append(f"PROMPT: \"{result['prompt']}\"")
-    output.append("-" * 80)
-    output.append(f"DEVICE DATA:")
-    output.append(f"  Battery Level: {result['device_data']['battery']['level']}%")
-    output.append(f"  Data Used: {result['device_data']['network']['dataUsage']['rxBytes'] // 1000000} MB")
-    output.append(f"  Number of Apps: {len(result['device_data']['apps'])}")
-    output.append("-" * 80)
-    output.append(f"CURL COMMAND: {result['curl_command']}")
-    output.append("-" * 80)
-    
-    if "error" in result:
-        output.append(f"ERROR: {result['error']}")
-        output.append(f"RAW RESPONSE: {result['raw_response']}")
-        return "\n".join(output)
-    
-    # Format actionables
-    output.append("ACTIONABLES:")
-    if result["actionables"]:
-        for a in result["actionables"]:
-            output.append(f"  - Type: {a.get('type')}")
-            output.append(f"    Package: {a.get('packageName')}")
-            output.append(f"    Description: {a.get('description')}")
-            output.append(f"    Mode: {a.get('newMode')}")
-            output.append("")
-    else:
-        output.append("  No actionables generated")
-    
-    # Format insights
-    output.append("INSIGHTS:")
-    if result["insights"]:
-        for i in result["insights"]:
-            output.append(f"  - Title: {i.get('title')}")
-            output.append(f"    Description: {i.get('description')}")
-            output.append(f"    Severity: {i.get('severity', 'N/A')}")
-            output.append("")
-    else:
-        output.append("  No insights generated")
-    
-    # Format savings
-    savings = result["estimated_savings"]
-    output.append("ESTIMATED SAVINGS:")
-    output.append(f"  Battery: {savings.get('batteryMinutes', 0)} minutes")
-    output.append(f"  Data: {savings.get('dataMB', 0)} MB")
-    
-    # Include the raw JSON for reference
-    output.append("-" * 80)
-    output.append("RAW JSON RESPONSE:")
-    output.append(json.dumps(result["response"], indent=2))
-    
-    return "\n".join(output)
-
-# Main function to run all tests and save results
-def run_all_tests():
-    print(f"Running REAL API tests for {len(TEST_PROMPTS)} prompts...")
-    results = []
-    
-    # Run each test
-    for prompt in TEST_PROMPTS:
-        print(f"Testing prompt: \"{prompt}\"")
-        result = run_test(prompt)
-        results.append(result)
-        time.sleep(1)  # Small delay to prevent overwhelming the server
-    
-    # Format and save all results
+def format_results(results):
+    """Format test results as text"""
     output = []
     output.append("POWERGUARD AI BACKEND - REAL API TEST RESULTS")
     output.append("=" * 80)
     output.append(f"Total prompts tested: {len(results)}")
     output.append("")
     
-    # Add a summary table
+    # Generate summary table
     output.append("SUMMARY TABLE:")
     output.append("-" * 80)
-    output.append(f"{'PROMPT':<45} | {'BATTERY':<8} | {'ACTIONABLES':<12} | {'INSIGHTS':<10} | {'BATTERY SAVED':<15} | {'DATA SAVED':<10}")
+    output.append(f"{'PROMPT':<40} | {'BATTERY':<8} | {'ACTIONABLES':<12} | {'INSIGHTS':<10} | {'BATTERY SAVED':<15} | {'DATA SAVED':10}")
     output.append("-" * 80)
     
-    for r in results:
-        if "error" in r:
-            continue
-        
-        battery_level = r["device_data"]["battery"]["level"]
-        num_actionables = len(r["actionables"])
-        num_insights = len(r["insights"])
-        battery_saved = r["estimated_savings"].get("batteryMinutes", 0)
-        data_saved = r["estimated_savings"].get("dataMB", 0)
-        
-        truncated_prompt = r["prompt"][:42] + "..." if len(r["prompt"]) > 45 else r["prompt"].ljust(45)
-        output.append(f"{truncated_prompt} | {battery_level:<8} | {num_actionables:<12} | {num_insights:<10} | {battery_saved:<15} | {data_saved:<10}")
-    
-    output.append("")
-    
-    # Add detailed results for each prompt
-    for r in results:
-        output.append(format_result(r))
+    for result in results:
+        prompt = result["prompt"]
+        if len(prompt) > 35:
+            prompt = prompt[:35] + "..."
+            
+        if result.get("success", False) and "response" in result:
+            resp = result["response"]
+            battery_score = resp.get("batteryScore", "N/A")
+            actionables = len(resp.get("actionable", []))
+            insights = len(resp.get("insights", []))
+            battery_saved = resp.get("estimatedSavings", {}).get("batteryMinutes", 0)
+            data_saved = resp.get("estimatedSavings", {}).get("dataMB", 0)
+            
+            output.append(f"{prompt:<40} | {battery_score:<8} | {actionables:<12} | {insights:<10} | {battery_saved:<15} | {data_saved:<10}")
+        else:
+            output.append(f"{prompt:<40} | {'ERROR':<8} | {'N/A':<12} | {'N/A':<10} | {'N/A':<15} | {'N/A':<10}")
+            
         output.append("")
     
-    # Save to file
-    with open("real_api_test_results.txt", "w") as f:
-        f.write("\n".join(output))
+    # Add detailed results for each prompt
+    for result in results:
+        output.append("=" * 80)
+        output.append(f"PROMPT: \"{result['prompt']}\"")
+        output.append("-" * 80)
+        
+        output.append(f"DEVICE DATA:")
+        output.append(f"  Battery Level: {result['device_data']['battery']['level']}%")
+        output.append(f"  Data Used: {result['device_data']['network']['dataUsage']['rxBytes'] // 1000000} MB")
+        output.append(f"  Number of Apps: {len(result['device_data']['apps'])}")
+        output.append("-" * 80)
+        
+        output.append(f"CURL COMMAND: {result['curl_command']}")
+        output.append("-" * 80)
+        
+        if result.get("success", False) and "response" in result:
+            resp = result["response"]
+            
+            # Display actionables
+            actionables = resp.get("actionable", [])
+            output.append(f"ACTIONABLES:")
+            if actionables:
+                for a in actionables:
+                    output.append(f"  - Type: {a.get('type')}")
+                    output.append(f"    Package: {a.get('packageName', 'system')}")
+                    output.append(f"    Description: {a.get('description')}")
+                    output.append(f"    Mode: {a.get('newMode')}")
+                    output.append(f"")
+            else:
+                output.append("  None")
+                output.append("")
+                
+            # Display insights
+            insights = resp.get("insights", [])
+            output.append(f"INSIGHTS:")
+            if insights:
+                for i in insights:
+                    output.append(f"  - Type: {i.get('type')}")
+                    output.append(f"    Title: {i.get('title')}")
+                    output.append(f"    Description: {i.get('description')[:100]}..." if len(i.get('description', '')) > 100 else i.get('description', ''))
+                    output.append(f"    Severity: {i.get('severity')}")
+                    output.append(f"")
+            else:
+                output.append("  None")
+                output.append("")
+                
+            # Display scores
+            output.append(f"SCORES:")
+            output.append(f"  Battery Score: {resp.get('batteryScore')}")
+            output.append(f"  Data Score: {resp.get('dataScore')}")
+            output.append(f"  Performance Score: {resp.get('performanceScore')}")
+            output.append(f"")
+            
+            # Display estimated savings
+            savings = resp.get("estimatedSavings", {})
+            output.append(f"ESTIMATED SAVINGS:")
+            output.append(f"  Battery: {savings.get('batteryMinutes', 0)} minutes")
+            output.append(f"  Data: {savings.get('dataMB', 0)} MB")
+            output.append(f"")
+        else:
+            output.append(f"ERROR: {result.get('error', 'Unknown error')}")
+            output.append(f"RAW RESPONSE: {result.get('output', '')}")
+            output.append(f"")
     
-    print(f"All test results saved to real_api_test_results.txt")
+    return "\n".join(output)
+
+def main():
+    # First, reset the database
+    reset_database()
+    
+    print(f"Running REAL API tests for {len(TEST_PROMPTS)} prompts...")
+    
+    results = []
+    for prompt in TEST_PROMPTS:
+        result = run_api_test(prompt)
+        results.append(result)
+    
+    # Format and save results
+    formatted_results = format_results(results)
+    with open("real_api_test_results.txt", "w") as f:
+        f.write(formatted_results)
+    
+    print("All test results saved to real_api_test_results.txt")
 
 if __name__ == "__main__":
-    run_all_tests() 
+    main() 
