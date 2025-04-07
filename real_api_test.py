@@ -19,9 +19,6 @@ BASE_DEVICE_DATA = {
         "currentNow": 500
     },
     "memory": {
-        "total": 8000000000,
-        "used": 4500000000,
-        "free": 3500000000,
         "totalRam": 6000000000,
         "availableRam": 2500000000,
         "lowMemory": False,
@@ -33,16 +30,10 @@ BASE_DEVICE_DATA = {
         "frequencies": [1800000, 2000000, 2200000, 1900000]
     },
     "network": {
-        "dataUsed": 1500,
-        "wifiEnabled": True,
-        "mobileDataEnabled": False,
         "type": "wifi",
         "strength": 85,
         "isRoaming": False,
         "dataUsage": {
-            "daily": 150,
-            "weekly": 750,
-            "monthly": 3000,
             "foreground": 1200,
             "background": 300,
             "rxBytes": 800000000,
@@ -203,7 +194,22 @@ BASE_DEVICE_DATA = {
             "installTime": int(time.time()) - 6000000,
             "updatedTime": int(time.time()) - 800000
         }
-    ]
+    ],
+    "deviceInfo": {
+        "manufacturer": "Google",
+        "model": "Pixel 6",
+        "osVersion": "14",
+        "sdkVersion": 33,
+        "screenOnTime": 12500
+    },
+    "settings": {
+        "powerSaveMode": False,
+        "dataSaver": False,
+        "batteryOptimization": True,
+        "adaptiveBattery": True,
+        "autoSync": True
+    },
+    "prompt": ""
 }
 
 # List of test prompts covering different scenarios
@@ -251,19 +257,19 @@ def create_device_data(prompt):
     
     # Set high data usage for data-related prompts
     if "data" in prompt.lower() or "MB" in prompt:
-        device_data["network"]["dataUsed"] = random.randint(1800, 2000)
-        device_data["network"]["dataUsage"]["daily"] = random.randint(400, 500)
-        device_data["network"]["dataUsage"]["monthly"] = random.randint(4500, 5000)
         device_data["network"]["dataUsage"]["foreground"] = random.randint(1500, 1800)
         device_data["network"]["dataUsage"]["background"] = random.randint(500, 700)
         
         # Set specific values for quantified data prompts
         if "50MB" in prompt:
-            device_data["network"]["dataUsed"] = 1950
+            device_data["network"]["dataUsage"]["rxBytes"] = device_data["network"]["dataUsage"]["foreground"] * 1000000
+            device_data["network"]["dataUsage"]["txBytes"] = device_data["network"]["dataUsage"]["background"] * 500000
         elif "10MB" in prompt:
-            device_data["network"]["dataUsed"] = 1990
+            device_data["network"]["dataUsage"]["rxBytes"] = device_data["network"]["dataUsage"]["foreground"] * 1000000
+            device_data["network"]["dataUsage"]["txBytes"] = device_data["network"]["dataUsage"]["background"] * 500000
         elif "100MB" in prompt:
-            device_data["network"]["dataUsed"] = 1900
+            device_data["network"]["dataUsage"]["rxBytes"] = device_data["network"]["dataUsage"]["foreground"] * 1000000
+            device_data["network"]["dataUsage"]["txBytes"] = device_data["network"]["dataUsage"]["background"] * 500000
     
     # Update app data usage for data prompts
     if "data" in prompt.lower():
@@ -326,7 +332,7 @@ def format_result(result):
     output.append("-" * 80)
     output.append(f"DEVICE DATA:")
     output.append(f"  Battery Level: {result['device_data']['battery']['level']}%")
-    output.append(f"  Data Used: {result['device_data']['network']['dataUsed']} MB")
+    output.append(f"  Data Used: {result['device_data']['network']['dataUsage']['rxBytes'] // 1000000} MB")
     output.append(f"  Number of Apps: {len(result['device_data']['apps'])}")
     output.append("-" * 80)
     output.append(f"CURL COMMAND: {result['curl_command']}")

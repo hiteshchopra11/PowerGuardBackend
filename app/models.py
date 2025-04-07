@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import List, Dict, Optional, Union, Any
 from datetime import datetime
 
@@ -12,6 +12,12 @@ class BatteryInfo(BaseModel):
     health: int
     capacity: float
     currentNow: float
+    
+    @model_validator(mode='after')
+    def validate_negative_values(self):
+        if self.temperature == -1:
+            self.temperature = 0.0
+        return self
 
 class MemoryInfo(BaseModel):
     totalRam: float
@@ -19,25 +25,39 @@ class MemoryInfo(BaseModel):
     lowMemory: bool
     threshold: float
 
-class CpuInfo(BaseModel):
-    usage: float
-    temperature: float
-    frequencies: List[float]
-
 class DataUsageInfo(BaseModel):
     foreground: float
     background: float
     rxBytes: float
     txBytes: float
 
+class CpuInfo(BaseModel):
+    usage: Optional[float] = None
+    temperature: Optional[float] = None
+    frequencies: List[float] = []
+    
+    @model_validator(mode='after')
+    def validate_negative_values(self):
+        if hasattr(self, 'usage') and self.usage == -1:
+            self.usage = None
+        if hasattr(self, 'temperature') and self.temperature == -1:
+            self.temperature = None
+        return self
+
 class NetworkInfo(BaseModel):
     type: str
-    strength: float
+    strength: Optional[float] = None
     isRoaming: bool
     dataUsage: DataUsageInfo
     activeConnectionInfo: str
     linkSpeed: float
     cellularGeneration: str
+    
+    @model_validator(mode='after')
+    def validate_negative_values(self):
+        if hasattr(self, 'strength') and self.strength == -1:
+            self.strength = None
+        return self
 
 class AppInfo(BaseModel):
     packageName: str
@@ -47,10 +67,10 @@ class AppInfo(BaseModel):
     lastUsed: float
     foregroundTime: float
     backgroundTime: float
-    batteryUsage: float
+    batteryUsage: Optional[float] = None
     dataUsage: DataUsageInfo
-    memoryUsage: float
-    cpuUsage: float
+    memoryUsage: Optional[float] = None
+    cpuUsage: Optional[float] = None
     notifications: int
     crashes: int
     versionName: str
@@ -58,6 +78,30 @@ class AppInfo(BaseModel):
     targetSdkVersion: int
     installTime: float
     updatedTime: float
+    
+    @model_validator(mode='after')
+    def validate_negative_values(self):
+        if hasattr(self, 'batteryUsage') and self.batteryUsage == -1:
+            self.batteryUsage = None
+        if hasattr(self, 'cpuUsage') and self.cpuUsage == -1:
+            self.cpuUsage = None
+        if hasattr(self, 'memoryUsage') and self.memoryUsage == -1:
+            self.memoryUsage = None
+        return self
+
+class DeviceInfo(BaseModel):
+    manufacturer: str
+    model: str
+    osVersion: str
+    sdkVersion: int
+    screenOnTime: int = 0
+
+class SettingsData(BaseModel):
+    powerSaveMode: bool = False
+    dataSaver: bool = False
+    batteryOptimization: bool = False
+    adaptiveBattery: bool = False
+    autoSync: bool = True
 
 class DeviceData(BaseModel):
     deviceId: str
@@ -67,6 +111,8 @@ class DeviceData(BaseModel):
     cpu: CpuInfo
     network: NetworkInfo
     apps: List[AppInfo]
+    deviceInfo: Optional[DeviceInfo] = None
+    settings: Optional[SettingsData] = None
     prompt: Optional[str] = None
 
     def model_dump(self, **kwargs):
@@ -79,6 +125,27 @@ class DeviceData(BaseModel):
             except ValueError:
                 data['timestamp'] = float(datetime.now().timestamp())
         return data
+    
+    @model_validator(mode='after')
+    def filter_invalid_apps(self):
+        # Filter out apps with all invalid data
+        valid_apps = []
+        for app in self.apps:
+            # Keep if it has any valid data
+            has_valid_data = (
+                app.batteryUsage is not None or 
+                app.memoryUsage is not None or
+                app.cpuUsage is not None or
+                app.dataUsage.rxBytes > 0 or 
+                app.dataUsage.txBytes > 0 or
+                app.foregroundTime > 0 or 
+                app.backgroundTime > 0
+            )
+            if has_valid_data:
+                valid_apps.append(app)
+        
+        self.apps = valid_apps
+        return self
 
 # Other models
 

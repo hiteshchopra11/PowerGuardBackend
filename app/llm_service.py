@@ -64,9 +64,37 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
             info_request = is_information_request(prompt)
             logger.info(f"[PowerGuard] Prompt classified as {'information request' if info_request else 'optimization request'}")
         
+        # Get device info for enhanced analysis if available
+        device_info = device_data.get("deviceInfo", {})
+        settings = device_data.get("settings", {})
+        
+        # Log additional device information if available
+        if device_info:
+            logger.debug(f"[PowerGuard] Analyzing data for {device_info.get('manufacturer', 'Unknown')} {device_info.get('model', 'Unknown')}, OS: {device_info.get('osVersion', 'Unknown')}")
+        
+        # Include device settings in strategy determination
+        is_battery_optimization_enabled = settings.get("batteryOptimization", False) if settings else False
+        is_data_saver_enabled = settings.get("dataSaver", False) if settings else False
+        is_power_save_mode_enabled = settings.get("powerSaveMode", False) if settings else False
+        
+        # Log device settings
+        if settings:
+            logger.debug(f"[PowerGuard] Device settings - Battery Optimization: {is_battery_optimization_enabled}, Data Saver: {is_data_saver_enabled}, Power Save: {is_power_save_mode_enabled}")
+        
         # Always determine the optimization strategy based on device data and prompt
         # even for information requests (we'll use it for insights)
         strategy = determine_strategy(device_data, prompt)
+        
+        # Enhance strategy with additional device settings
+        strategy.update({
+            "batteryOptimizationEnabled": is_battery_optimization_enabled,
+            "dataSaverEnabled": is_data_saver_enabled,
+            "powerSaveModeEnabled": is_power_save_mode_enabled,
+            "deviceManufacturer": device_info.get("manufacturer", "") if device_info else "",
+            "deviceModel": device_info.get("model", "") if device_info else "",
+            "osVersion": device_info.get("osVersion", "") if device_info else ""
+        })
+        
         logger.debug(f"[PowerGuard] Determined strategy: {strategy}")
         
         # Handle information requests specifically
@@ -224,7 +252,16 @@ def store_usage_patterns(device_data: Dict[str, Any], db: Session, strategy: Dic
         for app in apps:
             package_name = app.get("packageName")
             battery_usage = app.get("batteryUsage", 0)
-            data_usage = app.get("dataUsage", 0)
+            
+            # Handle dataUsage as a dictionary object
+            data_usage_obj = app.get("dataUsage", {})
+            # Calculate total data usage by adding foreground and background
+            total_data_usage = 0
+            if isinstance(data_usage_obj, dict):
+                foreground_data = data_usage_obj.get("foreground", 0)
+                background_data = data_usage_obj.get("background", 0)
+                total_data_usage = foreground_data + background_data
+            
             foreground_time = app.get("foregroundTime", 0)
             
             if not package_name:
@@ -234,7 +271,7 @@ def store_usage_patterns(device_data: Dict[str, Any], db: Session, strategy: Dic
             pattern = generate_usage_pattern(
                 package_name,
                 battery_usage,
-                data_usage,
+                total_data_usage,
                 foreground_time,
                 strategy
             )
@@ -277,13 +314,14 @@ def generate_usage_pattern(
     """Generate a usage pattern description based on app usage"""
     patterns = []
     
-    # Battery usage patterns
-    if battery_usage > 20:
-        patterns.append("Very high battery usage")
-    elif battery_usage > 10:
-        patterns.append("High battery usage")
-    elif battery_usage > 5:
-        patterns.append("Moderate battery usage")
+    # Battery usage patterns - handle None values for battery_usage
+    if battery_usage is not None:
+        if battery_usage > 20:
+            patterns.append("Very high battery usage")
+        elif battery_usage > 10:
+            patterns.append("High battery usage")
+        elif battery_usage > 5:
+            patterns.append("Moderate battery usage")
     
     # Data usage patterns
     if data_usage > 500:
@@ -311,76 +349,173 @@ def generate_usage_pattern(
     return "; ".join(patterns)
 
 def calculate_battery_score(device_data: Dict[str, Any]) -> int:
-    """Calculate a battery health score (0-100)"""
-    battery_level = device_data.get("battery", {}).get("level", 100)
-    battery_health = device_data.get("battery", {}).get("health", 100)
-    
-    # Start with the battery health value
-    score = battery_health
-    
-    # Adjust based on battery level - lower level means more pressing optimization need
-    if battery_level < 20:
-        score -= 20
-    elif battery_level < 50:
-        score -= 10
-    
-    # Ensure score is within 0-100 range
-    return max(0, min(100, int(score)))
+    """Calculate a battery health score from device data"""
+    try:
+        battery = device_data.get("battery", {})
+        battery_level = battery.get("level", 50)  # Default 50%
+        battery_health = battery.get("health", 2)  # Default is 2 (GOOD)
+        is_charging = battery.get("isCharging", False)
+        temperature = battery.get("temperature", 30)  # Default 30°C
+        
+        # Settings from device if available
+        settings = device_data.get("settings", {})
+        power_save_mode = settings.get("powerSaveMode", False) if settings else False
+        battery_optimization = settings.get("batteryOptimization", False) if settings else False
+        
+        # Calculate base score based on battery level and health
+        base_score = min(100, battery_level + 40)  # Level-based baseline
+        
+        # Adjust based on health (health is often an enum: 2=GOOD, lower=worse, higher=better)
+        health_adj = 0
+        if battery_health < 2:  # POOR, DEAD, etc.
+            health_adj = -20
+        elif battery_health > 2:  # EXCELLENT, etc.
+            health_adj = 10
+            
+        # Temperature adjustment (penalize for high temperature)
+        temp_adj = 0
+        if temperature > 40:
+            temp_adj = -15
+        elif temperature > 35:
+            temp_adj = -5
+            
+        # Settings adjustment
+        settings_adj = 0
+        if power_save_mode:
+            settings_adj += 10
+        if battery_optimization:
+            settings_adj += 5
+            
+        # Charging bonus
+        charging_adj = 5 if is_charging else 0
+        
+        # Calculate final score
+        score = base_score + health_adj + temp_adj + settings_adj + charging_adj
+        
+        # Ensure score is between 0-100
+        return max(0, min(100, score))
+    except Exception as e:
+        logger.error(f"Error calculating battery score: {str(e)}")
+        return 50  # Default fallback score
 
 def calculate_data_score(device_data: Dict[str, Any]) -> int:
-    """Calculate a data usage health score (0-100)"""
-    # Extract network data if available
-    network = device_data.get("network", {})
-    data_used = network.get("dataUsed", 0)
-    
-    # Default score - higher is better
-    score = 80
-    
-    # Adjust score based on data used
-    if data_used > 1000:  # More than 1GB
-        score -= 30
-    elif data_used > 500:  # More than 500MB
-        score -= 20
-    elif data_used > 200:  # More than 200MB
-        score -= 10
-    
-    # Ensure score is within 0-100 range
-    return max(0, min(100, int(score)))
+    """Calculate a data usage efficiency score from device data"""
+    try:
+        network = device_data.get("network", {})
+        data_usage = network.get("dataUsage", {})
+        background_usage = data_usage.get("background", 0)
+        foreground_usage = data_usage.get("foreground", 0)
+        network_type = network.get("type", "").lower()
+        is_roaming = network.get("isRoaming", False)
+        
+        # Settings from device if available
+        settings = device_data.get("settings", {})
+        data_saver = settings.get("dataSaver", False) if settings else False
+        auto_sync = settings.get("autoSync", True) if settings else True
+        
+        # Calculate total data usage and ratio
+        total_usage = background_usage + foreground_usage
+        
+        # Base score starting point
+        base_score = 80
+        
+        # If no data usage, give high score 
+        if total_usage == 0:
+            return 90
+        
+        # Adjust for background ratio
+        bg_ratio = background_usage / total_usage if total_usage > 0 else 0
+        bg_adj = 0
+        if bg_ratio > 0.7:
+            bg_adj = -20  # High background usage is inefficient
+        elif bg_ratio > 0.5:
+            bg_adj = -10
+        elif bg_ratio < 0.3:
+            bg_adj = +10  # Low background usage is efficient
+            
+        # Network type adjustment
+        network_adj = 0
+        if network_type == "wifi":
+            network_adj = 15  # WiFi is more efficient for data
+        elif network_type == "cellular" and is_roaming:
+            network_adj = -20  # Roaming is expensive
+            
+        # Settings adjustment
+        settings_adj = 0
+        if data_saver:
+            settings_adj += 15
+        if not auto_sync:
+            settings_adj += 5
+            
+        # Calculate final score
+        score = base_score + bg_adj + network_adj + settings_adj
+        
+        # Ensure score is between 0-100
+        return max(0, min(100, score))
+    except Exception as e:
+        logger.error(f"Error calculating data score: {str(e)}")
+        return 50  # Default fallback score
 
 def calculate_performance_score(device_data: Dict[str, Any]) -> int:
-    """Calculate a performance health score (0-100)"""
-    memory = device_data.get("memory", {})
-    cpu = device_data.get("cpu", {})
-    
-    # Extract values with defaults
-    total_memory = memory.get("total", 0)
-    used_memory = memory.get("used", 0)
-    cpu_usage = cpu.get("usage", 0)
-    
-    # Calculate memory usage percentage
-    memory_usage_pct = (used_memory / total_memory * 100) if total_memory > 0 else 0
-    
-    # Start with a base score
-    score = 100
-    
-    # Adjust based on memory usage
-    if memory_usage_pct > 90:
-        score -= 30
-    elif memory_usage_pct > 80:
-        score -= 20
-    elif memory_usage_pct > 70:
-        score -= 10
-    
-    # Adjust based on CPU usage
-    if cpu_usage > 80:
-        score -= 30
-    elif cpu_usage > 60:
-        score -= 20
-    elif cpu_usage > 40:
-        score -= 10
-    
-    # Ensure score is within 0-100 range
-    return max(0, min(100, int(score)))
+    """Calculate a general performance score from device data"""
+    try:
+        memory = device_data.get("memory", {})
+        total_ram = memory.get("totalRam", 0)
+        available_ram = memory.get("availableRam", 0)
+        low_memory = memory.get("lowMemory", False)
+        
+        # Get CPU info if available
+        cpu = device_data.get("cpu", {})
+        cpu_usage = cpu.get("usage")  # This might be None due to -1 values in Android
+        
+        # Apps info
+        apps = device_data.get("apps", [])
+        app_count = len(apps)
+        crash_count = sum(app.get("crashes", 0) for app in apps)
+        
+        # Base score
+        base_score = 70
+        
+        # Memory adjustment
+        memory_adj = 0
+        if total_ram > 0:
+            # Calculate free memory percentage
+            free_memory_percent = (available_ram / total_ram) * 100 if total_ram > 0 else 0
+            
+            if free_memory_percent < 15:
+                memory_adj = -25
+            elif free_memory_percent < 30:
+                memory_adj = -15
+            elif free_memory_percent > 60:
+                memory_adj = +15
+                
+        # Low memory flag is critical
+        if low_memory:
+            memory_adj -= 20
+            
+        # CPU usage adjustment
+        cpu_adj = 0
+        if cpu_usage is not None:  # Only if we have valid CPU data
+            if cpu_usage > 70:
+                cpu_adj = -15
+            elif cpu_usage < 30:
+                cpu_adj = +10
+                
+        # Crashes adjustment
+        crash_adj = 0
+        if crash_count > 3:
+            crash_adj = -20
+        elif crash_count > 0:
+            crash_adj = -10
+            
+        # Calculate final score
+        score = base_score + memory_adj + cpu_adj + crash_adj
+        
+        # Ensure score is between 0-100
+        return max(0, min(100, score))
+    except Exception as e:
+        logger.error(f"Error calculating performance score: {str(e)}")
+        return 50  # Default fallback score
 
 def format_apps(apps):
     """Format apps data for the prompt"""
