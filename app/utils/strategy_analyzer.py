@@ -107,10 +107,15 @@ def determine_strategy(
             break
     
     # Determine which savings to show
-    if strategy["focus"] in ["battery", "both"] or battery_level <= 30:
+    focus = strategy.get("focus", "")
+    battery_level = device_data.get("battery_level", 100)  # Default to full battery
+    data_constraint = strategy.get("data_constraint", False)
+
+    # Determine which savings to show
+    if focus in ["battery", "both"] or battery_level <= 30:
         strategy["show_battery_savings"] = True
-    
-    if strategy["focus"] in ["network", "both"] or strategy["data_constraint"]:
+
+    if focus in ["network", "both"] or data_constraint:
         strategy["show_data_savings"] = True
     
     # Extract critical apps based on categories

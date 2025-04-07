@@ -154,7 +154,8 @@ def generate_app_actionables(
         # For non-critical apps, apply optimizations
         
         # Battery optimizations
-        if strategy["focus"] in ["battery", "both"] and battery_usage > 0:
+        if strategy["focus"] in ["battery", "both"] and (battery_usage or 0) > 0:
+
             if strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
                 actionables.append({
                     "id": f"batt-{package_name}-{uuid.uuid4().hex[:8]}",
@@ -177,7 +178,7 @@ def generate_app_actionables(
                 })
         
         # Data optimizations
-        if strategy["focus"] in ["network", "both"] and data_usage_total > 0:
+        if strategy["focus"] in ["network", "both"] and data_usage_total is not None and data_usage_total > 0:
             if strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
                 actionables.append({
                     "id": f"data-{package_name}-{uuid.uuid4().hex[:8]}",
