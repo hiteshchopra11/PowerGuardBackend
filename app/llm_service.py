@@ -323,21 +323,23 @@ def generate_usage_pattern(
         elif battery_usage > 5:
             patterns.append("Moderate battery usage")
     
-    # Data usage patterns
-    if data_usage > 500:
-        patterns.append("Very high data usage")
-    elif data_usage > 200:
-        patterns.append("High data usage")
-    elif data_usage > 50:
-        patterns.append("Moderate data usage")
+    # Data usage patterns - handle None values for data_usage
+    if data_usage is not None:
+        if data_usage > 500:
+            patterns.append("Very high data usage")
+        elif data_usage > 200:
+            patterns.append("High data usage")
+        elif data_usage > 50:
+            patterns.append("Moderate data usage")
     
-    # Foreground time patterns
-    if foreground_time > 3600:  # More than 1 hour
-        patterns.append("Frequently used in foreground")
-    elif foreground_time > 1800:  # More than 30 minutes
-        patterns.append("Moderately used in foreground")
-    elif foreground_time < 300:  # Less than 5 minutes
-        patterns.append("Rarely used in foreground")
+    # Foreground time patterns - handle None values for foreground_time
+    if foreground_time is not None:
+        if foreground_time > 3600:  # More than 1 hour
+            patterns.append("Frequently used in foreground")
+        elif foreground_time > 1800:  # More than 30 minutes
+            patterns.append("Moderately used in foreground")
+        elif foreground_time < 300:  # Less than 5 minutes
+            patterns.append("Rarely used in foreground")
     
     # Check if it's a critical app
     if package_name in strategy.get("critical_apps", []):

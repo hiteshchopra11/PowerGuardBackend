@@ -133,6 +133,32 @@ class TestInsightGenerator(unittest.TestCase):
         self.assertEqual(data_apps[0]["usage"], 250)
         self.assertEqual(data_apps[1]["usage"], 150)
         self.assertEqual(data_apps[2]["usage"], 50)
+        
+    def test_get_top_consuming_apps_with_none_values(self):
+        # Test handling of None values in app usage data
+        device_data = {
+            "apps": [
+                {"packageName": "com.example.app1", "batteryUsage": 25, "dataUsage": 50},
+                {"packageName": "com.example.app2", "batteryUsage": None, "dataUsage": 150},
+                {"packageName": "com.example.app3", "batteryUsage": 10, "dataUsage": None},
+                {"packageName": "com.example.app4", "batteryUsage": 5, "dataUsage": 10},
+                {"packageName": "com.example.app5", "batteryUsage": None, "dataUsage": None}
+            ]
+        }
+        
+        # Test top battery apps with None values
+        battery_apps = get_top_consuming_apps(device_data, "battery", 3)
+        self.assertEqual(len(battery_apps), 3)
+        self.assertEqual(battery_apps[0]["usage"], 25)
+        self.assertEqual(battery_apps[1]["usage"], 10)
+        self.assertEqual(battery_apps[2]["usage"], 5)
+        
+        # Test top data apps with None values
+        data_apps = get_top_consuming_apps(device_data, "data", 3)
+        self.assertEqual(len(data_apps), 3)
+        self.assertEqual(data_apps[0]["usage"], 150)
+        self.assertEqual(data_apps[1]["usage"], 50)
+        self.assertEqual(data_apps[2]["usage"], 10)
 
 if __name__ == '__main__':
     unittest.main() 

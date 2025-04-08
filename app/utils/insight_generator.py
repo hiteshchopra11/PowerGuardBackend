@@ -298,7 +298,7 @@ def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5
         if resource_type == "battery":
             # Battery usage is a simple value
             usage = app.get(usage_field, 0)
-            if usage > 0:
+            if usage is not None and usage > 0:
                 valid_apps.append({
                     "name": app_name,
                     "usage": usage
@@ -308,7 +308,9 @@ def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5
             data_usage = app.get(usage_field, 0)
             total_usage = 0
             
-            if isinstance(data_usage, dict):
+            if data_usage is None:
+                continue
+            elif isinstance(data_usage, dict):
                 # Extract foreground and background usage
                 foreground = data_usage.get("foreground", 0)
                 background = data_usage.get("background", 0)
