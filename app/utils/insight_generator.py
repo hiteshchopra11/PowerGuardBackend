@@ -30,13 +30,14 @@ def generate_insights(
     Returns:
         List of insight dictionaries
     """
-    insights = []
-    
     # Check for yes/no questions first
     if prompt:
-        direct_answer = analyze_yes_no_question(prompt, strategy, device_data)
-        if direct_answer:
-            insights.append(direct_answer)
+        yes_no_response = analyze_yes_no_question(prompt, strategy, device_data)
+        if yes_no_response:
+            # For yes/no questions, return only the yes/no response insights
+            return yes_no_response["insights"]
+    
+    insights = []
     
     # Generate regular insights based on request type
     if is_information_request:
@@ -333,7 +334,7 @@ def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5
 
 def analyze_yes_no_question(prompt: str, strategy: dict, device_data: dict) -> Optional[Dict]:
     """
-    Analyze a yes/no question and provide a direct answer based on data and strategy.
+    Analyze a yes/no question or constraint-based battery question and provide a direct answer.
     
     Args:
         prompt: The user prompt
@@ -341,23 +342,30 @@ def analyze_yes_no_question(prompt: str, strategy: dict, device_data: dict) -> O
         device_data: The device data dictionary
         
     Returns:
-        An insight dictionary with the answer, or None if not a yes/no question
+        An insight dictionary with the answer, or None if not a relevant question
     """
     if not prompt:
         return None
     
     prompt_lower = prompt.lower()
     
-    # Check if it's a "Can I" question
-    if not (prompt_lower.startswith("can i") or "can i" in prompt_lower):
+    # Check if it's a question about using an app for a specific duration
+    duration_question = (("can i" in prompt_lower or "will i" in prompt_lower) and 
+                       ("use" in prompt_lower or "watch" in prompt_lower or "stream" in prompt_lower))
+    
+    # Check if it's a constraint-based battery question
+    battery_constraint = ("save battery" in prompt_lower or "preserve battery" in prompt_lower or 
+                         "extend battery" in prompt_lower) and ("but" in prompt_lower or "while" in prompt_lower)
+    
+    if not (duration_question or battery_constraint):
         return None
     
     # Extract information from the prompt
     battery_level = device_data.get("battery", {}).get("level", 0)
-    time_constraint = strategy.get("time_constraint")
     
-    # If no time constraint was found, try to extract it again directly
-    if not time_constraint and prompt_lower:
+    if duration_question:
+        # Handle duration-based questions (existing logic)
+        time_constraint = None
         import re
         time_patterns = [
             r'(\d+)\s*hours?',
@@ -373,126 +381,175 @@ def analyze_yes_no_question(prompt: str, strategy: dict, device_data: dict) -> O
                     break
                 except (ValueError, IndexError):
                     pass
-    
-    # Default to 1 hour if no time constraint found
-    if not time_constraint:
-        time_constraint = 1
-    
-    # Calculate how much battery might be consumed based on the activity and time
-    # Default values (percentage per hour)
-    activity_drain_rates = {
-        "streaming": 20,    # Streaming video (Netflix, YouTube)
-        "gaming": 25,       # Mobile gaming
-        "navigation": 18,   # Maps/navigation
-        "calls": 15,        # Phone calls
-        "messaging": 10,    # Texting/messaging
-        "browsing": 12,     # Web browsing
-        "general": 10       # Default usage
-    }
-    
-    # Identify the activity type
-    activity_type = "general"
-    activity_description = "use your device"
-    
-    if "stream" in prompt_lower or "watch" in prompt_lower or "video" in prompt_lower:
-        if "netflix" in prompt_lower:
-            activity_type = "streaming"
-            activity_description = "stream Netflix"
-        elif "youtube" in prompt_lower:
-            activity_type = "streaming"
-            activity_description = "watch YouTube"
-        else:
-            activity_type = "streaming"
+        
+        # Default to 1 hour if no time constraint found
+        if not time_constraint:
+            time_constraint = 1
+        
+        # Calculate battery drain rates for different activities
+        activity_drain_rates = {
+            "youtube": 25,      # YouTube streaming
+            "netflix": 20,      # Netflix streaming
+            "video": 20,        # Generic video streaming
+            "game": 25,         # Gaming
+            "navigation": 18,   # Maps/navigation
+            "call": 15,        # Phone calls
+            "message": 10,      # Messaging
+            "browse": 12,       # Web browsing
+            "general": 10       # Default usage
+        }
+        
+        # Identify the activity type and description
+        activity_type = "general"
+        activity_description = "use your device"
+        
+        if "youtube" in prompt_lower:
+            activity_type = "youtube"
+            activity_description = "use YouTube"
+        elif "netflix" in prompt_lower:
+            activity_type = "netflix"
+            activity_description = "use Netflix"
+        elif "video" in prompt_lower or "stream" in prompt_lower or "watch" in prompt_lower:
+            activity_type = "video"
             activity_description = "stream video"
-    elif "game" in prompt_lower or "play" in prompt_lower:
-        activity_type = "gaming"
-        activity_description = "play games"
-    elif "navigate" in prompt_lower or "maps" in prompt_lower or "directions" in prompt_lower:
-        activity_type = "navigation"
-        activity_description = "use navigation"
-    elif "call" in prompt_lower or "phone" in prompt_lower:
-        activity_type = "calls"
-        activity_description = "make calls"
-    elif "text" in prompt_lower or "message" in prompt_lower or "chat" in prompt_lower:
-        activity_type = "messaging"
-        activity_description = "use messaging apps"
-    elif "browse" in prompt_lower or "web" in prompt_lower or "internet" in prompt_lower:
-        activity_type = "browsing"
-        activity_description = "browse the web"
-    
-    # Get the appropriate drain rate
-    drain_rate = activity_drain_rates.get(activity_type, activity_drain_rates["general"])
-    
-    # Calculate battery needed and determine if possible
-    battery_needed = drain_rate * time_constraint
-    
-    # Calculate remaining battery after the activity
-    remaining_battery = battery_level - battery_needed
-    
-    # Determine if it's possible and how much optimization can help
-    possible_without_optimization = remaining_battery > 5
-    possible_with_optimization = remaining_battery > -15  # Allow some margin with optimizations
-    
-    # Calculate potential battery extension with optimization
-    if "calculated_savings" in strategy:
-        potential_extension_minutes = strategy["calculated_savings"].get("batteryMinutes", 0)
-    else:
-        # Estimate based on aggressiveness and battery level
-        aggressiveness_factor = {
-            "very_aggressive": 0.4,
-            "aggressive": 0.3,
-            "moderate": 0.2,
-            "minimal": 0.1
-        }.get(strategy.get("aggressiveness", "minimal"), 0.1)
+        elif "game" in prompt_lower or "play" in prompt_lower:
+            activity_type = "game"
+            activity_description = "play games"
+        elif "navigate" in prompt_lower or "maps" in prompt_lower:
+            activity_type = "navigation"
+            activity_description = "use navigation"
+        elif "call" in prompt_lower:
+            activity_type = "call"
+            activity_description = "make calls"
+        elif "message" in prompt_lower or "text" in prompt_lower:
+            activity_type = "message"
+            activity_description = "use messaging"
+        elif "browse" in prompt_lower or "web" in prompt_lower:
+            activity_type = "browse"
+            activity_description = "browse the web"
         
-        potential_extension_minutes = battery_level * aggressiveness_factor * 60
-    
-    # Convert to hours and percentage
-    potential_extension_hours = potential_extension_minutes / 60
-    potential_extension_percentage = (potential_extension_hours * drain_rate)
-    
-    # Adjust remaining battery with optimizations
-    optimized_remaining = remaining_battery + potential_extension_percentage
-    
-    # Generate answer
-    hours_supported = battery_level / drain_rate
-    hours_supported_text = f"{hours_supported:.1f} hour{'s' if hours_supported != 1 else ''}"
-    
-    if time_constraint:
-        if possible_without_optimization:
-            # Can do it without optimization
-            answer = f"Yes, you can {activity_description} for {time_constraint} hour{'s' if time_constraint > 1 else ''} with {battery_level}% battery."
-            if remaining_battery > 20:
-                answer += f" You should have about {int(remaining_battery)}% battery remaining afterward."
-            elif remaining_battery > 5:
-                answer += f" You'll have about {int(remaining_battery)}% battery remaining, which is getting low."
-            severity = "low"
-        elif possible_with_optimization:
-            # Can do it with optimization
-            answer = f"Yes, but you'll need to optimize. With {battery_level}% battery, you can {activity_description} for {time_constraint} hour{'s' if time_constraint > 1 else ''} if you follow the optimization recommendations."
-            answer += f" Our optimizations can extend your battery by about {int(potential_extension_minutes)} minutes."
+        # Get the drain rate for the activity
+        drain_rate = activity_drain_rates.get(activity_type, activity_drain_rates["general"])
+        
+        # Calculate battery needed and determine if possible
+        battery_needed = drain_rate * time_constraint
+        remaining_battery = battery_level - battery_needed
+        
+        # Generate insights based on the analysis
+        insights = []
+        
+        # Main yes/no insight
+        if remaining_battery > 20:
+            # Can do it comfortably
+            insights.append({
+                "type": "YesNo",
+                "title": "Yes, you can!",
+                "description": f"Yes, you can {activity_description} for {time_constraint} hour{'s' if time_constraint > 1 else ''} with {battery_level}% battery. You'll have about {int(remaining_battery)}% battery remaining.",
+                "severity": "low"
+            })
+        elif remaining_battery > 5:
+            # Can do it but battery will be low
+            insights.append({
+                "type": "YesNo",
+                "title": "Yes, but battery will be low",
+                "description": f"Yes, you can {activity_description} for {time_constraint} hour{'s' if time_constraint > 1 else ''}, but your battery will be low (around {int(remaining_battery)}%) afterward.",
+                "severity": "medium"
+            })
+        else:
+            # Not enough battery
+            hours_possible = battery_level / drain_rate
+            insights.append({
+                "type": "YesNo",
+                "title": "No, insufficient battery",
+                "description": f"No, {battery_level}% battery is not enough to {activity_description} for {time_constraint} hour{'s' if time_constraint > 1 else ''}. You can only {activity_description} for about {hours_possible:.1f} hour{'s' if hours_possible != 1 else ''}.",
+                "severity": "high"
+            })
+        
+        # Add battery usage insight
+        insights.append({
+            "type": "BatteryUsage",
+            "title": f"Battery Usage for {activity_description.capitalize()}",
+            "description": f"This activity typically uses about {drain_rate}% battery per hour.",
+            "severity": "info"
+        })
+        
+    else:  # Handle constraint-based battery questions
+        # Extract critical apps from the prompt
+        critical_apps = []
+        common_apps = {
+            "gmail": "Gmail",
+            "whatsapp": "WhatsApp",
+            "maps": "Google Maps",
+            "chrome": "Chrome",
+            "youtube": "YouTube",
+            "netflix": "Netflix",
+            "spotify": "Spotify",
+            "facebook": "Facebook",
+            "instagram": "Instagram"
+        }
+        
+        for app_key, app_name in common_apps.items():
+            if app_key in prompt_lower:
+                critical_apps.append(app_name)
+        
+        if not critical_apps:
+            return None
+        
+        # Get battery usage for critical apps
+        apps = device_data.get("apps", [])
+        critical_app_usage = {}
+        for app in apps:
+            app_name = app.get("appName", "")
+            if app_name in critical_apps:
+                critical_app_usage[app_name] = app.get("batteryUsage", 0)
+        
+        insights = []
+        
+        # Main battery strategy insight
+        strategy_desc = []
+        if battery_level <= 15:
+            strategy_desc.append(f"With critically low battery ({battery_level}%), I'll help you maximize battery life while keeping {', '.join(critical_apps)} running.")
+            severity = "high"
+        elif battery_level <= 30:
+            strategy_desc.append(f"With low battery ({battery_level}%), I'll optimize battery usage while maintaining {', '.join(critical_apps)} functionality.")
             severity = "medium"
         else:
-            # Not possible even with optimization
-            answer = f"No, {battery_level}% battery is not enough to {activity_description} for {time_constraint} hour{'s' if time_constraint > 1 else''}."
-            answer += f" With your current battery level, you can only {activity_description} for about {hours_supported_text}."
-            severity = "high"
-    else:
-        # No specific time constraint mentioned
-        answer = f"With {battery_level}% battery, you can {activity_description} for approximately {hours_supported_text}."
-        if potential_extension_percentage > 5:
-            answer += f" With optimizations, this could be extended to about {(hours_supported + potential_extension_hours):.1f} hours."
-        
-        if hours_supported < 1:
-            severity = "high"
-        elif hours_supported < 2:
-            severity = "medium"
-        else:
+            strategy_desc.append(f"With {battery_level}% battery, I'll help you extend battery life while keeping {', '.join(critical_apps)} running normally.")
             severity = "low"
+        
+        # Add app-specific information
+        for app_name, usage in critical_app_usage.items():
+            if usage > 0:
+                strategy_desc.append(f"{app_name} is currently using {usage}% of your battery.")
+        
+        # Add recommendations
+        strategy_desc.append("\nRecommendations:")
+        strategy_desc.append("• Keep these apps running normally")
+        strategy_desc.append("• Restrict background activity for other apps")
+        strategy_desc.append("• Reduce screen brightness")
+        if battery_level <= 30:
+            strategy_desc.append("• Enable battery saver mode")
+        
+        insights.append({
+            "type": "BatteryStrategy",
+            "title": f"Battery Strategy with {', '.join(critical_apps)}",
+            "description": "\n".join(strategy_desc),
+            "severity": severity
+        })
+        
+        # Add battery status insight
+        insights.append({
+            "type": "BatteryStatus",
+            "title": "Current Battery Status",
+            "description": f"Battery level is at {battery_level}%. {'Critical - immediate action needed.' if battery_level <= 15 else 'Low - optimization recommended.' if battery_level <= 30 else 'Sufficient for normal operation.'}",
+            "severity": severity
+        })
     
     return {
-        "type": "DirectAnswer",
-        "title": "Direct Answer",
-        "description": answer,
-        "severity": severity
+        "insights": insights,
+        "actionable": [],  # No actionables for yes/no questions
+        "estimatedSavings": {
+            "batteryMinutes": 0,  # No savings for information requests
+            "dataMB": 0
+        }
     } 

@@ -97,26 +97,22 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
         
         logger.debug(f"[PowerGuard] Determined strategy: {strategy}")
         
-        # Handle information requests specifically
+        # Generate insights first to check if it's a yes/no question
+        insights = generate_insights(strategy, device_data, info_request, prompt)
+        logger.debug(f"[PowerGuard] Generated {len(insights)} insights")
+        
+        # Check if this is a yes/no question by looking at the first insight type
+        is_yes_no = insights and insights[0].get("type") == "YesNo"
+        
+        # Handle yes/no questions and information requests specifically
         actionables = []
-        if info_request:
-            # Information requests should never generate actionables
+        if is_yes_no or info_request:
+            # Yes/no questions and information requests should never generate actionables
             actionables = []
             
             # For information requests, set insights to match the query focus
             strategy["show_battery_savings"] = False  # Don't show savings for info requests
             strategy["show_data_savings"] = False
-            
-            # Determine query focus based on keywords
-            if "battery" in prompt.lower():
-                strategy["focus"] = "battery"
-                logger.info("[PowerGuard] Information request focused on battery")
-            elif "data" in prompt.lower() or "network" in prompt.lower():
-                strategy["focus"] = "network"
-                logger.info("[PowerGuard] Information request focused on data/network")
-            else:
-                strategy["focus"] = "both"  # If unclear, show both types of information
-                logger.info("[PowerGuard] Information request with general focus")
         else:
             # Generate actionables for optimization requests
             actionables = generate_actionables(strategy, device_data)
@@ -128,18 +124,14 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
             "dataMB": 0
         }
         
-        # Only calculate savings for optimization requests
-        if not info_request and (strategy["show_battery_savings"] or strategy["show_data_savings"]):
+        # Only calculate savings for optimization requests that are not yes/no questions
+        if not (info_request or is_yes_no) and (strategy["show_battery_savings"] or strategy["show_data_savings"]):
             from app.utils.strategy_analyzer import calculate_savings
             savings = calculate_savings(strategy, strategy["critical_apps"])
             logger.debug(f"[PowerGuard] Calculated savings: battery={savings['batteryMinutes']}min, data={savings['dataMB']}MB")
             
             # Store the savings directly in the strategy for insights to use
             strategy["calculated_savings"] = savings
-        
-        # Generate insights based on strategy, passing the original prompt for question detection
-        insights = generate_insights(strategy, device_data, info_request, prompt)
-        logger.debug(f"[PowerGuard] Generated {len(insights)} insights")
         
         # If no insights were generated (unlikely), add a fallback message
         if not insights:
@@ -160,8 +152,8 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
                     "severity": "low"
                 }]
         
-        # If no actionables were generated for an optimization request, add a default one
-        if not info_request and not actionables:
+        # If no actionables were generated for an optimization request (and not a yes/no question)
+        if not (info_request or is_yes_no) and not actionables:
             actionables = [{
                 "id": f"default-{int(time.time())}",
                 "type": "OPTIMIZE_BATTERY",
@@ -178,7 +170,7 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
             "success": True,
             "timestamp": int(datetime.now().timestamp()),
             "message": "Analysis completed successfully",
-            "responseType": "information" if info_request else "optimization",
+            "responseType": "information" if (info_request or is_yes_no) else "optimization",
             "actionable": actionables,
             "insights": insights,
             "batteryScore": calculate_battery_score(device_data),
@@ -188,7 +180,7 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
         }
         
         # Store device usage patterns in database
-        if not info_request:
+        if not (info_request or is_yes_no):
             try:
                 store_usage_patterns(device_data, db, strategy)
             except Exception as db_error:
