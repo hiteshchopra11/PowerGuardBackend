@@ -11,18 +11,11 @@ logger = logging.getLogger('powerguard_prompt_analyzer')
 
 # Define all supported actionable types
 ALLOWED_ACTIONABLE_TYPES = {
-    "OPTIMIZE_BATTERY",
-    "ENABLE_DATA_SAVER",
-    "RESTRICT_BACKGROUND",
-    "ADJUST_SCREEN",
-    "MANAGE_LOCATION",
-    "UPDATE_APP",
-    "UNINSTALL_APP",
-    "CLEAR_CACHE",
-    "ENABLE_BATTERY_SAVER",
-    "ENABLE_AIRPLANE_MODE",
-    "DISABLE_FEATURES",
-    "SCHEDULE_TASKS"
+    "SET_STANDBY_BUCKET",
+    "RESTRICT_BACKGROUND_DATA",
+    "KILL_APP", 
+    "MANAGE_WAKE_LOCKS",
+    "THROTTLE_CPU_USAGE"
 }
 
 def classify_user_prompt(prompt: str) -> Dict[str, Any]:
@@ -39,7 +32,7 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
         return {
             "optimize_battery": True,  # Default to True for empty prompts
             "optimize_data": True,     # Default to True for empty prompts
-            "actionable_focus": ["OPTIMIZE_BATTERY", "ENABLE_DATA_SAVER"],
+            "actionable_focus": ["SET_STANDBY_BUCKET", "RESTRICT_BACKGROUND_DATA"],
             "is_relevant": True        # Consider empty prompts as relevant
         }
     
@@ -47,43 +40,43 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     keywords = {
         "battery": {
             "goals": ["optimize_battery"],
-            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER", "RESTRICT_BACKGROUND", "ADJUST_SCREEN"]
+            "actions": ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"]
         },
         "power": {
             "goals": ["optimize_battery"],
-            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER", "DISABLE_FEATURES"]
+            "actions": ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"]
         },
         "charge": {
             "goals": ["optimize_battery"],
-            "actions": ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER", "ENABLE_AIRPLANE_MODE"]
+            "actions": ["KILL_APP", "MANAGE_WAKE_LOCKS"]
         },
         "data": {
             "goals": ["optimize_data"],
-            "actions": ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND", "MANAGE_LOCATION"]
+            "actions": ["RESTRICT_BACKGROUND_DATA", "KILL_APP"]
         },
         "network": {
             "goals": ["optimize_data"],
-            "actions": ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]
+            "actions": ["RESTRICT_BACKGROUND_DATA"]
         },
         "internet": {
             "goals": ["optimize_data"],
-            "actions": ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]
+            "actions": ["RESTRICT_BACKGROUND_DATA"]
         },
         "wifi": {
             "goals": ["optimize_data"],
-            "actions": ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]
+            "actions": ["RESTRICT_BACKGROUND_DATA"]
         },
         "clean": {
             "goals": [],
-            "actions": ["CLEAR_CACHE", "UNINSTALL_APP"]
+            "actions": ["KILL_APP"]
         },
         "background": {
             "goals": ["optimize_battery", "optimize_data"],
-            "actions": ["RESTRICT_BACKGROUND", "SCHEDULE_TASKS"]
+            "actions": ["SET_STANDBY_BUCKET", "RESTRICT_BACKGROUND_DATA"]
         },
         "performance": {
             "goals": [],
-            "actions": ["UPDATE_APP", "CLEAR_CACHE"]
+            "actions": ["SET_STANDBY_BUCKET", "THROTTLE_CPU_USAGE"]
         }
     }
     
@@ -109,23 +102,32 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     if has_battery_keyword or has_data_keyword or has_kill_keyword or has_background_keyword or has_performance_keyword:
         result["is_relevant"] = True
     else:
-        # If no specific keywords found, consider it a general optimization request
-        result["optimize_battery"] = True
-        result["optimize_data"] = True
-        result["actionable_focus"] = ["OPTIMIZE_BATTERY", "ENABLE_DATA_SAVER"]
-        result["is_relevant"] = True
+        # Check for common optimization terms
+        optimization_terms = ["optimize", "optimization", "save", "conserve", "extend", "improve", "boost", "reduce usage"]
+        has_optimization_term = any(term in lowered for term in optimization_terms)
+        
+        if has_optimization_term:
+            # General optimization request
+            result["optimize_battery"] = True
+            result["optimize_data"] = True
+            result["actionable_focus"] = ["SET_STANDBY_BUCKET", "RESTRICT_BACKGROUND_DATA"]
+            result["is_relevant"] = True
+        else:
+            # Not related to optimization
+            result["is_relevant"] = False
+        
         return result
     
     # Populate actionable_focus based on keywords
     if has_battery_keyword:
         result["optimize_battery"] = True
-        for action in ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER"]:
+        for action in ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"]:
             if action not in result["actionable_focus"]:
                 result["actionable_focus"].append(action)
     
     if has_data_keyword:
         result["optimize_data"] = True
-        for action in ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]:
+        for action in ["RESTRICT_BACKGROUND_DATA", "KILL_APP"]:
             if action not in result["actionable_focus"]:
                 result["actionable_focus"].append(action)
     
@@ -134,11 +136,11 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
             result["actionable_focus"].append("KILL_APP")
     
     if has_background_keyword:
-        if "RESTRICT_BACKGROUND" not in result["actionable_focus"]:
-            result["actionable_focus"].append("RESTRICT_BACKGROUND")
+        if "RESTRICT_BACKGROUND_DATA" not in result["actionable_focus"]:
+            result["actionable_focus"].append("RESTRICT_BACKGROUND_DATA")
     
     if has_performance_keyword:
-        for action in ["SET_STANDBY_BUCKET", "CATEGORIZE_APP"]:
+        for action in ["SET_STANDBY_BUCKET", "THROTTLE_CPU_USAGE"]:
             if action not in result["actionable_focus"]:
                 result["actionable_focus"].append(action)
     
@@ -153,7 +155,7 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     
     if any(re.search(pattern, lowered) for pattern in battery_negation_patterns):
         result["optimize_battery"] = False
-        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER"]]
+        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"]]
     
     data_negation_patterns = [
         r"(?:don't|do not|dont)\s+(?:optimize|save|worry|care|about)\s+(?:the\s+)?(?:data|network)",
@@ -165,27 +167,27 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
     
     if any(re.search(pattern, lowered) for pattern in data_negation_patterns):
         result["optimize_data"] = False
-        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]]
+        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["RESTRICT_BACKGROUND_DATA", "KILL_APP"]]
     
     # Handle specific case of "but not data" constructions
     if "battery" in lowered and ("but not data" in lowered or "but no data" in lowered):
         result["optimize_battery"] = True
         result["optimize_data"] = False
-        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]]
+        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["RESTRICT_BACKGROUND_DATA", "KILL_APP"]]
     
     # Handle specific case of "but not battery" constructions
     if "data" in lowered and ("but not battery" in lowered or "but no battery" in lowered):
         result["optimize_data"] = True
         result["optimize_battery"] = False
-        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER"]]
+        result["actionable_focus"] = [action for action in result["actionable_focus"] if action not in ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"]]
     
     # If we found keywords but no specific optimization goals after negation processing,
     # check if we have actionable_focus and set defaults accordingly
     if result["is_relevant"] and not any([result["optimize_battery"], result["optimize_data"]]):
         if result["actionable_focus"]:
             # Check if actions are more battery or data related
-            battery_actions = ["OPTIMIZE_BATTERY", "ENABLE_BATTERY_SAVER"]
-            data_actions = ["ENABLE_DATA_SAVER", "RESTRICT_BACKGROUND"]
+            battery_actions = ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"]
+            data_actions = ["RESTRICT_BACKGROUND_DATA", "KILL_APP"]
             
             battery_focus = any(action in battery_actions for action in result["actionable_focus"])
             data_focus = any(action in data_actions for action in result["actionable_focus"])
@@ -197,7 +199,7 @@ def classify_user_prompt(prompt: str) -> Dict[str, Any]:
             if not any([result["optimize_battery"], result["optimize_data"]]):
                 result["optimize_battery"] = True
                 result["optimize_data"] = True
-                result["actionable_focus"].extend(["OPTIMIZE_BATTERY", "ENABLE_DATA_SAVER"])
+                result["actionable_focus"].extend(["SET_STANDBY_BUCKET", "RESTRICT_BACKGROUND_DATA"])
     
     logger.debug(f"[PowerGuard] Classified prompt '{prompt}': {result}")
     return result
@@ -500,7 +502,7 @@ def generate_optimization_prompt(classification: Dict[str, Any], device_data: Di
     
     1. actionable: A list of specific actions to take, including:
        - id: unique identifier for the action
-       - type: the type of action (MUST be one of these EXACT values: {", ".join(ALLOWED_ACTIONABLE_TYPES)})
+       - type: the type of action (MUST be one of these EXACT values: {", ".join(ALLOWED_ACTIONABLE_TYPES)}
        - packageName: affected app's package name
        - description: what the action will do
        - reason: why this action is recommended

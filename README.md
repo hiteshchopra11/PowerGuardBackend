@@ -1,23 +1,34 @@
 # PowerGuard AI Backend
 
-A battery optimization service that uses AI to analyze device usage patterns and provide actionable recommendations for better battery life.
+<div align="center">
+  <img src="https://img.shields.io/badge/Python-3.9+-blue.svg" alt="Python 3.9+">
+  <img src="https://img.shields.io/badge/FastAPI-0.95+-green.svg" alt="FastAPI">
+  <img src="https://img.shields.io/badge/LLM-Powered-orange.svg" alt="LLM Powered">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+</div>
 
-## Features
+<p align="center">A battery and data optimization service that uses AI to analyze device usage patterns and provide actionable recommendations for better battery life and data usage.</p>
 
-- Device usage analysis
-- Battery optimization recommendations
-- Usage pattern tracking
-- Historical data analysis
-- AI-powered insights
-- Rate limiting and DDoS protection
-- User-directed optimizations via prompts
-- Hybrid rule-based and LLM prompt classification
-- Smart context-aware prompt analysis with critical app protection
-- Battery level based optimization strategy
-- Time and data constraint-aware recommendations
-- Information requests vs. optimization requests handling
+<div align="center">
+  <img width="800" src="https://raw.githubusercontent.com/example/powerguard/main/docs/hero-image.png" alt="PowerGuard Hero Image" />
+</div>
 
-## API Endpoints
+## ✨ Features
+
+- 🔋 Device usage analysis
+- 📊 Battery optimization recommendations
+- 📱 Usage pattern tracking
+- 🧠 Historical data analysis
+- 🤖 AI-powered insights
+- 🛡️ Rate limiting and DDoS protection
+- 💡 User-directed optimizations via prompts
+- 🔄 Hybrid rule-based and LLM prompt classification
+- 🧩 Smart context-aware prompt analysis with critical app protection
+- 🎯 Battery level based optimization strategy
+- ⏱️ Time and data constraint-aware recommendations
+- 💬 Information requests vs. optimization requests handling
+
+## 🚀 API Endpoints
 
 - `POST /api/analyze` - Analyze device data and get optimization recommendations
 - `GET /api/patterns/{device_id}` - Get usage patterns for a specific device
@@ -26,20 +37,20 @@ A battery optimization service that uses AI to analyze device usage patterns and
 - `GET /api/test/with-prompt/{prompt}` - Test endpoint that generates a sample response based on a prompt
 - `GET /api/test/no-prompt` - Test endpoint that generates a sample response with default settings
 
-## Rate Limits
+## 🔒 Rate Limits
 
 To prevent abuse and ensure fair usage, the following rate limits are in place:
 
-- Default endpoints: 100 requests per minute
-- Analyze endpoint: 30 requests per minute
-- Patterns endpoint: 60 requests per minute
-- Reset DB endpoint: 5 requests per hour
+| Endpoint | Limit |
+|----------|-------|
+| Default endpoints | 100 requests per minute |
+| Analyze endpoint | 30 requests per minute |
+| Patterns endpoint | 60 requests per minute |
+| Reset DB endpoint | 5 requests per hour |
 
 When rate limits are exceeded, the API will return a 429 (Too Many Requests) status code.
 
-## High-Level Design (HLD)
-
-### System Architecture
+## 🏗️ System Architecture
 
 ```mermaid
 graph TD
@@ -75,7 +86,7 @@ graph TD
     end
 ```
 
-### Smart Prompt Analysis Flow
+## 📊 Smart Prompt Analysis Flow
 
 ```mermaid
 graph TD
@@ -98,7 +109,7 @@ graph TD
     E --> N
 ```
 
-### Data Flow
+## 🔄 Data Flow
 
 ```mermaid
 sequenceDiagram
@@ -128,7 +139,8 @@ sequenceDiagram
     API-->>App: Return Recommendations
 ```
 
-### Components
+## 🧩 Components
+
 1. **Client Application**
    - Android app collecting device data
    - Sends usage statistics to backend
@@ -145,7 +157,7 @@ sequenceDiagram
    - Pattern recognition
    - Recommendation generation
 
-## Battery Level Based Strategies
+## 🔋 Battery Level Based Strategies
 
 PowerGuard adapts its optimization strategy based on current battery level:
 
@@ -156,7 +168,7 @@ PowerGuard adapts its optimization strategy based on current battery level:
 | ≤50% (Moderate) | Balanced | Balanced approach focusing on problematic apps | Optimize problematic apps, normal sync intervals, standard UI settings |
 | >50% (High) | Minimal | Light optimizations only for the most resource-intensive apps | Target only extremely high battery consumers, normal operation for most apps |
 
-## Using Prompts for Directed Optimization
+## 🗣️ Using Prompts for Directed Optimization
 
 The PowerGuard system supports user-directed optimizations through the optional `prompt` field in the `/api/analyze` endpoint. This feature allows users to specify their optimization goals in natural language, and the system will adjust its analysis and recommendations accordingly.
 
@@ -193,7 +205,7 @@ PowerGuard recognizes these critical app categories that are often protected dur
 4. **Work/Productivity**: Slack, Teams, Zoom, Office apps, Google Workspace
 5. **Health & Safety**: Health monitoring, Emergency services, Safety alerts
 
-## Sample API Responses
+## 📝 Sample API Responses
 
 ### Example 1: Battery Optimization
 
@@ -515,7 +527,7 @@ PowerGuard recognizes these critical app categories that are often protected dur
 }
 ```
 
-## Setup and Installation
+## 🛠️ Setup and Installation
 
 1. Clone the repository
 2. Create a virtual environment:
@@ -536,7 +548,7 @@ PowerGuard recognizes these critical app categories that are often protected dur
    python run.py
    ```
 
-## Testing the Application
+## 🧪 Testing the Application
 
 PowerGuard includes several test scripts to verify its functionality:
 
@@ -562,12 +574,12 @@ PowerGuard includes several test scripts to verify its functionality:
 
 For more details on testing options, see the [TESTING.md](TESTING.md) documentation.
 
-## API Documentation
+## 📚 API Documentation
 
 Access the interactive API documentation at:
 - Swagger UI: `/docs`
 - ReDoc: `/redoc`
 
-## License
+## 📄 License
 
 MIT License 

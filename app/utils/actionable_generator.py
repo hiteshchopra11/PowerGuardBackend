@@ -11,20 +11,13 @@ from app.config.app_categories import get_app_name, get_app_category
 # Configure logging
 logger = logging.getLogger('powerguard_actionables')
 
-# Define actionable types
+# Define actionable types - using string values
 ACTIONABLE_TYPES = {
-    "OPTIMIZE_BATTERY",
-    "ENABLE_DATA_SAVER",
-    "RESTRICT_BACKGROUND",
-    "ADJUST_SCREEN",
-    "MANAGE_LOCATION",
-    "UPDATE_APP",
-    "UNINSTALL_APP",
-    "CLEAR_CACHE",
-    "ENABLE_BATTERY_SAVER",
-    "ENABLE_AIRPLANE_MODE",
-    "DISABLE_FEATURES",
-    "SCHEDULE_TASKS"
+    "SET_STANDBY_BUCKET",
+    "RESTRICT_BACKGROUND_DATA",
+    "KILL_APP", 
+    "MANAGE_WAKE_LOCKS",
+    "THROTTLE_CPU_USAGE"
 }
 
 def generate_actionables(
@@ -57,7 +50,55 @@ def generate_actionables(
     )
     actionables.extend(app_actionables)
     
+    # Post-process actionables to ensure human-readable app names in descriptions
+    actionables = post_process_actionables(actionables)
+    
     return actionables
+
+def post_process_actionables(actionables: List[Dict]) -> List[Dict]:
+    """
+    Post-process actionables to ensure human-readable app names in descriptions.
+    
+    Args:
+        actionables: List of actionable dictionaries
+        
+    Returns:
+        List of actionables with human-readable app names in descriptions
+    """
+    processed_actionables = []
+    
+    for actionable in actionables:
+        # Skip if no package name
+        if not actionable.get("packageName"):
+            processed_actionables.append(actionable)
+            continue
+            
+        package_name = actionable.get("packageName")
+        description = actionable.get("description", "")
+        
+        # Skip system-level actionables or ones without descriptions
+        if package_name == "system" or not description:
+            processed_actionables.append(actionable)
+            continue
+            
+        # Get human-readable app name
+        app_name = get_app_name(package_name)
+        
+        # Skip if app name is same as package name (no mapping found)
+        if app_name == package_name:
+            processed_actionables.append(actionable)
+            continue
+            
+        # Replace package name with app name in description
+        if package_name in description:
+            # Make a more direct replacement to ensure we catch all instances
+            new_description = description.replace(package_name, app_name)
+            logger.debug(f"Replaced '{package_name}' with '{app_name}' in description: '{description}' -> '{new_description}'")
+            actionable["description"] = new_description
+        
+        processed_actionables.append(actionable)
+        
+    return processed_actionables
 
 def generate_global_actionables(
     strategy: dict,
@@ -69,29 +110,28 @@ def generate_global_actionables(
     # Battery optimization
     if strategy.get("focus") in ["battery", "both"]:
         if battery_level <= 30:
-            # Enable battery saver mode for low battery
+            # Use MANAGE_WAKE_LOCKS for low battery
             actionables.append({
                 "id": f"global-batt-{uuid.uuid4().hex[:8]}",
-                "type": "ENABLE_BATTERY_SAVER",
+                "type": "MANAGE_WAKE_LOCKS",
                 "packageName": "system",
-                "description": "Enable battery saver mode",
+                "description": "Manage system wake locks",
                 "reason": f"Battery level is low ({battery_level}%)",
                 "newMode": "enabled",
                 "parameters": {}
             })
         
-        # Adjust screen settings for battery optimization
+        # Use CPU throttling for aggressive battery saving
         if strategy.get("aggressiveness") in ["very_aggressive", "aggressive"]:
             actionables.append({
-                "id": f"global-screen-{uuid.uuid4().hex[:8]}",
-                "type": "ADJUST_SCREEN",
+                "id": f"global-cpu-{uuid.uuid4().hex[:8]}",
+                "type": "THROTTLE_CPU_USAGE",
                 "packageName": "system",
-                "description": "Reduce screen brightness and timeout",
+                "description": "Throttle CPU usage for background apps",
                 "reason": "Optimize battery usage",
                 "newMode": "optimized",
                 "parameters": {
-                    "brightness": "auto",
-                    "timeout": "30"
+                    "throttleLevel": "medium"
                 }
             })
     
@@ -99,9 +139,9 @@ def generate_global_actionables(
     if strategy.get("focus") in ["network", "both"]:
         actionables.append({
             "id": f"global-data-{uuid.uuid4().hex[:8]}",
-            "type": "ENABLE_DATA_SAVER",
+            "type": "RESTRICT_BACKGROUND_DATA",
             "packageName": "system",
-            "description": "Enable data saver mode",
+            "description": "Restrict background data usage",
             "reason": "Optimize network data usage",
             "newMode": "enabled",
             "parameters": {}
@@ -184,7 +224,7 @@ def generate_app_actionables(
             # For critical apps, ensure they're in normal mode
             actionables.append({
                 "id": f"critical-{package_name}-{uuid.uuid4().hex[:8]}",
-                "type": "OPTIMIZE_BATTERY", 
+                "type": "SET_STANDBY_BUCKET",
                 "packageName": package_name,
                 "description": f"Set {app_name} to normal priority",
                 "reason": "Critical app needed for user's current task",
@@ -197,45 +237,48 @@ def generate_app_actionables(
         if (strategy["focus"] in ["battery", "both"] and (battery_usage or 0) > 0):
             if battery_critical:
                 # If battery is critically low, apply more aggressive actions
-                actionables.append({
-                    "id": f"batt-{package_name}-{uuid.uuid4().hex[:8]}",
-                    "type": "RESTRICT_BACKGROUND",
-                    "packageName": package_name,
-                    "description": f"Restrict background activity for {app_name}",
-                    "reason": f"Battery critically low ({battery_level}%), app uses {battery_usage}% battery",
-                    "newMode": "restricted",
-                    "parameters": {}
-                })
-                
-                # For high battery consumers, add battery saver specifically
                 if battery_usage > 10:
+                    # Kill high battery consuming apps
+                    actionables.append({
+                        "id": f"batt-{package_name}-{uuid.uuid4().hex[:8]}",
+                        "type": "KILL_APP",
+                        "packageName": package_name,
+                        "description": f"Force stop {app_name}",
+                        "reason": f"Battery critically low ({battery_level}%), app uses {battery_usage}% battery",
+                        "newMode": "killed",
+                        "parameters": {}
+                    })
+                else:
+                    # Use wake lock management for moderate consumers
                     actionables.append({
                         "id": f"batt-save-{package_name}-{uuid.uuid4().hex[:8]}",
-                        "type": "ENABLE_BATTERY_SAVER",
+                        "type": "MANAGE_WAKE_LOCKS",
                         "packageName": package_name,
-                        "description": f"Enable battery saver mode for {app_name}",
-                        "reason": f"High battery usage ({battery_usage}%) with critically low battery",
-                        "newMode": "enabled",
+                        "description": f"Manage wake locks for {app_name}",
+                        "reason": f"Battery low ({battery_level}%) with moderate usage ({battery_usage}%)",
+                        "newMode": "restricted",
                         "parameters": {}
                     })
             elif strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
                 actionables.append({
                     "id": f"batt-{package_name}-{uuid.uuid4().hex[:8]}",
-                    "type": "RESTRICT_BACKGROUND",
+                    "type": "THROTTLE_CPU_USAGE",
                     "packageName": package_name,
-                    "description": f"Restrict background activity for {app_name}",
-                    "reason": f"Consuming {battery_usage}% battery in background",
-                    "newMode": "restricted",
-                    "parameters": {}
+                    "description": f"Throttle CPU usage for {app_name}",
+                    "reason": f"Consuming {battery_usage}% battery, aggressive optimization strategy",
+                    "newMode": "throttled",
+                    "parameters": {
+                        "level": "moderate"
+                    }
                 })
             else:
                 actionables.append({
                     "id": f"batt-{package_name}-{uuid.uuid4().hex[:8]}",
-                    "type": "OPTIMIZE_BATTERY",
+                    "type": "SET_STANDBY_BUCKET",
                     "packageName": package_name,
-                    "description": f"Optimize battery usage for {app_name}",
-                    "reason": f"Consuming {battery_usage}% battery",
-                    "newMode": "optimized",
+                    "description": f"Place {app_name} in restricted standby bucket",
+                    "reason": f"Consuming {battery_usage}% battery in background",
+                    "newMode": "restricted",
                     "parameters": {}
                 })
             battery_action_count += 1
@@ -248,50 +291,45 @@ def generate_app_actionables(
             
             if data_critical:
                 # If data is critically low, apply more aggressive actions
-                actionables.append({
-                    "id": f"data-{package_name}-{uuid.uuid4().hex[:8]}",
-                    "type": "RESTRICT_BACKGROUND",
-                    "packageName": package_name,
-                    "description": f"Restrict background data for {app_name}",
-                    "reason": f"Data critically low ({data_remaining} MB remaining), app uses {data_usage_total} MB",
-                    "newMode": "restricted",
-                    "parameters": {
-                        "restrictData": True
-                    }
-                })
-                
-                # For high data consumers, add data saver specifically
                 if data_usage_total > total_data_used * 0.1:  # Using more than 10% of total data
                     actionables.append({
-                        "id": f"data-save-{package_name}-{uuid.uuid4().hex[:8]}",
-                        "type": "ENABLE_DATA_SAVER",
+                        "id": f"data-{package_name}-{uuid.uuid4().hex[:8]}",
+                        "type": "KILL_APP",
                         "packageName": package_name,
-                        "description": f"Enable data saver for {app_name}",
-                        "reason": f"High data usage ({data_usage_total} MB) with critically low data remaining",
-                        "newMode": "enabled",
+                        "description": f"Force stop {app_name} to prevent data usage",
+                        "reason": f"Data critically low ({data_remaining} MB), app uses significant data ({data_usage_total} MB)",
+                        "newMode": "killed",
                         "parameters": {}
                     })
-                    data_action_count += 1
+                else:
+                    actionables.append({
+                        "id": f"data-save-{package_name}-{uuid.uuid4().hex[:8]}",
+                        "type": "RESTRICT_BACKGROUND_DATA",
+                        "packageName": package_name,
+                        "description": f"Restrict background data for {app_name}",
+                        "reason": f"Data critically low ({data_remaining} MB), preserve for essential use",
+                        "newMode": "restricted",
+                        "parameters": {}
+                    })
+                data_action_count += 1
             elif strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
                 actionables.append({
                     "id": f"data-{package_name}-{uuid.uuid4().hex[:8]}",
-                    "type": "RESTRICT_BACKGROUND",
+                    "type": "RESTRICT_BACKGROUND_DATA",
                     "packageName": package_name,
                     "description": f"Restrict background data for {app_name}",
                     "reason": f"Consuming {data_usage_background} MB of data in background",
                     "newMode": "restricted",
-                    "parameters": {
-                        "restrictData": True
-                    }
+                    "parameters": {}
                 })
             else:
                 actionables.append({
                     "id": f"data-{package_name}-{uuid.uuid4().hex[:8]}",
-                    "type": "ENABLE_DATA_SAVER",
+                    "type": "SET_STANDBY_BUCKET",
                     "packageName": package_name,
-                    "description": f"Enable data saver for {app_name}",
-                    "reason": f"Consuming {data_usage_total} MB of data",
-                    "newMode": "enabled",
+                    "description": f"Place {app_name} in restricted standby bucket",
+                    "reason": f"Optimize data usage by limiting background activity",
+                    "newMode": "restricted",
                     "parameters": {}
                 })
                 data_action_count += 1

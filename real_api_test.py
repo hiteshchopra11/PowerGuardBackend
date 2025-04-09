@@ -465,8 +465,10 @@ def run_api_test(prompt, log_file):
         app_actions = [a for a in actionables if a.get('packageName') != 'system']
         
         # Determine focus based on actionables
-        battery_actions = [a for a in actionables if "BATTERY" in a.get("type", "") or a.get("type") == "OPTIMIZE_BATTERY"]
-        data_actions = [a for a in actionables if "DATA" in a.get("type", "") or a.get("type") == "ENABLE_DATA_SAVER"]
+        battery_actionables = [a for a in actionables if "BATTERY" in a.get("type", "") or 
+                              a.get("type") in ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"]]
+        data_actionables = [a for a in actionables if "DATA" in a.get("type", "") or 
+                           a.get("type") in ["RESTRICT_BACKGROUND_DATA", "KILL_APP"]]
         
         # Find critical apps (apps set to normal priority)
         critical_apps = []
@@ -536,9 +538,12 @@ def run_api_test(prompt, log_file):
             # Print grouped actions
             for app_name, action_types in app_dict.items():
                 actions_str = ""
-                if any("BATTERY" in t for t in action_types):
+                battery_focused = any(action_type in ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"] for action_type in action_types)
+                data_focused = any(action_type in ["RESTRICT_BACKGROUND_DATA", "KILL_APP"] for action_type in action_types)
+                
+                if battery_focused or any("BATTERY" in t for t in action_types):
                     actions_str += "battery "
-                if any("DATA" in t for t in action_types):
+                if data_focused or any("DATA" in t for t in action_types):
                     actions_str += "data "
                 
                 print(f"  • {app_name}: Optimizing {actions_str.strip()}")
@@ -580,9 +585,12 @@ def run_api_test(prompt, log_file):
             log_file.write(f"\nOptimizing {len(app_actions) - len(critical_apps)} apps:\n")
             for app_name, action_types in app_dict.items():
                 actions_str = ""
-                if any("BATTERY" in t for t in action_types):
+                battery_focused = any(action_type in ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"] for action_type in action_types)
+                data_focused = any(action_type in ["RESTRICT_BACKGROUND_DATA", "KILL_APP"] for action_type in action_types)
+                
+                if battery_focused or any("BATTERY" in t for t in action_types):
                     actions_str += "battery "
-                if any("DATA" in t for t in action_types):
+                if data_focused or any("DATA" in t for t in action_types):
                     actions_str += "data "
                 
                 log_file.write(f"- {app_name}: Optimizing {actions_str.strip()}\n")
@@ -712,8 +720,10 @@ def test_battery_data_combinations(log_file):
                     actionables = data.get("actionable", [])
                     
                     # Check focus based on battery and data levels
-                    battery_actionables = [a for a in actionables if "BATTERY" in a.get("type", "") or a.get("type") == "OPTIMIZE_BATTERY"]
-                    data_actionables = [a for a in actionables if "DATA" in a.get("type", "") or a.get("type") == "ENABLE_DATA_SAVER"]
+                    battery_actionables = [a for a in actionables if "BATTERY" in a.get("type", "") or 
+                                           a.get("type") in ["SET_STANDBY_BUCKET", "MANAGE_WAKE_LOCKS", "THROTTLE_CPU_USAGE"]]
+                    data_actionables = [a for a in actionables if "DATA" in a.get("type", "") or 
+                                       a.get("type") in ["RESTRICT_BACKGROUND_DATA", "KILL_APP"]]
                     
                     test_result["battery_action_count"] = len(battery_actionables)
                     test_result["data_action_count"] = len(data_actionables)
@@ -881,195 +891,420 @@ def test_battery_data_combinations(log_file):
     
     return all_results
 
-def format_summary_results(results, combination_results, log_file):
-    """Format summary results and save to log file"""
-    print_header("TEST SUMMARY")
-    log_file.write("\nTEST SUMMARY\n")
-    log_file.write("=" * 80 + "\n\n")
-    
-    # Main results summary
-    total_tests = len(results)
+def format_summary_results(results, combination_results, usage_pattern_results, log_file):
+    """Format and save summary results to the log file"""
+    # Count successful tests
     successful_tests = sum(1 for r in results if r.get("success", False))
     
-    print(f"Total Prompts Tested: {total_tests}")
-    print(f"Successful Tests: {successful_tests}/{total_tests} ({successful_tests/total_tests*100:.1f}%)")
+    log_file.write("\n\nTEST SUMMARY\n")
+    log_file.write("=" * 80 + "\n\n")
     
-    log_file.write(f"Total Prompts Tested: {total_tests}\n")
-    log_file.write(f"Successful Tests: {successful_tests}/{total_tests} ({successful_tests/total_tests*100:.1f}%)\n\n")
+    log_file.write(f"Total Prompts Tested: {len(TEST_PROMPTS)}\n")
+    log_file.write(f"Successful Tests: {successful_tests}/{len(TEST_PROMPTS)} ({successful_tests/len(TEST_PROMPTS)*100:.1f}%)\n\n")
     
-    # Summary table
-    print_section("PROMPT SUMMARY TABLE")
+    # Create a summary table of results
     log_file.write("PROMPT SUMMARY TABLE:\n")
     log_file.write("-" * 110 + "\n")
-    
-    header = f"{'PROMPT':<40} | {'SUCCESS':<8} | {'ACTIONABLES':<12} | {'INSIGHTS':<10} | {'BATTERY SAVED':<15} | {'DATA SAVED':10}"
-    print(header)
-    print("-" * len(header))
-    log_file.write(f"{header}\n")
+    log_file.write(f"{'PROMPT':<40} | {'SUCCESS':<8} | {'ACTIONABLES':<12} | {'INSIGHTS':<10} | {'BATTERY SAVED':<15} | {'DATA SAVED':<10}\n")
     log_file.write("-" * 110 + "\n")
     
-    for result in results:
-        prompt = result["prompt"]
-        if len(prompt) > 35:
-            prompt = prompt[:35] + "..."
-            
-        if result.get("success", False) and "response" in result:
-            resp = result["response"]
-            battery_score = resp.get("batteryScore", "N/A")
-            actionables = len(resp.get("actionable", []))
-            insights = len(resp.get("insights", []))
-            battery_saved = resp.get("estimatedSavings", {}).get("batteryMinutes", 0)
-            data_saved = resp.get("estimatedSavings", {}).get("dataMB", 0)
-            
-            row = f"{prompt:<40} | {'✅':<8} | {actionables:<12} | {insights:<10} | {battery_saved:<15} | {data_saved:<10}"
-            print(row)
-            log_file.write(f"{prompt:<40} | {'Success':<8} | {actionables:<12} | {insights:<10} | {battery_saved:<15} | {data_saved:<10}\n")
-        else:
-            row = f"{prompt:<40} | {'❌':<8} | {'N/A':<12} | {'N/A':<10} | {'N/A':<15} | {'N/A':<10}"
-            print(row)
-            log_file.write(f"{prompt:<40} | {'Error':<8} | {'N/A':<12} | {'N/A':<10} | {'N/A':<15} | {'N/A':<10}\n")
+    for i, result in enumerate(results):
+        prompt = result.get("prompt", "Unknown")
+        success = "Success" if result.get("success", False) else "Failure"
+        actionables_count = len(result.get("actionables", []))
+        insights_count = len(result.get("insights", []))
+        battery_saved = result.get("estimated_savings", {}).get("batteryMinutes", 0)
+        data_saved = result.get("estimated_savings", {}).get("dataMB", 0)
+        
+        log_file.write(f"{prompt[:37] + '...' if len(prompt) > 40 else prompt:<40} | {success:<8} | {actionables_count:<12} | {insights_count:<10} | {battery_saved:<15} | {data_saved:<10}\n")
     
-    # Combination results summary
-    if combination_results:
-        print_section("COMBINATION TEST SUMMARY")
-        log_file.write("\n\nCOMBINATION TEST SUMMARY:\n")
+    log_file.write("\n\n")
+    
+    # Summary of combination tests
+    log_file.write("COMBINATION TEST SUMMARY:\n")
+    log_file.write("-" * 80 + "\n")
+    
+    # Fix for handling combination_results (which could be a list or a dict)
+    all_tests = []
+    if isinstance(combination_results, list):
+        all_tests = combination_results
+    elif isinstance(combination_results, dict) and "all_tests" in combination_results:
+        all_tests = combination_results.get("all_tests", [])
+    
+    total_combos = len(all_tests)
+    correct_predictions = len([t for t in all_tests if t.get("focus_correct", False)])
+    
+    log_file.write(f"Total Combination Tests: {total_combos}\n")
+    if total_combos > 0:
+        log_file.write(f"Correct Focus Predictions: {correct_predictions}/{total_combos} ({correct_predictions/total_combos*100:.1f}%)\n\n")
+    else:
+        log_file.write("No combination tests run.\n\n")
+    
+    # Add summary for usage pattern tests
+    if usage_pattern_results:
+        log_file.write("\nUSAGE PATTERN TEST SUMMARY:\n")
         log_file.write("-" * 80 + "\n")
         
-        total_combo_tests = sum(len(prompt_data["results"]) for prompt_data in combination_results)
-        correct_focus_count = 0
+        # Count total scenario-prompt combinations
+        total_pattern_tests = 0
+        changed_recommendations = 0
         
-        for prompt_data in combination_results:
-            for result in prompt_data["results"]:
-                if result.get("success", False) and result.get("correct_focus", False):
-                    correct_focus_count += 1
+        for scenario, results in usage_pattern_results.items():
+            if scenario == "clean_db":
+                continue  # Skip baseline
+            total_pattern_tests += len(results)
+            # Count tests where recommendations changed compared to baseline
+            changed_recommendations += sum(1 for r in results if r.get("has_changes", False))
         
-        accuracy = (correct_focus_count / total_combo_tests) * 100 if total_combo_tests > 0 else 0
-        
-        print(f"Total Combination Tests: {total_combo_tests}")
-        print(f"Correct Focus Predictions: {correct_focus_count}/{total_combo_tests} ({accuracy:.1f}%)")
-        
-        log_file.write(f"Total Combination Tests: {total_combo_tests}\n")
-        log_file.write(f"Correct Focus Predictions: {correct_focus_count}/{total_combo_tests} ({accuracy:.1f}%)\n\n")
-
-def format_api_response(response, device_data, curl_cmd, start_time, prompt):
-    """Format the API response for display"""
-    end_time = time.time()
-    execution_time = end_time - start_time
-    
-    result = f"\n\n================================================================================\n"
-    result += f"PROMPT: '{prompt}'\n"
-    result += f"================================================================================\n\n"
-    
-    # Add device data summary
-    result += f"DEVICE DATA:\n"
-    result += f"  Battery Level: {device_data['battery']['level']}%\n"
-    result += f"  Data Downloaded: {int(device_data['network']['dataUsage']['foreground'])} MB\n"
-    result += f"  Data Uploaded: {int(device_data['network']['dataUsage']['background'])} MB\n"
-    result += f"  Number of Apps: {len(device_data['apps'])}\n\n"
-    
-    # Add curl command
-    result += f"CURL COMMAND: {curl_cmd}\n\n"
-    
-    if response.status_code != 200:
-        result += f"ERROR: {response.status_code}\n"
-        result += f"Response: {response.text}\n"
-        return result
-    
-    data = response.json()
-    
-    # Add actionables
-    actionables = data.get("actionable", [])
-    if actionables:
-        for i, actionable in enumerate(actionables, 1):
-            result += f"ACTIONABLE {i}:\n"
-            result += f"  Type: {actionable.get('type')}\n"
-            result += f"  Package: {actionable.get('packageName', 'system')}\n"
-            result += f"  Description: {actionable.get('description')}\n"
-            result += f"  Mode: {actionable.get('newMode')}\n\n"
-    else:
-        result += f"ACTIONABLES: None\n\n"
-    
-    # Add insights
-    insights = data.get("insights", [])
-    if insights:
-        for i, insight in enumerate(insights, 1):
-            result += f"INSIGHT {i}:\n"
-            result += f"  Type: {insight.get('type')}\n"
-            result += f"  Title: {insight.get('title')}\n"
-            result += f"  Description: {insight.get('description')}\n"
-            result += f"  Severity: {insight.get('severity')}\n\n"
-    
-    # Add scores
-    scores = data.get("scores", {})
-    if scores:
-        result += f"SCORES:\n"
-        for key, value in scores.items():
-            result += f"  {key}: {value}\n"
-        result += "\n"
-    
-    # Add savings
-    savings = data.get("estimatedSavings", {})
-    if savings:
-        result += f"ESTIMATED SAVINGS:\n"
-        result += f"  Battery: {savings.get('batteryMinutes', 0)} minutes\n"
-        result += f"  Data: {savings.get('dataMB', 0)} MB\n\n"
-    
-    # Add summary
-    result += f"HUMAN-READABLE SUMMARY:\n"
-    result += format_human_readable_summary(data)
-    result += f"\n\nRequest completed in {execution_time:.2f} seconds\n"
-    
-    return result
-
-def analyze_temperature_data(device_data, data_apps, battery_apps):
-    """Analyze temperature data to detect potential issues"""
-    # Check battery temperature
-    battery_temp = device_data.get("battery", {}).get("temperature", 0)
-    if battery_temp > 42:
-        return {
-            "type": "Warning",
-            "title": "High Battery Temperature",
-            "description": f"Your device battery temperature is {battery_temp}°C, which is higher than normal. This can cause faster battery drain and potential damage.",
-            "severity": "high"
-        }
-    
-    # Check CPU temperature
-    cpu_temp = device_data.get("cpu", {}).get("temperature", 0)
-    if cpu_temp > 50:
-        return {
-            "type": "Warning",
-            "title": "High CPU Temperature",
-            "description": f"Your device CPU temperature is {cpu_temp}°C, which is higher than normal. This can affect performance and battery life.",
-            "severity": "medium"
-        }
-    
-    return None
-
-def add_mock_data_to_json(device_data):
-    """Add mock data to the device data"""
-    # If testing apps that drain battery, shuffle the battery usage values
-    if "battery" in device_data.get("prompt", "").lower():
-        # Sort apps by battery usage for consistent results in test
-        apps_by_battery = sorted(device_data['apps'], key=lambda x: float(x.get('batteryUsage', 0) or 0), reverse=True)[:3]
-        
-        # Ensure these use the most battery
-        for i, app in enumerate(apps_by_battery):
-            app['batteryUsage'] = 30 - (i * 5)  # 30%, 25%, 20%
+        log_file.write(f"Total Pattern Scenario Tests: {total_pattern_tests}\n")
+        if total_pattern_tests > 0:
+            log_file.write(f"Tests with Changed Recommendations: {changed_recommendations}/{total_pattern_tests} ({changed_recommendations/total_pattern_tests*100:.1f}%)\n\n")
             
-    # If testing apps that drain data, shuffle the data usage values
-    if "data" in device_data.get("prompt", "").lower():
-        # Sort apps by data usage
-        apps_by_data = sorted(device_data['apps'], 
-                              key=lambda x: float(x.get('dataUsage', {}).get('foreground', 0) or 0) + 
-                                           float(x.get('dataUsage', {}).get('background', 0) or 0), 
-                              reverse=True)[:3]
+            # Summarize which scenarios had the most impact
+            log_file.write("IMPACT BY USAGE PATTERN SCENARIO:\n")
+            log_file.write("-" * 80 + "\n")
+            
+            for scenario in ["heavy_battery_users", "heavy_data_users", "background_abusers", "changing_behavior"]:
+                if scenario in usage_pattern_results:
+                    scenario_changes = sum(1 for r in usage_pattern_results[scenario] if r.get("has_changes", False))
+                    log_file.write(f"{scenario}: {scenario_changes}/{len(usage_pattern_results[scenario])} tests showed changes\n")
+    
+    log_file.write("\n")
+
+def compare_actions(baseline, current):
+    """Compare two sets of actions and return significant differences"""
+    differences = []
+    
+    # Create dictionaries to group actions by app
+    baseline_by_app = {}
+    current_by_app = {}
+    
+    for action in baseline:
+        pkg = action.get("packageName")
+        if pkg not in baseline_by_app:
+            baseline_by_app[pkg] = []
+        baseline_by_app[pkg].append(action)
+    
+    for action in current:
+        pkg = action.get("packageName")
+        if pkg not in current_by_app:
+            current_by_app[pkg] = []
+        current_by_app[pkg].append(action)
+    
+    # Find apps with new or changed actions
+    for pkg, actions in current_by_app.items():
+        if pkg not in baseline_by_app:
+            # New app being acted on
+            action_types = set(a.get("type") for a in actions)
+            differences.append(f"New actions for {pkg}: {', '.join(action_types)}")
+        else:
+            # App exists in both, check for different action types
+            baseline_types = set(a.get("type") for a in baseline_by_app[pkg])
+            current_types = set(a.get("type") for a in actions)
+            
+            new_types = current_types - baseline_types
+            if new_types:
+                differences.append(f"New action types for {pkg}: {', '.join(new_types)}")
+            
+            # Check for changes in mode
+            baseline_modes = set(a.get("newMode") for a in baseline_by_app[pkg])
+            current_modes = set(a.get("newMode") for a in actions)
+            
+            if baseline_modes != current_modes:
+                differences.append(f"Changed modes for {pkg}: from {', '.join(baseline_modes)} to {', '.join(current_modes)}")
+    
+    # Find apps that were in baseline but not in current
+    for pkg in baseline_by_app:
+        if pkg not in current_by_app:
+            differences.append(f"Removed actions for {pkg}")
+    
+    return differences
+
+def compare_insights(baseline, current):
+    """Compare two sets of insights and return significant differences"""
+    differences = []
+    
+    # Create dictionaries of insights by type
+    baseline_by_type = {}
+    current_by_type = {}
+    
+    for insight in baseline:
+        insight_type = insight.get("type")
+        if insight_type not in baseline_by_type:
+            baseline_by_type[insight_type] = []
+        baseline_by_type[insight_type].append(insight)
+    
+    for insight in current:
+        insight_type = insight.get("type")
+        if insight_type not in current_by_type:
+            current_by_type[insight_type] = []
+        current_by_type[insight_type].append(insight)
+    
+    # Find new insight types
+    for insight_type in current_by_type:
+        if insight_type not in baseline_by_type:
+            differences.append(f"New insight type: {insight_type}")
+    
+    # Find changed insight severities
+    for insight_type in current_by_type:
+        if insight_type in baseline_by_type:
+            baseline_severities = set(i.get("severity") for i in baseline_by_type[insight_type])
+            current_severities = set(i.get("severity") for i in current_by_type[insight_type])
+            
+            if baseline_severities != current_severities:
+                differences.append(f"Changed severity for {insight_type}: from {', '.join(baseline_severities)} to {', '.join(current_severities)}")
+    
+    # Find removed insight types
+    for insight_type in baseline_by_type:
+        if insight_type not in current_by_type:
+            differences.append(f"Removed insight type: {insight_type}")
+    
+    return differences
+
+def compare_usage_pattern_results(all_results, log_file):
+    """Compare and analyze results across different usage pattern scenarios"""
+    print_header("USAGE PATTERN IMPACT ANALYSIS")
+    log_file.write("\n\nUSAGE PATTERN IMPACT ANALYSIS\n")
+    log_file.write("=" * 80 + "\n\n")
+    
+    # Group results by prompt for easy comparison
+    prompts = {}
+    for scenario, results in all_results.items():
+        for result in results:
+            prompt = result["prompt"]
+            if prompt not in prompts:
+                prompts[prompt] = {}
+            
+            prompts[prompt][scenario] = result
+    
+    # For each prompt, compare results across scenarios
+    for prompt, scenarios in prompts.items():
+        print_section(f"ANALYSIS FOR PROMPT: '{prompt}'")
+        log_file.write(f"ANALYSIS FOR PROMPT: '{prompt}'\n")
+        log_file.write("-" * 80 + "\n\n")
         
-        # Set to consistent data usage values
-        data_values = [450, 380, 340]
-        for i, app in enumerate(apps_by_data[:3]):
-            if isinstance(app.get('dataUsage'), dict):
-                app['dataUsage']['foreground'] = data_values[i] * 0.8
-                app['dataUsage']['background'] = data_values[i] * 0.2
+        baseline = scenarios.get("clean_db", {})
+        baseline_actions = baseline.get("actionables", [])
+        baseline_insights = baseline.get("insights", [])
+        
+        for scenario, result in scenarios.items():
+            if scenario == "clean_db":
+                continue  # Skip baseline
+            
+            # Get actions and insights for this scenario
+            actions = result.get("actionables", [])
+            insights = result.get("insights", [])
+            
+            # Compare with baseline
+            changed_actions = compare_actions(baseline_actions, actions)
+            changed_insights = compare_insights(baseline_insights, insights)
+            
+            # Format and display changes
+            print_section(f"CHANGES IN {scenario.upper()} VS. BASELINE")
+            log_file.write(f"CHANGES IN {scenario.upper()} VS. BASELINE\n")
+            
+            if changed_actions:
+                print("📊 Changed Actions:")
+                log_file.write("Changed Actions:\n")
+                for change in changed_actions:
+                    print(f"  • {change}")
+                    log_file.write(f"  - {change}\n")
+            else:
+                print("📊 No significant changes in actions")
+                log_file.write("No significant changes in actions\n")
+            
+            if changed_insights:
+                print("\n💡 Changed Insights:")
+                log_file.write("\nChanged Insights:\n")
+                for change in changed_insights:
+                    print(f"  • {change}")
+                    log_file.write(f"  - {change}\n")
+            else:
+                print("\n💡 No significant changes in insights")
+                log_file.write("No significant changes in insights\n")
+            
+            # Compare savings estimates
+            baseline_savings = baseline.get("estimated_savings", {})
+            savings = result.get("estimated_savings", {})
+            
+            battery_diff = savings.get("batteryMinutes", 0) - baseline_savings.get("batteryMinutes", 0)
+            data_diff = savings.get("dataMB", 0) - baseline_savings.get("dataMB", 0)
+            
+            print("\n🔋 Impact on Savings Estimates:")
+            log_file.write("\nImpact on Savings Estimates:\n")
+            
+            if battery_diff != 0:
+                direction = "Increased" if battery_diff > 0 else "Decreased"
+                print(f"  • {direction} battery savings by {abs(battery_diff)} minutes")
+                log_file.write(f"  - {direction} battery savings by {abs(battery_diff)} minutes\n")
+            else:
+                print("  • No change in battery savings estimate")
+                log_file.write("  - No change in battery savings estimate\n")
+            
+            if data_diff != 0:
+                direction = "Increased" if data_diff > 0 else "Decreased"
+                print(f"  • {direction} data savings by {abs(data_diff)} MB")
+                log_file.write(f"  - {direction} data savings by {abs(data_diff)} MB\n")
+            else:
+                print("  • No change in data savings estimate")
+                log_file.write("  - No change in data savings estimate\n")
+            
+            log_file.write("\n")
+        
+        log_file.write("\n")
+
+def seed_usage_patterns(scenario_name):
+    """Seed the database with predefined usage patterns for testing"""
+    print(f"\n🔄 Seeding database with usage patterns for scenario: {scenario_name}")
+    
+    # Define device ID that will be used in tests
+    device_id = "test-device-001"
+    
+    # Define different pattern scenarios
+    scenarios = {
+        "heavy_battery_users": {
+            "com.netflix.mediaclient": "Very high battery usage; Moderate data usage; Critical app for user",
+            "com.facebook.katana": "High battery usage; Moderate data usage; Frequently used in foreground",
+            "com.whatsapp": "Moderate battery usage; Low data usage; Frequently used in foreground"
+        },
+        "heavy_data_users": {
+            "com.spotify.music": "Moderate battery usage; Very high data usage; Frequently used in foreground",
+            "com.google.android.apps.maps": "High battery usage; High data usage; Moderately used in foreground",
+            "com.netflix.mediaclient": "High battery usage; Very high data usage; Critical app for user"
+        },
+        "background_abusers": {
+            "com.facebook.katana": "High battery usage; Moderate data usage; Rarely used in foreground",
+            "com.google.android.gm": "Moderate battery usage; High data usage in background; Rarely used in foreground",
+            "com.spotify.music": "Low battery usage; High data usage; Rarely used in foreground"
+        },
+        "changing_behavior": {
+            "com.whatsapp": "Recently showing high battery usage; Previously low battery consumer; Critical app for user",
+            "com.netflix.mediaclient": "Increasing data usage trend; Moderate battery impact; Frequently used in foreground",
+            "com.google.android.apps.maps": "Occasional very high battery spikes; Otherwise moderate usage; Used mostly on weekends"
+        }
+    }
+    
+    # If scenario doesn't exist, use empty patterns
+    if scenario_name not in scenarios:
+        print(f"⚠️ Unknown scenario: {scenario_name}, using empty patterns")
+        return
+    
+    # Get patterns for selected scenario
+    patterns = scenarios[scenario_name]
+    
+    # Store patterns in database via API
+    for package_name, pattern in patterns.items():
+        try:
+            # Create a simple POST request to store the pattern
+            pattern_data = {
+                "deviceId": device_id,
+                "packageName": package_name,
+                "pattern": pattern,
+                "timestamp": int(time.time())
+            }
+            
+            # Call our test endpoint for seeding patterns
+            response = requests.post("http://localhost:8000/api/test/seed-pattern", json=pattern_data)
+            
+            if response.status_code == 200:
+                print(f"✅ Added pattern for {package_name}: {pattern}")
+            else:
+                print(f"❌ Failed to add pattern for {package_name}: {response.status_code}")
+                print(response.text)
+                
+        except Exception as e:
+            print(f"❌ Error adding pattern for {package_name}: {e}")
+    
+    print(f"✅ Database seeded with {len(patterns)} patterns for scenario: {scenario_name}")
+
+def test_with_usage_patterns(log_file):
+    """Test how different usage patterns affect recommendations"""
+    print_header("TESTING WITH USAGE PATTERNS")
+    log_file.write("\n\nTESTING WITH USAGE PATTERNS\n")
+    log_file.write("=" * 80 + "\n\n")
+    
+    # Define scenarios to test
+    scenarios = [
+        "clean_db",  # No patterns (baseline)
+        "heavy_battery_users",
+        "heavy_data_users",
+        "background_abusers", 
+        "changing_behavior"
+    ]
+    
+    # Select key prompts to test with patterns
+    test_prompts = [
+        "Save my battery",
+        "Reduce data usage",
+        "I urgently need my battery to last for the next 2 hours while I keep using WhatsApp."
+    ]
+    
+    all_results = {}
+    
+    for scenario in scenarios:
+        scenario_results = []
+        
+        # Reset database before each scenario
+        reset_database()
+        
+        # Seed database with patterns (except for clean_db scenario)
+        if scenario != "clean_db":
+            seed_usage_patterns(scenario)
+        
+        print_section(f"TESTING WITH {scenario.upper()} PATTERNS")
+        log_file.write(f"TESTING WITH {scenario.upper()} PATTERNS\n")
+        log_file.write("-" * 80 + "\n\n")
+        
+        for prompt in test_prompts:
+            print_section(f"TESTING '{prompt}' with {scenario} patterns")
+            log_file.write(f"TESTING '{prompt}' with {scenario} patterns\n")
+            log_file.write("-" * 80 + "\n\n")
+            
+            # Create standard device data
+            device_data = json.loads(json.dumps(BASE_DEVICE_DATA))  # Deep copy
+            device_data["prompt"] = prompt
+            
+            # Add the scenario name to the device ID to track it
+            device_data["deviceId"] = f"test-device-001-{scenario}"
+            
+            # Run the test and collect results
+            result = run_api_test(prompt, log_file)
+            result["scenario"] = scenario
+            scenario_results.append(result)
+        
+        all_results[scenario] = scenario_results
+    
+    # Mark results that have changes compared to baseline
+    baseline_results = all_results.get("clean_db", [])
+    
+    for scenario, results in all_results.items():
+        if scenario == "clean_db":
+            continue
+            
+        for i, result in enumerate(results):
+            # Find matching baseline result by prompt
+            baseline = next((b for b in baseline_results if b.get("prompt") == result.get("prompt")), None)
+            if not baseline:
+                continue
+                
+            # Compare actions and insights
+            changed_actions = compare_actions(baseline.get("actionables", []), result.get("actionables", []))
+            changed_insights = compare_insights(baseline.get("insights", []), result.get("insights", []))
+            
+            # Check for changes in estimated savings
+            baseline_savings = baseline.get("estimated_savings", {})
+            savings = result.get("estimated_savings", {})
+            
+            battery_diff = savings.get("batteryMinutes", 0) - baseline_savings.get("batteryMinutes", 0)
+            data_diff = savings.get("dataMB", 0) - baseline_savings.get("dataMB", 0)
+            
+            # Set has_changes flag if any significant differences
+            result["has_changes"] = bool(changed_actions or changed_insights or abs(battery_diff) > 0 or abs(data_diff) > 0)
+    
+    # Analyze and compare results across scenarios
+    compare_usage_pattern_results(all_results, log_file)
+    
+    return all_results
 
 def main():
     # Create timestamp for the test run
@@ -1101,8 +1336,11 @@ def main():
         # Run the battery and data combination tests
         combination_results = test_battery_data_combinations(log_file)
         
+        # Run the usage pattern tests
+        usage_pattern_results = test_with_usage_patterns(log_file)
+        
         # Format and save summary results
-        format_summary_results(results, combination_results, log_file)
+        format_summary_results(results, combination_results, usage_pattern_results, log_file)
         
     print_header("TEST RUN COMPLETE")
     print(f"✅ All test results saved to {output_file}")

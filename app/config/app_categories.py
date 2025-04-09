@@ -18,6 +18,18 @@ APP_CATEGORIES = {
         "com.google.android.gm": "Gmail",
         "com.microsoft.office.outlook": "Outlook",
         "com.yahoo.mobile.client.android.mail": "Yahoo Mail"
+    },
+    "social": {
+        "com.facebook.katana": "Facebook", 
+        "com.twitter.android": "Twitter",
+        "com.instagram.android": "Instagram",
+        "com.snapchat.android": "Snapchat"
+    },
+    "media": {
+        "com.spotify.music": "Spotify",
+        "com.netflix.mediaclient": "Netflix",
+        "com.google.android.youtube": "YouTube",
+        "com.pandora.android": "Pandora"
     }
 }
 

@@ -241,11 +241,11 @@ class ActionResponse(BaseModel):
             actionable.append(
                 ActionableItem(
                     id="bat-1",
-                    type="OPTIMIZE_BATTERY",
+                    type="MANAGE_WAKE_LOCKS",
                     packageName="com.example.heavybattery",
-                    description="Optimize battery usage for Heavy Battery App",
-                    reason="App is consuming excessive battery",
-                    newMode="optimized",
+                    description="Manage wake locks for Heavy Battery App",
+                    reason="App is consuming excessive battery by preventing device sleep",
+                    newMode="restricted",
                     parameters={}
                 )
             )
@@ -263,10 +263,10 @@ class ActionResponse(BaseModel):
             actionable.append(
                 ActionableItem(
                     id="data-1",
-                    type="ENABLE_DATA_SAVER",
+                    type="RESTRICT_BACKGROUND_DATA",
                     packageName="com.example.heavydata",
-                    description="Enable data saver mode for Heavy Data App",
-                    reason="App is consuming excessive data",
+                    description="Restrict background data for Heavy Data App",
+                    reason="App is consuming excessive data in the background",
                     newMode="restricted",
                     parameters={}
                 )

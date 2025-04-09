@@ -13,18 +13,20 @@ from app.database import get_db, UsagePattern
 
 # Define allowed actionable types
 ALLOWED_ACTIONABLE_TYPES = {
-    "OPTIMIZE_BATTERY",
-    "ENABLE_DATA_SAVER",
-    "RESTRICT_BACKGROUND",
-    "ADJUST_SCREEN",
-    "MANAGE_LOCATION",
-    "UPDATE_APP",
-    "UNINSTALL_APP",
-    "CLEAR_CACHE",
-    "ENABLE_BATTERY_SAVER",
-    "ENABLE_AIRPLANE_MODE",
-    "DISABLE_FEATURES",
-    "SCHEDULE_TASKS"
+    "SET_STANDBY_BUCKET",
+    "RESTRICT_BACKGROUND_DATA",
+    "KILL_APP", 
+    "MANAGE_WAKE_LOCKS",
+    "THROTTLE_CPU_USAGE"
+}
+
+# Mapping of actionable types to their descriptions
+ACTIONABLE_TYPE_DESCRIPTIONS = {
+    1: "SET_STANDBY_BUCKET",
+    2: "RESTRICT_BACKGROUND_DATA",
+    3: "KILL_APP", 
+    4: "MANAGE_WAKE_LOCKS",
+    5: "THROTTLE_CPU_USAGE"
 }
 
 # Configure logging
@@ -351,9 +353,26 @@ async def analyze_data(
                     if "type" not in item:
                         logger.warning(f"[PowerGuard] Skipping actionable item without type: {item}")
                         continue
+                    
+                    # Convert type to string if it's an integer
+                    if isinstance(item["type"], int):
+                        type_mapping = {
+                            1: "SET_STANDBY_BUCKET",
+                            2: "RESTRICT_BACKGROUND_DATA",
+                            3: "KILL_APP",
+                            4: "MANAGE_WAKE_LOCKS",
+                            5: "THROTTLE_CPU_USAGE"
+                        }
+                        if item["type"] in type_mapping:
+                            item["type"] = type_mapping[item["type"]]
+                        else:
+                            item["type"] = "SET_STANDBY_BUCKET"  # Default
+                        
+                    # Check if type is in allowed types
                     if item["type"] not in ALLOWED_ACTIONABLE_TYPES:
-                        logger.warning(f"[PowerGuard] Converting unknown actionable type to OPTIMIZE_BATTERY: {item['type']}")
-                        item["type"] = "OPTIMIZE_BATTERY"
+                        logger.warning(f"[PowerGuard] Converting unknown actionable type {item['type']} to SET_STANDBY_BUCKET")
+                        item["type"] = "SET_STANDBY_BUCKET"
+                    
                     valid_actionable.append(item)
                 response["actionable"] = valid_actionable
             
@@ -592,11 +611,11 @@ async def test_with_prompt(prompt: str):
         "actionable": [
             {
                 "id": "test-1",
-                "type": "OPTIMIZE_BATTERY",
+                "type": "SET_STANDBY_BUCKET",
                 "packageName": "com.example.app",
-                "description": "Test battery optimization",
+                "description": "Place app in restricted standby bucket",
                 "reason": "Test reason",
-                "newMode": "optimized",
+                "newMode": "restricted",
                 "parameters": {}
             }
         ],
@@ -645,11 +664,11 @@ async def test_no_prompt():
         "actionable": [
             {
                 "id": "test-1",
-                "type": "OPTIMIZE_BATTERY",
+                "type": "MANAGE_WAKE_LOCKS",
                 "packageName": "com.example.app",
-                "description": "Test battery optimization",
-                "reason": "Test reason",
-                "newMode": "optimized",
+                "description": "Manage wake locks for app",
+                "reason": "App is consuming excessive battery",
+                "newMode": "restricted",
                 "parameters": {}
             }
         ],
@@ -707,4 +726,73 @@ async def debug_app_values(data: DeviceData = Body(...)):
         raise HTTPException(
             status_code=500,
             detail=f"Error processing app values: {str(e)}"
+        )
+
+@app.post("/api/test/seed-pattern", tags=["Testing"])
+async def seed_test_pattern(pattern_data: dict = Body(...), db: Session = Depends(get_db)):
+    """
+    Test endpoint to seed the database with a usage pattern.
+    This is used for testing the impact of usage patterns on recommendations.
+    
+    Parameters:
+    * pattern_data: Dictionary containing deviceId, packageName, pattern, and timestamp
+    
+    Returns:
+    * Success message if pattern is seeded successfully
+    * Error message with details if seeding fails
+    
+    Response Example:
+    ```json
+    {
+        "status": "success",
+        "message": "Pattern seeded successfully"
+    }
+    ```
+    """
+    try:
+        device_id = pattern_data.get("deviceId")
+        package_name = pattern_data.get("packageName")
+        pattern_text = pattern_data.get("pattern")
+        timestamp = pattern_data.get("timestamp", int(datetime.now().timestamp()))
+        
+        if not device_id or not package_name or not pattern_text:
+            raise HTTPException(
+                status_code=400,
+                detail="Missing required fields: deviceId, packageName, and pattern are required"
+            )
+        
+        # Check if pattern already exists
+        existing_pattern = db.query(UsagePattern).filter(
+            UsagePattern.deviceId == device_id,
+            UsagePattern.packageName == package_name
+        ).first()
+        
+        if existing_pattern:
+            # Update existing pattern
+            existing_pattern.pattern = pattern_text
+            existing_pattern.timestamp = timestamp
+            logger.debug(f"Updated test pattern for device {device_id}, package {package_name}")
+        else:
+            # Create new pattern
+            db_pattern = UsagePattern(
+                deviceId=device_id,
+                packageName=package_name,
+                pattern=pattern_text,
+                timestamp=timestamp
+            )
+            db.add(db_pattern)
+            logger.debug(f"Created new test pattern for device {device_id}, package {package_name}")
+        
+        db.commit()
+        
+        return {
+            "status": "success",
+            "message": "Pattern seeded successfully"
+        }
+    
+    except Exception as e:
+        logger.error(f"Error seeding test pattern: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to seed test pattern: {str(e)}"
         ) 
