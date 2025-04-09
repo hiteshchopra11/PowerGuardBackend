@@ -83,7 +83,12 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
         
         # Always determine the optimization strategy based on device data and prompt
         # even for information requests (we'll use it for insights)
-        strategy = determine_strategy(device_data, prompt)
+        try:
+            strategy = determine_strategy(device_data, prompt)
+            logger.debug(f"[PowerGuard] Strategy determined successfully")
+        except Exception as strategy_error:
+            logger.error(f"[PowerGuard] Error determining strategy: {str(strategy_error)}", exc_info=True)
+            raise Exception(f"Error determining strategy: {str(strategy_error)}")
         
         # Enhance strategy with additional device settings
         strategy.update({
@@ -98,8 +103,12 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
         logger.debug(f"[PowerGuard] Determined strategy: {strategy}")
         
         # Generate insights first to check if it's a yes/no question
-        insights = generate_insights(strategy, device_data, info_request, prompt)
-        logger.debug(f"[PowerGuard] Generated {len(insights)} insights")
+        try:
+            insights = generate_insights(strategy, device_data, info_request, prompt)
+            logger.debug(f"[PowerGuard] Generated {len(insights)} insights")
+        except Exception as insights_error:
+            logger.error(f"[PowerGuard] Error generating insights: {str(insights_error)}", exc_info=True)
+            raise Exception(f"Error generating insights: {str(insights_error)}")
         
         # Check if this is a yes/no question by looking at the first insight type
         is_yes_no = insights and insights[0].get("type") == "YesNo"
@@ -115,8 +124,12 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
             strategy["show_data_savings"] = False
         else:
             # Generate actionables for optimization requests
-            actionables = generate_actionables(strategy, device_data)
-            logger.debug(f"[PowerGuard] Generated {len(actionables)} actionables")
+            try:
+                actionables = generate_actionables(strategy, device_data)
+                logger.debug(f"[PowerGuard] Generated {len(actionables)} actionables")
+            except Exception as actionables_error:
+                logger.error(f"[PowerGuard] Error generating actionables: {str(actionables_error)}", exc_info=True)
+                raise Exception(f"Error generating actionables: {str(actionables_error)}")
         
         # Calculate estimated savings once - for consistency between insights and response
         savings = {
@@ -126,12 +139,16 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
         
         # Only calculate savings for optimization requests that are not yes/no questions
         if not (info_request or is_yes_no) and (strategy["show_battery_savings"] or strategy["show_data_savings"]):
-            from app.utils.strategy_analyzer import calculate_savings
-            savings = calculate_savings(strategy, strategy["critical_apps"])
-            logger.debug(f"[PowerGuard] Calculated savings: battery={savings['batteryMinutes']}min, data={savings['dataMB']}MB")
-            
-            # Store the savings directly in the strategy for insights to use
-            strategy["calculated_savings"] = savings
+            try:
+                from app.utils.strategy_analyzer import calculate_savings
+                savings = calculate_savings(strategy, strategy["critical_apps"])
+                logger.debug(f"[PowerGuard] Calculated savings: battery={savings['batteryMinutes']}min, data={savings['dataMB']}MB")
+                
+                # Store the savings directly in the strategy for insights to use
+                strategy["calculated_savings"] = savings
+            except Exception as savings_error:
+                logger.error(f"[PowerGuard] Error calculating savings: {str(savings_error)}", exc_info=True)
+                # Don't fail the whole request, just log and continue with zero savings
         
         # If no insights were generated (unlikely), add a fallback message
         if not insights:
@@ -164,6 +181,16 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
                 "parameters": {}
             }]
         
+        try:
+            battery_score = calculate_battery_score(device_data)
+            data_score = calculate_data_score(device_data)
+            performance_score = calculate_performance_score(device_data)
+        except Exception as score_error:
+            logger.error(f"[PowerGuard] Error calculating scores: {str(score_error)}", exc_info=True)
+            battery_score = 50.0  # Default scores if calculation fails
+            data_score = 50.0
+            performance_score = 50.0
+        
         # Construct the response - using the previously calculated savings
         response = {
             "id": f"gen_{int(datetime.now().timestamp())}",
@@ -173,9 +200,9 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
             "responseType": "information" if (info_request or is_yes_no) else "optimization",
             "actionable": actionables,
             "insights": insights,
-            "batteryScore": calculate_battery_score(device_data),
-            "dataScore": calculate_data_score(device_data),
-            "performanceScore": calculate_performance_score(device_data),
+            "batteryScore": battery_score,
+            "dataScore": data_score,
+            "performanceScore": performance_score,
             "estimatedSavings": savings
         }
         
@@ -198,21 +225,19 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
             friendly_message = "Service is currently experiencing high demand. Please try again in a few moments."
             error_type = "RateLimit"
         elif "timeout" in error_message.lower():
-            friendly_message = "Request timed out. Please try again."
+            friendly_message = "Analysis took too long to complete. Please try again with simplified data."
             error_type = "Timeout"
-        elif "dict" in error_message and "int" in error_message:
-            friendly_message = "Error processing device data format. Please ensure your device data is correctly formatted."
-            error_type = "DataFormat"
         else:
             friendly_message = f"An error occurred while analyzing your device data: {error_message}"
             error_type = "General"
         
-        # Return a valid response with default values in case of error
+        # Return error response with a general insight
         return {
             "id": f"error_{int(datetime.now().timestamp())}",
             "success": False,
             "timestamp": int(datetime.now().timestamp()),
-            "message": f"Error processing device data: {error_message}",
+            "message": "Analysis failed",
+            "responseType": "error",
             "actionable": [],
             "insights": [{
                 "type": error_type,
@@ -220,9 +245,9 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
                 "description": friendly_message,
                 "severity": "high"
             }],
-            "batteryScore": 50,
-            "dataScore": 50,
-            "performanceScore": 50,
+            "batteryScore": 50.0,  # Default scores for error cases
+            "dataScore": 50.0,
+            "performanceScore": 50.0,
             "estimatedSavings": {
                 "batteryMinutes": 0,
                 "dataMB": 0

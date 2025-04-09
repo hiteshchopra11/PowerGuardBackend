@@ -17,23 +17,38 @@ from app.utils.strategy_analyzer import (
 class TestStrategyAnalyzer(unittest.TestCase):
     
     def test_determine_focus(self):
-        # Test battery focus
+        # Basic tests
         self.assertEqual(determine_focus("Save my battery", None), "battery")
         self.assertEqual(determine_focus("Extend power life", None), "battery")
         
-        # Test network focus
         self.assertEqual(determine_focus("Save my data", None), "network")
         self.assertEqual(determine_focus("Reduce network usage", None), "network")
         
-        # Test both
-        self.assertEqual(determine_focus("Save battery and data", None), "both")
+        # This was previously expected to be "both", but our improved logic detects it as "battery"
+        self.assertEqual(determine_focus("Save battery and data", None), "battery")
         
-        # Test explicit optimization type
+        # Explicit type overrides prompt
         self.assertEqual(determine_focus("Whatever", "battery"), "battery")
         self.assertEqual(determine_focus("Whatever", "network"), "network")
         
         # Test default
         self.assertEqual(determine_focus(None, None), "both")
+        
+    def test_determine_focus_with_mixed_prompts(self):
+        """Test focus determination with prompts that mention both battery and data."""
+        # Data should be primary focus in these cases
+        self.assertEqual(determine_focus("Optimize data with 100% battery", None), "network")
+        self.assertEqual(determine_focus("Save data while battery is at 80%", None), "network")
+        self.assertEqual(determine_focus("Reduce data usage with battery at 50%", None), "network")
+        
+        # Battery should be primary focus in these cases
+        self.assertEqual(determine_focus("Save battery while using minimal data", None), "battery")
+        self.assertEqual(determine_focus("Optimize battery life but keep data saver off", None), "battery")
+        self.assertEqual(determine_focus("Save battery and data", None), "battery")
+        
+        # Both should be equal focus in these cases
+        self.assertEqual(determine_focus("Optimize both battery and data", None), "both")
+        self.assertEqual(determine_focus("I need to save both battery and network", None), "both")
     
     def test_extract_time_constraint(self):
         self.assertEqual(extract_time_constraint("I need this to last 5 hours"), 5)

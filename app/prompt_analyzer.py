@@ -359,36 +359,130 @@ def generate_optimization_prompt(classification: Dict[str, Any], device_data: Di
     app_data = format_apps_for_prompt(device_data['apps'])
     base_prompt += f"\nApp Data:\n{app_data}\n"
     
-    # Customize for specific optimization goals
+    # Determine device conditions
+    battery_level = device_data['battery']['level']
+    data_usage = device_data['network']['dataUsage']['foreground'] + device_data['network']['dataUsage']['background']
+    total_data_plan = 3000  # Assume 3GB standard data plan
+    data_remaining = total_data_plan - data_usage
+    
+    battery_critical = battery_level <= 20
+    data_critical = data_remaining <= 100
+    
+    # Customize for specific optimization goals based on device conditions and user request
     if classification["optimize_battery"] and classification["optimize_data"]:
-        optimization_goal = """
-        OPTIMIZATION GOAL: Optimize both battery life and network data usage
-        
-        Focus on identifying apps that are consuming excessive battery AND network resources.
-        Prioritize actions that will reduce both battery and data consumption.
-        """
+        if battery_critical and data_critical:
+            # Both critical - focus on both
+            optimization_goal = f"""
+            OPTIMIZATION GOAL: Critical optimization of both battery life and network data usage
+            
+            IMPORTANT: Battery level is critically low at {battery_level}% and data remaining is only about {data_remaining}MB.
+            Focus intensely on identifying apps that are consuming excessive battery AND network resources.
+            Prioritize actions that will reduce both battery and data consumption, with special attention to background activities.
+            """
+        elif battery_critical:
+            # Battery critical, data ok - prioritize battery
+            optimization_goal = f"""
+            OPTIMIZATION GOAL: Critical battery optimization with secondary data optimization
+            
+            IMPORTANT: Battery level is critically low at {battery_level}%.
+            Focus primarily on extending battery life as the main priority.
+            As a secondary goal, also optimize network data usage where possible, but battery conservation must take precedence.
+            Prioritize battery-saving actions, even at the expense of some network functionality if necessary.
+            """
+        elif data_critical:
+            # Data critical, battery ok - prioritize data
+            optimization_goal = f"""
+            OPTIMIZATION GOAL: Critical data optimization with secondary battery optimization
+            
+            IMPORTANT: Data remaining is critically low at approximately {data_remaining}MB.
+            Focus primarily on minimizing data consumption as the main priority.
+            As a secondary goal, also optimize battery usage where possible, but data conservation must take precedence.
+            Prioritize data-saving actions, even at the expense of some battery life if necessary.
+            """
+        else:
+            # Both ok - balance optimization
+            optimization_goal = """
+            OPTIMIZATION GOAL: Balanced optimization of both battery life and network data usage
+            
+            Focus on identifying apps that are consuming excessive battery AND network resources.
+            Provide a balanced approach to optimizing both resources without extreme measures.
+            Prioritize actions that will improve efficiency without significantly impacting user experience.
+            """
     elif classification["optimize_battery"]:
-        optimization_goal = """
-        OPTIMIZATION GOAL: Optimize battery life
-        
-        Focus on identifying apps that are consuming excessive battery resources.
-        Prioritize actions that will extend battery life, even at the expense of some network functionality.
-        """
+        if battery_critical:
+            # Battery critical - aggressive battery focus
+            optimization_goal = f"""
+            OPTIMIZATION GOAL: Critical battery life optimization
+            
+            IMPORTANT: Battery level is critically low at {battery_level}%.
+            Focus exclusively on extending battery life as the highest priority.
+            Take aggressive measures to reduce battery consumption by all apps.
+            Identify and restrict background processes that consume battery.
+            Recommend essential system changes to maximize remaining battery life.
+            """
+        else:
+            # Battery ok - normal battery focus
+            optimization_goal = """
+            OPTIMIZATION GOAL: Standard battery life optimization
+            
+            Focus on identifying apps that are consuming excessive battery resources.
+            Suggest reasonable optimizations to extend battery life without extreme measures.
+            Balance battery optimization with maintaining normal device functionality.
+            """
     elif classification["optimize_data"]:
-        optimization_goal = """
-        OPTIMIZATION GOAL: Optimize network data usage
-        
-        Focus on identifying apps that are consuming excessive network data.
-        Prioritize actions that will reduce data consumption, even at the expense of some battery life.
-        """
+        if data_critical:
+            # Data critical - aggressive data focus
+            optimization_goal = f"""
+            OPTIMIZATION GOAL: Critical network data optimization
+            
+            IMPORTANT: Data remaining is critically low at approximately {data_remaining}MB.
+            Focus exclusively on minimizing data consumption as the highest priority.
+            Take aggressive measures to reduce data usage by all apps.
+            Identify and restrict background processes that consume data.
+            Recommend essential system changes to minimize data usage.
+            """
+        else:
+            # Data ok - normal data focus
+            optimization_goal = """
+            OPTIMIZATION GOAL: Standard network data optimization
+            
+            Focus on identifying apps that are consuming excessive network data.
+            Suggest reasonable optimizations to reduce data usage without extreme measures.
+            Balance data optimization with maintaining normal device functionality.
+            """
     else:
         # Default goal if classification was relevant but didn't specify goals
-        optimization_goal = """
-        OPTIMIZATION GOAL: General system optimization
-        
-        Balance battery life and network data optimization.
-        Focus on the most resource-intensive apps and suggest appropriate actions.
-        """
+        if battery_critical and data_critical:
+            optimization_goal = f"""
+            OPTIMIZATION GOAL: Critical system optimization
+            
+            IMPORTANT: Battery level is critically low at {battery_level}% and data remaining is only about {data_remaining}MB.
+            Focus on aggressive optimization of both battery and data resources.
+            Take immediate action to extend battery life and conserve data usage.
+            """
+        elif battery_critical:
+            optimization_goal = f"""
+            OPTIMIZATION GOAL: Battery-focused system optimization
+            
+            IMPORTANT: Battery level is critically low at {battery_level}%.
+            Prioritize battery life extension while also optimizing general system resources.
+            Focus on the most battery-intensive apps and suggest appropriate actions.
+            """
+        elif data_critical:
+            optimization_goal = f"""
+            OPTIMIZATION GOAL: Data-focused system optimization
+            
+            IMPORTANT: Data remaining is critically low at approximately {data_remaining}MB.
+            Prioritize data conservation while also optimizing general system resources.
+            Focus on the most data-intensive apps and suggest appropriate actions.
+            """
+        else:
+            optimization_goal = """
+            OPTIMIZATION GOAL: General system optimization
+            
+            Balance battery life and network data optimization.
+            Focus on the most resource-intensive apps and suggest appropriate actions.
+            """
     
     # User's original prompt if available
     if "original_prompt" in classification and classification["original_prompt"]:

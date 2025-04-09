@@ -1,0 +1,7 @@
+{
+  "prompt": "Make my device more efficient",
+  "battery_level": 15.0,
+  "data_remaining": 50.0,
+  "success": false,
+  "error": "API returned status code 429"
+}

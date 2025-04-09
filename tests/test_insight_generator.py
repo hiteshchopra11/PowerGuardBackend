@@ -102,12 +102,78 @@ class TestInsightGenerator(unittest.TestCase):
         
         description = generate_strategy_description(strategy, 10)
         
-        # Verify critical components in description
-        self.assertTrue("battery is critically low" in description.lower())
-        self.assertTrue("protected critical apps" in description.lower())
-        self.assertTrue("whatsapp" in description.lower())
-        self.assertTrue("maps" in description.lower())
-        self.assertTrue("3 hour" in description.lower())
+        # Verify that data constraint takes precedence 
+        self.assertTrue("Optimizing data usage with 500MB remaining" in description)
+        # Critical apps and time constraint should no longer be in description
+        self.assertNotIn("protected critical apps", description.lower())
+        self.assertNotIn("whatsapp", description.lower())
+        self.assertNotIn("maps", description.lower())
+        self.assertNotIn("3 hour", description.lower())
+    
+    def test_generate_strategy_description_data_focus(self):
+        """Test that data-focused strategies prioritize data messaging."""
+        # Test with network focus
+        strategy = {
+            "focus": "network",
+            "aggressiveness": "aggressive",
+            "critical_apps": ["com.example.app"],
+            "time_constraint": 5,
+            "data_constraint": None,
+            "show_battery_savings": True,
+            "show_data_savings": True
+        }
+        
+        description = generate_strategy_description(strategy, 100)
+        
+        # Verify that description starts with data optimization
+        self.assertTrue(description.startswith("Optimizing data consumption"))
+        
+        # Verify no redundant information
+        self.assertNotIn("Protected critical apps", description)
+        self.assertNotIn("Optimized for 5 hours", description)
+        self.assertNotIn("Estimated battery extension", description)
+        self.assertNotIn("Estimated data savings", description)
+        
+        # Test with data constraint
+        strategy = {
+            "focus": "battery",  # Even with battery focus
+            "aggressiveness": "moderate",
+            "critical_apps": [],
+            "time_constraint": None,
+            "data_constraint": 500,  # Data constraint should override
+            "show_battery_savings": False,
+            "show_data_savings": True
+        }
+        
+        description = generate_strategy_description(strategy, 100)
+        
+        # Verify that description prioritizes data constraint
+        self.assertTrue("Optimizing data usage with 500MB remaining" in description)
+        self.assertNotIn("As battery is sufficient", description)
+
+    def test_generate_strategy_description_no_redundancy(self):
+        """Test that strategy description doesn't include redundant information."""
+        strategy = {
+            "focus": "both",
+            "aggressiveness": "aggressive",
+            "critical_apps": ["com.example.app1", "com.example.app2"],
+            "time_constraint": 8,
+            "data_constraint": None,
+            "show_battery_savings": True,
+            "show_data_savings": True,
+            "calculated_savings": {
+                "batteryMinutes": 120,
+                "dataMB": 250
+            }
+        }
+        
+        description = generate_strategy_description(strategy, 100)
+        
+        # Verify no redundant information
+        self.assertNotIn("Protected critical apps", description)
+        self.assertNotIn("Optimized for 8 hours", description)
+        self.assertNotIn("Estimated battery extension: 120 minutes", description)
+        self.assertNotIn("Estimated data savings: 250 MB", description)
     
     def test_get_top_consuming_apps(self):
         device_data = {

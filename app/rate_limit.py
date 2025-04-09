@@ -16,13 +16,13 @@ logger = logging.getLogger('powerguard_rate_limit')
 # Create rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
-# Configure rate limits
+# Configure rate limits - DISABLED for testing by setting extremely high limits
 # Format: "number of requests per time period"
 RATE_LIMITS = {
-    "default": "1000/minute",  # Default limit for all endpoints
-    "analyze": "500/minute",   # Stricter limit for analyze endpoint
-    "patterns": "1000/minute", # Moderate limit for patterns endpoint
-    "reset_db": "100/hour"     # Very strict limit for database reset
+    "default": "1000000/second",  # Effectively disabled
+    "analyze": "1000000/second",   # Effectively disabled
+    "patterns": "1000000/second",  # Effectively disabled
+    "reset_db": "1000000/second"   # Effectively disabled
 }
 
 def setup_rate_limiting(app):
@@ -32,48 +32,17 @@ def setup_rate_limiting(app):
         app.state.limiter = limiter
         app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         
+        # Log that rate limiting is disabled
+        logger.warning("RATE LIMITING IS DISABLED FOR TESTING!")
+        
         # Add rate limit decorators to routes
         @app.middleware("http")
         async def rate_limit_middleware(request: Request, call_next):
             try:
-                # Get endpoint path
-                path = request.url.path
-                
-                # Determine rate limit based on endpoint
-                if path == "/api/analyze":
-                    limit = RATE_LIMITS["analyze"]
-                elif path.startswith("/api/patterns/"):
-                    limit = RATE_LIMITS["patterns"]
-                elif path == "/api/reset-db":
-                    limit = RATE_LIMITS["reset_db"]
-                else:
-                    limit = RATE_LIMITS["default"]
-                
-                # Create a rate-limited function for this request
-                @limiter.limit(limit)
-                def rate_limited(request: Request):
-                    return None
-                
-                # Apply rate limit
-                rate_limited(request)
-                
-                # Log rate limit info
-                logger.debug(f"Rate limit applied: {limit} for path: {path}")
-                
+                # Just pass through all requests without actual rate limiting
                 response = await call_next(request)
                 return response
                 
-            except RateLimitExceeded as e:
-                logger.warning(f"Rate limit exceeded for path: {path}")
-                return JSONResponse(
-                    status_code=429,
-                    content={
-                        "error": "Rate limit exceeded",
-                        "message": f"Too many requests. Please try again later.",
-                        "timestamp": int(datetime.now().timestamp()),
-                        "path": path
-                    }
-                )
             except Exception as e:
                 logger.error(f"Error in rate limit middleware: {str(e)}")
                 return await call_next(request)

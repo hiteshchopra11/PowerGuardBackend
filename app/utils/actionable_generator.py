@@ -116,9 +116,51 @@ def generate_app_actionables(
 ) -> List[Dict]:
     """Generate app-specific actionables based on strategy."""
     actionables = []
-    critical_apps = set(strategy["critical_apps"])
+    critical_apps = set(strategy.get("critical_apps", []))
     
-    for app in apps:
+    # Get current device conditions
+    battery_level = device_data.get("battery", {}).get("level", 100)
+    data_usage = device_data.get("network", {}).get("dataUsage", {})
+    
+    # Check if we should limit data actions to be fewer than battery actions
+    limit_data_actions = strategy.get("limit_data_actions", False)
+    
+    # Calculate total data usage
+    foreground_data = data_usage.get("foreground", 0)
+    background_data = data_usage.get("background", 0)
+    total_data_used = foreground_data + background_data
+    
+    # Assume 3GB plan for estimation
+    total_data_plan = 3000
+    data_remaining = max(0, total_data_plan - total_data_used)
+    
+    # Determine criticality of resources
+    battery_critical = battery_level <= 20
+    data_critical = data_remaining <= 100
+    
+    # Create a prioritized list of apps based on resource usage
+    if strategy["focus"] == "battery" or (strategy["focus"] == "both" and battery_critical and not data_critical):
+        # Prioritize battery optimization
+        sorted_apps = sorted(apps, key=lambda x: float(x.get("batteryUsage", 0) or 0), reverse=True)
+    elif strategy["focus"] == "network" or (strategy["focus"] == "both" and data_critical and not battery_critical):
+        # Prioritize data optimization
+        sorted_apps = sorted(apps, key=lambda x: float(
+            x.get("dataUsage", {}).get("foreground", 0) + x.get("dataUsage", {}).get("background", 0) 
+            if isinstance(x.get("dataUsage", {}), dict) else float(x.get("dataUsage", 0) or 0)
+        ), reverse=True)
+    else:
+        # Balanced approach - consider both
+        sorted_apps = sorted(apps, key=lambda x: (
+            float(x.get("batteryUsage", 0) or 0) + 
+            float(x.get("dataUsage", {}).get("foreground", 0) + x.get("dataUsage", {}).get("background", 0) 
+                if isinstance(x.get("dataUsage", {}), dict) else float(x.get("dataUsage", 0) or 0))
+        ), reverse=True)
+    
+    # Track battery and data action counts when limiting
+    battery_action_count = 0
+    data_action_count = 0
+    
+    for app in sorted_apps:
         package_name = app.get("packageName", "")
         app_name = get_app_name(package_name)
         battery_usage = app.get("batteryUsage", 0)
@@ -151,12 +193,32 @@ def generate_app_actionables(
             })
             continue
         
-        # For non-critical apps, apply optimizations
-        
-        # Battery optimizations
-        if strategy["focus"] in ["battery", "both"] and (battery_usage or 0) > 0:
-
-            if strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
+        # Add appropriate battery actions based on conditions
+        if (strategy["focus"] in ["battery", "both"] and (battery_usage or 0) > 0):
+            if battery_critical:
+                # If battery is critically low, apply more aggressive actions
+                actionables.append({
+                    "id": f"batt-{package_name}-{uuid.uuid4().hex[:8]}",
+                    "type": "RESTRICT_BACKGROUND",
+                    "packageName": package_name,
+                    "description": f"Restrict background activity for {app_name}",
+                    "reason": f"Battery critically low ({battery_level}%), app uses {battery_usage}% battery",
+                    "newMode": "restricted",
+                    "parameters": {}
+                })
+                
+                # For high battery consumers, add battery saver specifically
+                if battery_usage > 10:
+                    actionables.append({
+                        "id": f"batt-save-{package_name}-{uuid.uuid4().hex[:8]}",
+                        "type": "ENABLE_BATTERY_SAVER",
+                        "packageName": package_name,
+                        "description": f"Enable battery saver mode for {app_name}",
+                        "reason": f"High battery usage ({battery_usage}%) with critically low battery",
+                        "newMode": "enabled",
+                        "parameters": {}
+                    })
+            elif strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
                 actionables.append({
                     "id": f"batt-{package_name}-{uuid.uuid4().hex[:8]}",
                     "type": "RESTRICT_BACKGROUND",
@@ -176,10 +238,41 @@ def generate_app_actionables(
                     "newMode": "optimized",
                     "parameters": {}
                 })
+            battery_action_count += 1
         
-        # Data optimizations
-        if strategy["focus"] in ["network", "both"] and data_usage_total is not None and data_usage_total > 0:
-            if strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
+        # Add appropriate data actions based on conditions
+        if (strategy["focus"] in ["network", "both"] and data_usage_total is not None and data_usage_total > 0):
+            # Skip if we're limiting data actions and already have at least as many as battery actions
+            if limit_data_actions and data_action_count >= battery_action_count:
+                continue
+            
+            if data_critical:
+                # If data is critically low, apply more aggressive actions
+                actionables.append({
+                    "id": f"data-{package_name}-{uuid.uuid4().hex[:8]}",
+                    "type": "RESTRICT_BACKGROUND",
+                    "packageName": package_name,
+                    "description": f"Restrict background data for {app_name}",
+                    "reason": f"Data critically low ({data_remaining} MB remaining), app uses {data_usage_total} MB",
+                    "newMode": "restricted",
+                    "parameters": {
+                        "restrictData": True
+                    }
+                })
+                
+                # For high data consumers, add data saver specifically
+                if data_usage_total > total_data_used * 0.1:  # Using more than 10% of total data
+                    actionables.append({
+                        "id": f"data-save-{package_name}-{uuid.uuid4().hex[:8]}",
+                        "type": "ENABLE_DATA_SAVER",
+                        "packageName": package_name,
+                        "description": f"Enable data saver for {app_name}",
+                        "reason": f"High data usage ({data_usage_total} MB) with critically low data remaining",
+                        "newMode": "enabled",
+                        "parameters": {}
+                    })
+                    data_action_count += 1
+            elif strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
                 actionables.append({
                     "id": f"data-{package_name}-{uuid.uuid4().hex[:8]}",
                     "type": "RESTRICT_BACKGROUND",
@@ -201,6 +294,7 @@ def generate_app_actionables(
                     "newMode": "enabled",
                     "parameters": {}
                 })
+                data_action_count += 1
     
     return actionables
 
@@ -218,6 +312,19 @@ def is_information_request(prompt: str) -> bool:
         return False
     
     prompt = prompt.lower()
+    
+    # First check for optimization indicators even if in question format
+    optimization_indicators = [
+        "optimize", "save", "reduce", "conserve", "limit", "minimize", 
+        "decrease", "cut down", "lower", "how can i use less", "how to save", 
+        "how to reduce", "how to conserve", "how to limit", "how to minimize",
+        "ways to reduce", "ways to save", "tips to save"
+    ]
+    
+    # If the prompt contains clear optimization indicators, it's not an information request
+    for indicator in optimization_indicators:
+        if indicator in prompt:
+            return False
     
     # Direct markers for information requests - these should always return True
     direct_info_markers = [
@@ -276,7 +383,18 @@ def is_information_request(prompt: str) -> bool:
     ]
     
     # Checking for informational question word at the beginning of the prompt
-    question_starters = ["what", "which", "how", "who", "where", "when", "why"]
+    # Only consider 'how' as informational if not followed by optimization indicators
+    question_starters = ["what", "which", "who", "where", "when", "why"]
+    
+    # Special handling for "how" - it can be both information and optimization
+    if prompt.startswith("how"):
+        # If "how" is followed by optimization indicators, it's not an information request
+        if any(f"how {word}" in prompt or f"how to {word}" in prompt for word in ["save", "reduce", "optimize", "conserve", "minimize"]):
+            return False
+        # If "how" is followed by typical info patterns, it's an information request
+        if any(f"how {word}" in prompt for word in ["much", "many", "often", "long"]):
+            return True
+    
     starts_with_question = any(prompt.startswith(q) for q in question_starters)
     
     # Check for exact phrases

@@ -677,4 +677,34 @@ async def test_no_prompt():
     response = ActionResponse.example_response()
     
     logger.info(f"[PowerGuard] Generated sample response with {len(response.actionable)} actionable items and {len(response.insights)} insights")
-    return response 
+    return response
+
+@app.post("/api/debug/app-values", tags=["Testing"])
+async def debug_app_values(data: DeviceData = Body(...)):
+    """
+    Debug endpoint to examine the battery usage values for all apps in the request.
+    
+    Returns:
+        Dictionary with app names and their battery usage values
+    """
+    result = {
+        "battery_values": []
+    }
+    
+    try:
+        # Process each app
+        for app in data.apps:
+            app_info = {
+                "app_name": app.appName,
+                "package_name": app.packageName,
+                "battery_usage": app.batteryUsage,
+                "battery_usage_type": str(type(app.batteryUsage))
+            }
+            result["battery_values"].append(app_info)
+            
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing app values: {str(e)}"
+        ) 
