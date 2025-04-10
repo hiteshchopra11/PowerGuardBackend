@@ -56,10 +56,10 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
         savings = strategy["calculated_savings"]
     else:
         # Fallback if not pre-calculated (shouldn't happen with new code)
-        savings = calculate_savings(strategy, strategy["critical_apps"])
+        savings = calculate_savings(strategy, strategy.get("critical_apps", []))
     
     # Main strategy insight
-    description_focus = "battery" if strategy['focus'] == "battery" else "data" if strategy['focus'] == "network" else "resource"
+    description_focus = "battery" if strategy.get('optimize_battery', False) else "data" if strategy.get('optimize_data', False) else "resource"
     main_insight = {
         "type": "Strategy",
         "title": f"Designed a custom {description_focus} strategy for you",
@@ -85,26 +85,29 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
         })
     
     # Data constraint insight
-    if strategy["data_constraint"]:
+    data_constraint = strategy.get("data_constraint")
+    if data_constraint:
         insights.append({
             "type": "DataWarning",
             "title": "Limited Data Remaining",
-            "description": f"You have {strategy['data_constraint']}MB of data remaining. Restricting background data usage to conserve data.",
+            "description": f"You have {data_constraint}MB of data remaining. Restricting background data usage to conserve data.",
             "severity": "medium"
         })
     
     # Time constraint insight
-    if strategy["time_constraint"]:
+    time_constraint = strategy.get("time_constraint")
+    if time_constraint:
         insights.append({
             "type": "TimeConstraint",
-            "title": f"Optimized for {strategy['time_constraint']} Hour{'s' if strategy['time_constraint'] > 1 else ''} Usage",
-            "description": f"Adjusting power management to ensure device lasts for {strategy['time_constraint']} hour{'s' if strategy['time_constraint'] > 1 else ''}.",
+            "title": f"Optimized for {time_constraint} Hour{'s' if time_constraint > 1 else ''} Usage",
+            "description": f"Adjusting power management to ensure device lasts for {time_constraint} hour{'s' if time_constraint > 1 else ''}.",
             "severity": "info"
         })
     
     # Critical apps insight
-    if strategy["critical_apps"]:
-        app_names = [get_app_name(app) for app in strategy["critical_apps"]]
+    critical_apps = strategy.get("critical_apps", [])
+    if critical_apps:
+        app_names = [get_app_name(app) for app in critical_apps]
         insights.append({
             "type": "CriticalApps",
             "title": "Protected Critical Apps",
@@ -117,7 +120,7 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
     app_name_map = {app.get("packageName", ""): app.get("appName", "Unknown App") for app in all_apps}
     
     # Add savings insights using the same consistent values
-    if strategy["show_battery_savings"] and savings["batteryMinutes"] > 0:
+    if strategy.get("show_battery_savings", False) and savings["batteryMinutes"] > 0:
         # Get names of apps being optimized for battery
         battery_optimized_apps = []
         for app in all_apps:
@@ -141,7 +144,7 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
         
         insights.append(battery_insight)
     
-    if strategy["show_data_savings"] and savings["dataMB"] > 0:
+    if strategy.get("show_data_savings", False) and savings["dataMB"] > 0:
         # Get names of apps being optimized for data
         data_optimized_apps = []
         for app in all_apps:
@@ -179,10 +182,11 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
     
     # Extract app count from prompt
     app_count = extract_app_count_from_prompt(prompt)
+    logger.debug(f"[PowerGuard] Extracted app count from prompt: {app_count}")
     
     # Determine if this is specifically a battery or data query
-    is_battery_query = False
-    is_data_query = False
+    is_battery_query = strategy.get("optimize_battery", False)
+    is_data_query = strategy.get("optimize_data", False)
     
     # Create more specific pattern matches
     battery_patterns = [
@@ -242,8 +246,10 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
     
     # If neither is explicitly mentioned, use the strategy focus
     if not is_battery_query and not is_data_query:
-        is_battery_query = strategy["focus"] in ["battery", "both"]
-        is_data_query = strategy["focus"] in ["network", "both"]
+        is_battery_query = strategy.get("optimize_battery", False)
+        is_data_query = strategy.get("optimize_data", False)
+    
+    logger.debug(f"[PowerGuard] Query type: battery={is_battery_query}, data={is_data_query}")
     
     # Device-level insights
     battery_level = device_data.get("battery", {}).get("level", 0)
@@ -292,9 +298,11 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
     # Get top battery consuming apps
     if is_battery_query:
         try:
+            logger.debug(f"[PowerGuard] Getting top battery consuming apps with limit: {app_count}")
             battery_apps = get_top_consuming_apps(device_data, "battery", app_count)
+            logger.debug(f"[PowerGuard] Got {len(battery_apps)} battery apps")
             if battery_apps:
-                apps_str = "\n".join([f"- {app['name']}: {app['usage']}%" for app in battery_apps])
+                apps_str = "\n".join([f"- {app.get('name', 'Unknown App')}: {app.get('usage', 0)}%" for app in battery_apps])
                 battery_insight = {
                     "type": "BatteryUsage",
                     "title": f"Top {len(battery_apps)} Battery Consuming Apps",
@@ -310,7 +318,7 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
                     for app in battery_apps:
                         usage = app.get("usage", 0)
                         if usage is not None and usage > high_usage_threshold:
-                            high_usage_apps.append(app["name"])
+                            high_usage_apps.append(app.get("name", "Unknown App"))
                     
                     if high_usage_apps:
                         battery_insight["description"] += f"\n\nConsider restricting background activity for {', '.join(high_usage_apps)} to save battery."
@@ -331,9 +339,11 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
     # Get top data consuming apps
     if is_data_query:
         try:
+            logger.debug(f"[PowerGuard] Getting top data consuming apps with limit: {app_count}")
             data_apps = get_top_consuming_apps(device_data, "data", app_count)
+            logger.debug(f"[PowerGuard] Got {len(data_apps)} data apps")
             if data_apps:
-                apps_str = "\n".join([f"- {app['name']}: {app['usage']} MB" for app in data_apps])
+                apps_str = "\n".join([f"- {app.get('name', 'Unknown App')}: {app.get('usage', 0)} MB" for app in data_apps])
                 data_insight = {
                     "type": "DataUsage",
                     "title": f"Top {len(data_apps)} Data Consuming Apps",
@@ -349,7 +359,7 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
                     for app in data_apps:
                         usage = app.get("usage", 0)
                         if usage is not None and usage > high_usage_threshold:
-                            high_usage_apps.append(app["name"])
+                            high_usage_apps.append(app.get("name", "Unknown App"))
                     
                     if high_usage_apps:
                         data_insight["description"] += f"\n\nConsider restricting background data for {', '.join(high_usage_apps)} to save mobile data."
@@ -374,13 +384,14 @@ def generate_strategy_description(strategy: dict, battery_level: float, savings:
     lines = []
     
     # Determine primary focus
-    is_data_focused = strategy["focus"] == "network" or strategy["data_constraint"]
+    is_data_focused = strategy.get("optimize_data", False)
     
     # Context based on focus
     if is_data_focused:
         # For data-focused strategies, prioritize data information
-        if strategy["data_constraint"]:
-            lines.append(f"Optimizing data usage with {strategy['data_constraint']}MB remaining")
+        data_constraint = strategy.get("data_constraint")
+        if data_constraint:
+            lines.append(f"Optimizing data usage with {data_constraint}MB remaining")
         else:
             lines.append("Optimizing data consumption for your device")
     else:
@@ -393,13 +404,13 @@ def generate_strategy_description(strategy: dict, battery_level: float, savings:
             lines.append(f"As battery is sufficient ({battery_level}%), taking minimal measures")
     
     # Add actionable descriptions based on strategy - avoid duplicating information from other insights
-    if strategy["aggressiveness"] in ["very_aggressive", "aggressive"]:
+    if strategy.get("aggressiveness", "") in ["very_aggressive", "aggressive"]:
         lines.append("Restricted background activity for non-critical apps")
         
-        if strategy["focus"] in ["network", "both"] and not strategy["data_constraint"]:
+        if strategy.get("optimize_data", False) and not strategy.get("data_constraint"):
             lines.append("Limited background data usage")
         
-        if strategy["focus"] in ["battery", "both"] and battery_level > 30 and not is_data_focused:
+        if strategy.get("optimize_battery", False) and battery_level > 30 and not is_data_focused:
             lines.append("Applied aggressive battery optimization")
     else:
         lines.append("Applied moderate optimization for non-critical apps")
@@ -407,10 +418,10 @@ def generate_strategy_description(strategy: dict, battery_level: float, savings:
     # If savings not provided, check for pre-calculated savings in strategy
     if savings is None:
         if "calculated_savings" in strategy:
-            savings = strategy["calculated_savings"]
+            savings = strategy.get("calculated_savings", {})
         else:
             # Last resort: calculate if nothing else is available
-            savings = calculate_savings(strategy, strategy["critical_apps"])
+            savings = calculate_savings(strategy, strategy.get("critical_apps", []))
     
     return "\n".join(lines)
 
@@ -426,8 +437,11 @@ def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5
     Returns:
         List of dictionaries with app name and usage
     """
+    logger.debug(f"[PowerGuard] Getting top {limit} consuming apps for {resource_type}")
+    
     apps = device_data.get("apps", [])
     if not apps:
+        logger.debug("[PowerGuard] No apps found in device data")
         return []
     
     usage_field = "batteryUsage" if resource_type == "battery" else "dataUsage"
@@ -469,12 +483,16 @@ def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5
                     "usage": total_usage
                 })
     
+    logger.debug(f"[PowerGuard] Found {len(valid_apps)} valid apps with {resource_type} usage data")
+    
     # Sort by usage (descending)
     # Use a safe lambda function that handles None values
     sorted_apps = sorted(valid_apps, key=lambda app: float(app.get("usage", 0) or 0), reverse=True)
     
-    # Return top N apps
-    return sorted_apps[:limit]
+    # Return top N apps based on the limit parameter
+    result = sorted_apps[:limit]
+    logger.debug(f"[PowerGuard] Returning top {len(result)} apps (limit was {limit})")
+    return result
 
 def analyze_yes_no_question(prompt: str, strategy: dict, device_data: dict) -> Optional[Dict]:
     """
@@ -661,7 +679,7 @@ def analyze_yes_no_question(prompt: str, strategy: dict, device_data: dict) -> O
     
     return None
 
-def extract_app_count_from_prompt(prompt: str, default_count: int = 5) -> int:
+def extract_app_count_from_prompt(prompt: str, default_count: int = 3) -> int:
     """
     Extract the number of apps requested in prompts like "top 3 apps".
     
@@ -689,16 +707,21 @@ def extract_app_count_from_prompt(prompt: str, default_count: int = 5) -> int:
         "which app",
         "what app"
     ]):
+        logger.debug(f"[PowerGuard] Singular app phrase detected in prompt: {prompt}")
         return 1
         
     # Use regex to find patterns like "top 3 apps", "3 apps", etc.
     app_count_patterns = [
-        r'top\s+(\d+)\s+apps?',
-        r'(\d+)\s+top\s+apps?',
-        r'(\d+)\s+apps?\s+(?:using|draining|consuming)',
-        r'show\s+(?:me\s+)?(?:the\s+)?(\d+)\s+apps?',
-        r'tell\s+(?:me\s+)?(?:the\s+)?(\d+)\s+apps?',
-        r'list\s+(?:the\s+)?(\d+)\s+apps?'
+        r'\btop\s+(\d+)\s+apps?\b',
+        r'\b(\d+)\s+top\s+apps?\b',
+        r'\b(\d+)\s+apps?\s+(?:using|draining|consuming)\b',
+        r'\bshow\s+(?:me\s+)?(?:the\s+)?(\d+)\s+apps?\b',
+        r'\btell\s+(?:me\s+)?(?:the\s+)?(\d+)\s+apps?\b',
+        r'\blist\s+(?:the\s+)?(\d+)\s+apps?\b',
+        # Combined pattern for "tell me/show me/list/give me" with optional parts
+        r'\b(?:tell|show|list|give)\s+(?:me\s+)?(?:the\s+)?top\s+(\d+)\s+(?:battery|data)?\s*(?:consuming\s+)?apps?\b',
+        # Fallback pattern for any "top N apps" format
+        r'\b(?:the\s+)?top\s+(\d+)\s+(?:battery|data)?\s*(?:consuming\s+)?apps?\b'
     ]
     
     for pattern in app_count_patterns:
@@ -706,8 +729,11 @@ def extract_app_count_from_prompt(prompt: str, default_count: int = 5) -> int:
         if match:
             try:
                 app_count = int(match.group(1))
-                return max(1, min(app_count, 10))  # Limit between 1 and 10
+                app_count = max(1, min(app_count, 10))  # Limit between 1 and 10
+                logger.debug(f"[PowerGuard] Extracted app count from prompt: {app_count} (pattern: {pattern})")
+                return app_count
             except (ValueError, IndexError):
                 pass
                 
+    logger.debug(f"[PowerGuard] No app count found in prompt, using default: {default_count}")
     return default_count 

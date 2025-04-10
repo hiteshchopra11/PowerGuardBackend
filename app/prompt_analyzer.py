@@ -257,25 +257,29 @@ def classify_with_llm(prompt: str, llm_client=None) -> Dict[str, Any]:
         classification_prompt = f"""
         Analyze this user prompt: "{prompt}"
         
-        Is it related to optimizing battery usage or network/data usage on a mobile device?
-        If yes, which of these does it focus on: battery, data/network, or both?
+        Identify:
+        1. Is it related to optimizing battery usage or network/data usage on a mobile device?
+        2. Which specific apps need to be protected/kept running? (e.g., WhatsApp, Maps, Messages)
+        3. Are there any time constraints mentioned? (e.g., "next 5 hours", "2 hour drive")
         
         Reply with ONLY a JSON object like this example:
         {{
           "is_relevant": true/false,
           "optimize_battery": true/false,
           "optimize_data": true/false,
+          "protected_apps": ["APP1", "APP2"],
+          "time_constraint_minutes": number or null,
           "actionable_focus": ["ACTION_TYPE1", "ACTION_TYPE2"]
         }}
         
         The actionable_focus array should ONLY include items from this list:
         {", ".join(ALLOWED_ACTIONABLE_TYPES)}
         
-        Select actions that best match the user's intent.
+        Select actions that best match the user's intent while respecting protected apps and time constraints.
         """
         
         completion = llm_client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="mixtral-8x7b-32768",
             messages=[
                 {"role": "system", "content": "You are a specialized AI that only classifies prompts related to mobile device resource optimization."},
                 {"role": "user", "content": classification_prompt}
@@ -298,6 +302,12 @@ def classify_with_llm(prompt: str, llm_client=None) -> Dict[str, Any]:
             
         if "optimize_data" in llm_result:
             result["optimize_data"] = bool(llm_result["optimize_data"])
+            
+        if "protected_apps" in llm_result and isinstance(llm_result["protected_apps"], list):
+            result["protected_apps"] = llm_result["protected_apps"]
+            
+        if "time_constraint_minutes" in llm_result and isinstance(llm_result["time_constraint_minutes"], (int, type(None))):
+            result["time_constraint_minutes"] = llm_result["time_constraint_minutes"]
             
         if "actionable_focus" in llm_result and isinstance(llm_result["actionable_focus"], list):
             # Filter to only include valid action types

@@ -87,6 +87,9 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
             strategy = determine_strategy(device_data, prompt)
             logger.debug(f"[PowerGuard] Strategy determined successfully")
         except Exception as strategy_error:
+            if "429" in str(strategy_error) or "rate limit" in str(strategy_error).lower():
+                logger.error(f"[PowerGuard] Rate limit error in strategy determination: {str(strategy_error)}")
+                raise Exception("429: Rate limit exceeded in strategy determination")
             logger.error(f"[PowerGuard] Error determining strategy: {str(strategy_error)}", exc_info=True)
             raise Exception(f"Error determining strategy: {str(strategy_error)}")
         
@@ -107,6 +110,9 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
             insights = generate_insights(strategy, device_data, info_request, prompt)
             logger.debug(f"[PowerGuard] Generated {len(insights)} insights")
         except Exception as insights_error:
+            if "429" in str(insights_error) or "rate limit" in str(insights_error).lower():
+                logger.error(f"[PowerGuard] Rate limit error in insights generation: {str(insights_error)}")
+                raise Exception("429: Rate limit exceeded in insights generation")
             logger.error(f"[PowerGuard] Error generating insights: {str(insights_error)}", exc_info=True)
             raise Exception(f"Error generating insights: {str(insights_error)}")
         
@@ -128,6 +134,9 @@ def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, A
                 actionables = generate_actionables(strategy, device_data)
                 logger.debug(f"[PowerGuard] Generated {len(actionables)} actionables")
             except Exception as actionables_error:
+                if "429" in str(actionables_error) or "rate limit" in str(actionables_error).lower():
+                    logger.error(f"[PowerGuard] Rate limit error in actionables generation: {str(actionables_error)}")
+                    raise Exception("429: Rate limit exceeded in actionables generation")
                 logger.error(f"[PowerGuard] Error generating actionables: {str(actionables_error)}", exc_info=True)
                 raise Exception(f"Error generating actionables: {str(actionables_error)}")
         

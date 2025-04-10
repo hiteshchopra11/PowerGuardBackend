@@ -10,7 +10,8 @@ from app.utils.insight_generator import (
     generate_optimization_insights,
     generate_information_insights,
     generate_strategy_description,
-    get_top_consuming_apps
+    get_top_consuming_apps,
+    extract_app_count_from_prompt
 )
 
 class TestInsightGenerator(unittest.TestCase):
@@ -60,7 +61,9 @@ class TestInsightGenerator(unittest.TestCase):
             "show_battery_savings": False,
             "show_data_savings": False,
             "time_constraint": None,
-            "data_constraint": None
+            "data_constraint": None,
+            "optimize_battery": True,
+            "optimize_data": True
         }
         
         device_data = {
@@ -97,7 +100,9 @@ class TestInsightGenerator(unittest.TestCase):
             "show_battery_savings": True,
             "show_data_savings": True,
             "time_constraint": 3,
-            "data_constraint": 500
+            "data_constraint": 500,
+            "optimize_battery": True,
+            "optimize_data": True
         }
         
         description = generate_strategy_description(strategy, 10)
@@ -120,7 +125,9 @@ class TestInsightGenerator(unittest.TestCase):
             "time_constraint": 5,
             "data_constraint": None,
             "show_battery_savings": True,
-            "show_data_savings": True
+            "show_data_savings": True,
+            "optimize_battery": False,
+            "optimize_data": True
         }
         
         description = generate_strategy_description(strategy, 100)
@@ -142,7 +149,9 @@ class TestInsightGenerator(unittest.TestCase):
             "time_constraint": None,
             "data_constraint": 500,  # Data constraint should override
             "show_battery_savings": False,
-            "show_data_savings": True
+            "show_data_savings": True,
+            "optimize_battery": False,
+            "optimize_data": True
         }
         
         description = generate_strategy_description(strategy, 100)
@@ -225,6 +234,56 @@ class TestInsightGenerator(unittest.TestCase):
         self.assertEqual(data_apps[0]["usage"], 150)
         self.assertEqual(data_apps[1]["usage"], 50)
         self.assertEqual(data_apps[2]["usage"], 10)
+
+    def test_extract_app_count_from_prompt(self):
+        """Test that app count is correctly extracted from various prompt formats."""
+        test_cases = [
+            # Basic patterns
+            ("top 3 apps", 3),
+            ("3 top apps", 3),
+            ("3 apps using battery", 3),
+            ("show me 5 apps", 5),
+            ("tell me 4 apps", 4),
+            ("list 2 apps", 2),
+            
+            # Battery patterns
+            ("tell me top 4 battery consuming apps", 4),
+            ("give me top 3 battery consuming apps", 3),
+            
+            # Data patterns
+            ("tell me top 4 data consuming apps", 4),
+            ("give me top 3 data consuming apps", 3),
+            ("show me the top 5 data consuming apps", 5),
+            ("list the top 2 data consuming apps", 2),
+            
+            # Edge cases
+            ("the top app", 1),
+            ("the top battery app", 1),
+            ("the top data app", 1),
+            ("which app is using most battery", 1),
+            ("what app is draining battery", 1),
+            ("which app is using most data", 1),
+            ("what app is using most data", 1),
+            
+            # Invalid cases should return default (3)
+            ("show me apps", 3),
+            ("tell me about battery", 3),
+            ("tell me about data usage", 3),
+            ("optimize my battery", 3),
+            ("optimize my data", 3),
+            ("", 3),
+            (None, 3),
+            
+            # Boundary cases
+            ("show me 0 apps", 1),  # Should be minimum 1
+            ("show me 15 apps", 10),  # Should be maximum 10
+        ]
+        
+        for prompt, expected_count in test_cases:
+            with self.subTest(prompt=prompt):
+                actual_count = extract_app_count_from_prompt(prompt)
+                self.assertEqual(actual_count, expected_count, 
+                    f"Failed for prompt '{prompt}': expected {expected_count}, got {actual_count}")
 
 if __name__ == '__main__':
     unittest.main() 

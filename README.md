@@ -20,7 +20,6 @@
 - 📱 Usage pattern tracking
 - 🧠 Historical data analysis
 - 🤖 AI-powered insights
-- 🛡️ Rate limiting and DDoS protection
 - 💡 User-directed optimizations via prompts
 - 🔄 Hybrid rule-based and LLM prompt classification
 - 🧩 Smart context-aware prompt analysis with critical app protection
@@ -36,19 +35,6 @@
 - `GET /api/all-entries` - Get all database entries
 - `GET /api/test/with-prompt/{prompt}` - Test endpoint that generates a sample response based on a prompt
 - `GET /api/test/no-prompt` - Test endpoint that generates a sample response with default settings
-
-## 🔒 Rate Limits
-
-To prevent abuse and ensure fair usage, the following rate limits are in place:
-
-| Endpoint | Limit |
-|----------|-------|
-| Default endpoints | 100 requests per minute |
-| Analyze endpoint | 30 requests per minute |
-| Patterns endpoint | 60 requests per minute |
-| Reset DB endpoint | 5 requests per hour |
-
-When rate limits are exceeded, the API will return a 429 (Too Many Requests) status code.
 
 ## 🏗️ System Architecture
 

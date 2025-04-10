@@ -108,7 +108,7 @@ def generate_global_actionables(
     actionables = []
     
     # Battery optimization
-    if strategy.get("focus") in ["battery", "both"]:
+    if strategy.get("focus", "battery") in ["battery", "both"]:
         if battery_level <= 30:
             # Use MANAGE_WAKE_LOCKS for low battery
             actionables.append({
@@ -136,7 +136,7 @@ def generate_global_actionables(
             })
     
     # Data optimization
-    if strategy.get("focus") in ["network", "both"]:
+    if strategy.get("focus", "battery") in ["network", "both"]:
         actionables.append({
             "id": f"global-data-{uuid.uuid4().hex[:8]}",
             "type": "RESTRICT_BACKGROUND_DATA",

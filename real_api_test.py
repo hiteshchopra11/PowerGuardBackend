@@ -224,7 +224,12 @@ TEST_PROMPTS = [
     "Reduce data usage",
     "Save data but keep messages running",
     "I'm on a trip with 10% battery and need Maps",
-    "Going on a 2-hour drive — save battery and data"
+    "Going on a 2-hour drive — save battery and data",
+    "I only have 500MB data left this month",
+    "Tell me top 4 battery consuming apps",
+    "Give me top 3 battery consuming apps",
+    "Show me the top 5 data consuming apps",
+    "List the top 2 data consuming apps"
 ]
 
 def reset_database():

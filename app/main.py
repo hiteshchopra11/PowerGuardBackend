@@ -5,7 +5,6 @@ import logging
 import os
 from app.database import Base, engine
 from datetime import datetime
-from app.rate_limit import setup_rate_limiting
 
 from app.models import DeviceData, ActionResponse
 from app.llm_service import analyze_device_data
@@ -48,7 +47,6 @@ app = FastAPI(
     * Usage pattern tracking
     * Historical data analysis
     * AI-powered insights
-    * Rate limiting and DDoS protection
     * User-directed optimizations via prompts
     * Hybrid rule-based and LLM prompt classification
     
@@ -60,22 +58,14 @@ app = FastAPI(
     * `/api/test/with-prompt/{prompt}` - Test endpoint with prompt
     * `/api/test/no-prompt` - Test endpoint without prompt
     
-    ## Rate Limits
-    * Default endpoints: 1000 requests per minute
-    * Analyze endpoint: 500 requests per minute
-    * Patterns endpoint: 1000 requests per minute
-    * Reset DB endpoint: 100 requests per hour
-    
     ## Error Handling
     The API uses standard HTTP status codes:
     * 200: Success
     * 400: Bad Request
-    * 429: Too Many Requests
     * 500: Internal Server Error
     
     ## Authentication
-    Currently, the API does not require authentication. Rate limiting is implemented
-    based on IP address to prevent abuse.
+    Currently, the API does not require authentication.
     
     ## Response Format
     All responses are in JSON format and include:
@@ -83,48 +73,6 @@ app = FastAPI(
     * Timestamp
     * Message
     * Data (if applicable)
-    
-    ## Example Usage
-    ```python
-    import requests
-    
-    # Analyze device data
-    response = requests.post(
-        "https://powerguardbackend.onrender.com/api/analyze",
-        json={
-            "deviceId": "example-device-001",
-            "timestamp": 1686123456,
-            "battery": {
-                "level": 45.0,
-                "health": 95.0,
-                "temperature": 35.0
-            },
-            "memory": {
-                "total": 8000000000,
-                "used": 4000000000,
-                "free": 4000000000
-            },
-            "cpu": {
-                "usage": 45.0,
-                "temperature": 45.0
-            },
-            "network": {
-                "dataUsed": 100.5,
-                "wifiEnabled": True,
-                "mobileDataEnabled": False
-            },
-            "apps": [
-                {
-                    "packageName": "com.example.app",
-                    "batteryUsage": 15.0,
-                    "dataUsage": 5.0,
-                    "foregroundTime": 3600
-                }
-            ],
-            "prompt": "Optimize my battery life"
-        }
-    )
-    ```
     """,
     version="1.0.0",
     contact={
@@ -155,9 +103,6 @@ app = FastAPI(
         }
     ]
 )
-
-# Setup rate limiting
-setup_rate_limiting(app)
 
 @app.post("/api/reset-db", tags=["Database"])
 async def reset_database():
@@ -423,6 +368,9 @@ async def analyze_data(
             
         except Exception as e:
             logger.error(f"[PowerGuard] Error processing LLM response: {str(e)}", exc_info=True)
+            # Check for rate limit error
+            if "429" in str(e) or "rate limit" in str(e).lower():
+                raise HTTPException(status_code=429, detail="Rate limit exceeded. Please try again later.")
             # Return a valid response with default values
             response = {
                 "id": "error_" + str(int(datetime.now().timestamp())),
@@ -593,56 +541,88 @@ async def root():
 async def test_with_prompt(prompt: str):
     """
     Test endpoint that returns a sample response based on the provided prompt.
-    This endpoint does not call the LLM, it just returns a sample response.
-    
-    Parameters:
-    * prompt: The user prompt to simulate
-    
-    Returns:
-    * A sample ActionResponse based on the prompt
-    
-    Response Example:
-    ```json
-    {
-        "id": "test_1686123456",
-        "success": true,
-        "timestamp": 1686123456.789,
-        "message": "Test response generated successfully",
-        "actionable": [
-            {
-                "id": "test-1",
-                "type": "SET_STANDBY_BUCKET",
-                "packageName": "com.example.app",
-                "description": "Place app in restricted standby bucket",
-                "reason": "Test reason",
-                "newMode": "restricted",
-                "parameters": {}
-            }
-        ],
-        "insights": [
-            {
-                "type": "TestInsight",
-                "title": "Test Insight",
-                "description": "This is a test insight",
-                "severity": "medium"
-            }
-        ],
-        "batteryScore": 80.0,
-        "dataScore": 70.0,
-        "performanceScore": 75.0,
-        "estimatedSavings": {
-            "batteryMinutes": 60.0,
-            "dataMB": 30.0
-        }
-    }
-    ```
+    This endpoint uses the actual strategy determination but with sample data.
     """
     logger.info(f"[PowerGuard] Test endpoint called with prompt: '{prompt}'")
     
-    # Generate a sample response based on the prompt
-    response = ActionResponse.example_response(prompt)
+    # Create sample device data
+    device_data = {
+        "deviceId": "test-device-001",
+        "timestamp": int(datetime.now().timestamp()),
+        "battery": {
+            "level": 45.0,
+            "health": 95.0,
+            "temperature": 35.0
+        },
+        "memory": {
+            "total": 8000000000,
+            "used": 4000000000,
+            "free": 4000000000
+        },
+        "cpu": {
+            "usage": 45.0,
+            "temperature": 45.0
+        },
+        "network": {
+            "dataUsed": 100.5,
+            "wifiEnabled": True,
+            "mobileDataEnabled": False
+        },
+        "apps": [
+            {
+                "packageName": "com.whatsapp",
+                "batteryUsage": 5.2,
+                "dataUsage": 20.1,
+                "foregroundTime": 10
+            },
+            {
+                "packageName": "com.google.android.apps.maps",
+                "batteryUsage": 18.5,
+                "dataUsage": 35.7,
+                "foregroundTime": 30
+            },
+            {
+                "packageName": "com.instagram",
+                "batteryUsage": 15.4,
+                "dataUsage": 45.3,
+                "foregroundTime": 25
+            }
+        ],
+        "prompt": prompt
+    }
     
-    logger.info(f"[PowerGuard] Generated sample response with {len(response.actionable)} actionable items and {len(response.insights)} insights")
+    # Get strategy from prompt analyzer
+    from app.prompt_analyzer import classify_with_llm
+    from app.utils.strategy_analyzer import determine_strategy
+    from app.utils.insight_generator import generate_insights
+    from app.utils.actionable_generator import generate_actionables
+    
+    # Analyze prompt
+    prompt_analysis = classify_with_llm(prompt)
+    strategy = determine_strategy(device_data, prompt)
+    
+    # Generate insights and actionables
+    insights = generate_insights(strategy, device_data, False, prompt)
+    actionables = generate_actionables(strategy, device_data)
+    
+    # Create response
+    response = {
+        "id": f"test_{int(datetime.now().timestamp())}",
+        "success": True,
+        "timestamp": int(datetime.now().timestamp()),
+        "message": "Test response generated successfully",
+        "actionable": actionables,
+        "insights": insights,
+        "batteryScore": 60.0,
+        "dataScore": 80.0,
+        "performanceScore": 70.0,
+        "estimatedSavings": {
+            "batteryMinutes": 30.0,
+            "dataMB": 20.0
+        }
+    }
+    
+    logger.info(f"[PowerGuard] Generated test response with {len(response['actionable'])} actionable items and {len(response['insights'])} insights")
     return response
 
 @app.get("/api/test/no-prompt", tags=["Testing"])

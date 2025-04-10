@@ -1,6 +1,6 @@
 POWERGUARD API TEST RESULTS
 ================================================================================
-Test Run: 2025-04-10 02:44:19
+Test Run: 2025-04-10 11:07:26
 
 
 ================================================================================
@@ -8,7 +8,7 @@ PROMPT: 'What are the top 3 apps draining my battery?'
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 39%
+  Battery Level: 32%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -20,22 +20,22 @@ ACTIONABLES: None
 INSIGHT 1:
   Type: BatteryStatus
   Title: Battery Status
-  Description: Current battery level is 39.0% and discharging.
+  Description: Current battery level is 32.0% and discharging.
   Severity: low
 
 INSIGHT 2:
   Type: BatteryUsage
   Title: Top 3 Battery Consuming Apps
   Description: The following apps are consuming the most battery:
-- Facebook: 31.0%
-- Google Maps: 27.0%
-- Spotify: 25.0%
+- Facebook: 34.0%
+- WhatsApp: 28.0%
+- Google Maps: 28.0%
 
-Consider restricting background activity for Facebook, Google Maps, Spotify to save battery.
+Consider restricting background activity for Facebook, WhatsApp, Google Maps to save battery.
   Severity: info
 
 SCORES:
-  Battery Score: 89.0
+  Battery Score: 82.0
   Data Score: 100.0
   Performance Score: 50.0
 
@@ -46,7 +46,7 @@ ESTIMATED SAVINGS:
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-Request completed in 0.03 seconds
+Request completed in 0.07 seconds
 
 
 ================================================================================
@@ -55,8 +55,8 @@ PROMPT: 'What are the top 3 apps draining my data?'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1716 MB
-  Data Uploaded: 290 MB
+  Data Downloaded: 1783 MB
+  Data Uploaded: 288 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
@@ -73,11 +73,11 @@ INSIGHT 2:
   Type: DataUsage
   Title: Top 3 Data Consuming Apps
   Description: The following apps are consuming the most data:
-- Facebook: 372.0 MB
-- WhatsApp: 353.0 MB
-- Gmail: 341.0 MB
+- Gmail: 456.0 MB
+- Netflix: 431.0 MB
+- WhatsApp: 422.0 MB
 
-Consider restricting background data for Facebook, WhatsApp, Gmail to save mobile data.
+Consider restricting background data for Gmail, Netflix, WhatsApp to save mobile data.
   Severity: info
 
 SCORES:
@@ -101,8 +101,8 @@ PROMPT: 'Show me the top data-consuming app'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1538 MB
-  Data Uploaded: 291 MB
+  Data Downloaded: 1539 MB
+  Data Uploaded: 340 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
@@ -119,14 +119,14 @@ INSIGHT 2:
   Type: DataUsage
   Title: Top 1 Data Consuming Apps
   Description: The following apps are consuming the most data:
-- Spotify: 442.0 MB
+- Google Maps: 518.0 MB
 
-Consider restricting background data for Spotify to save mobile data.
+Consider restricting background data for Google Maps to save mobile data.
   Severity: info
 
 SCORES:
   Battery Score: 100.0
-  Data Score: 100.0
+  Data Score: 95.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
@@ -144,7 +144,7 @@ PROMPT: 'Save my battery'
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 33%
+  Battery Level: 37%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -152,27 +152,27 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Type: SET_STANDBY_BUCKET
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
+  Mode: restricted
 
 ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 3:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.whatsapp
+  Description: Place WhatsApp in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 4:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.netflix.mediaclient
+  Description: Place Netflix in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 5:
@@ -183,100 +183,47 @@ ACTIONABLE 5:
 
 ACTIONABLE 6:
   Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
   Package: com.google.android.apps.maps
   Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
   Mode: restricted
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 15 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
-INSIGHT 3:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 78 MB
-Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 83.0
+  Battery Score: 87.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 12.0 minutes
-  Data: 66.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
+Optimizing 6 apps:
+- Gmail: Optimizing battery
+- Facebook: Optimizing battery
+- WhatsApp: Optimizing battery
 - Netflix: Optimizing battery
 - Spotify: Optimizing battery
-- Facebook: Optimizing battery
 - Google Maps: Optimizing battery
-- Gmail: Optimizing battery
-- WhatsApp: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~12.0 minutes
-- Data usage reduced by ~66.0 MB
+- Battery life extended by ~30.0 minutes
 
-Request completed in 0.02 seconds
+Request completed in 0.03 seconds
 
 
 ================================================================================
@@ -284,7 +231,7 @@ PROMPT: 'I urgently need my battery to last for the next 2 hours while I keep us
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 34%
+  Battery Level: 35%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -292,139 +239,86 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
   Type: SET_STANDBY_BUCKET
   Package: com.whatsapp
   Description: Set WhatsApp to normal priority
   Mode: normal
 
+ACTIONABLE 2:
+  Type: SET_STANDBY_BUCKET
+  Package: com.spotify.music
+  Description: Place Spotify in restricted standby bucket
+  Mode: restricted
+
+ACTIONABLE 3:
+  Type: SET_STANDBY_BUCKET
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
+  Mode: restricted
+
+ACTIONABLE 4:
+  Type: SET_STANDBY_BUCKET
+  Package: com.google.android.apps.maps
+  Description: Place Google Maps in restricted standby bucket
+  Mode: restricted
+
+ACTIONABLE 5:
+  Type: SET_STANDBY_BUCKET
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
+  Mode: restricted
+
+ACTIONABLE 6:
+  Type: SET_STANDBY_BUCKET
+  Package: com.netflix.mediaclient
+  Description: Place Netflix in restricted standby bucket
+  Mode: restricted
+
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: TimeConstraint
-  Title: Optimized for 2 Hours Usage
-  Description: Adjusting power management to ensure device lasts for 2 hours.
-  Severity: info
-
-INSIGHT 3:
   Type: CriticalApps
   Title: Protected Critical Apps
   Description: Maintaining full functionality for: WhatsApp
   Severity: info
 
-INSIGHT 4:
+INSIGHT 3:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 11 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: Gmail, Google Maps, Facebook, and 2 more apps.
   Severity: info
 
-INSIGHT 5:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 34 MB
-Optimizing data usage for: Gmail, Google Maps, Facebook, and 2 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 84.0
+  Battery Score: 85.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 12.0 minutes
-  Data: 58.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
 Preserving functionality for critical apps:
 - WhatsApp
 
-Optimizing 10 apps:
-- Netflix: Optimizing battery
+Optimizing 5 apps:
 - Spotify: Optimizing battery
-- Facebook: Optimizing battery
-- Google Maps: Optimizing battery
 - Gmail: Optimizing battery
+- Google Maps: Optimizing battery
+- Facebook: Optimizing battery
+- Netflix: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~12.0 minutes
-- Data usage reduced by ~58.0 MB
+- Battery life extended by ~30.0 minutes
 
-Request completed in 0.02 seconds
+Request completed in 0.03 seconds
 
 
 ================================================================================
@@ -433,107 +327,29 @@ PROMPT: 'Reduce data usage'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1643 MB
-  Data Uploaded: 337 MB
+  Data Downloaded: 1694 MB
+  Data Uploaded: 311 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: SET_STANDBY_BUCKET
   Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
+  Description: Apply default battery optimization
+  Mode: optimized
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom data strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: BatterySavings
-  Title: Extended Battery Life
-  Description: Estimated battery extension: 12 minutes
-Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 2 more apps.
-  Severity: info
-
-INSIGHT 3:
   Type: DataSavings
   Title: Reduced Data Usage
-  Description: Estimated data savings: 78 MB
+  Description: Estimated data savings: 20.0 MB
 Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
@@ -543,26 +359,17 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 7.0 minutes
-  Data: 45.0 MB
+  Battery: 0.0 minutes
+  Data: 20.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing DATA usage
 
 System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Google Maps: Optimizing battery
-- WhatsApp: Optimizing battery
-- Facebook: Optimizing battery
-- Netflix: Optimizing battery
-- Spotify: Optimizing battery
-- Gmail: Optimizing battery
+- Apply default battery optimization
 
 Estimated impact of these changes:
-- Battery life extended by ~7.0 minutes
-- Data usage reduced by ~45.0 MB
+- Data usage reduced by ~20.0 MB
 
 Request completed in 0.02 seconds
 
@@ -573,102 +380,30 @@ PROMPT: 'Save data but keep messages running'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1737 MB
-  Data Uploaded: 270 MB
+  Data Downloaded: 1532 MB
+  Data Uploaded: 275 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: SET_STANDBY_BUCKET
   Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Set Gmail to normal priority
-  Mode: normal
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Set WhatsApp to normal priority
-  Mode: normal
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
+  Description: Apply default battery optimization
+  Mode: optimized
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom data strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: CriticalApps
-  Title: Protected Critical Apps
-  Description: Maintaining full functionality for: Gmail, WhatsApp
-  Severity: info
-
-INSIGHT 3:
-  Type: BatterySavings
-  Title: Extended Battery Life
-  Description: Estimated battery extension: 8 minutes
-Optimizing battery usage for: Google Maps, Facebook, Netflix.
-  Severity: info
-
-INSIGHT 4:
   Type: DataSavings
   Title: Reduced Data Usage
-  Description: Estimated data savings: 51 MB
-Optimizing data usage for: Google Maps, Facebook, Spotify, and 1 more apps.
+  Description: Estimated data savings: 20.0 MB
+Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
 SCORES:
@@ -677,28 +412,17 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 9.0 minutes
-  Data: 58.0 MB
+  Battery: 0.0 minutes
+  Data: 20.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing DATA usage
 
 System-wide changes recommended:
-- Restrict background data usage
-
-Preserving functionality for critical apps:
-- Gmail
-- WhatsApp
-
-Optimizing 8 apps:
-- Facebook: Optimizing battery
-- Google Maps: Optimizing battery
-- Netflix: Optimizing battery
-- Spotify: Optimizing battery
+- Apply default battery optimization
 
 Estimated impact of these changes:
-- Battery life extended by ~9.0 minutes
-- Data usage reduced by ~58.0 MB
+- Data usage reduced by ~20.0 MB
 
 Request completed in 0.02 seconds
 
@@ -729,14 +453,14 @@ ACTIONABLE 2:
 
 ACTIONABLE 3:
   Type: KILL_APP
-  Package: com.google.android.gm
-  Description: Force stop Gmail
+  Package: com.spotify.music
+  Description: Force stop Spotify
   Mode: killed
 
 ACTIONABLE 4:
   Type: KILL_APP
-  Package: com.facebook.katana
-  Description: Force stop Facebook
+  Package: com.google.android.gm
+  Description: Force stop Gmail
   Mode: killed
 
 ACTIONABLE 5:
@@ -747,26 +471,26 @@ ACTIONABLE 5:
 
 ACTIONABLE 6:
   Type: KILL_APP
+  Package: com.facebook.katana
+  Description: Force stop Facebook
+  Mode: killed
+
+ACTIONABLE 7:
+  Type: KILL_APP
   Package: com.whatsapp
   Description: Force stop WhatsApp
   Mode: killed
 
-ACTIONABLE 7:
+ACTIONABLE 8:
   Type: KILL_APP
   Package: com.netflix.mediaclient
   Description: Force stop Netflix
   Mode: killed
 
-ACTIONABLE 8:
-  Type: KILL_APP
-  Package: com.spotify.music
-  Description: Force stop Spotify
-  Mode: killed
-
 INSIGHT 1:
   Type: Strategy
   Title: Designed a custom battery strategy for you
-  Description: Optimizing data usage with 1000MB remaining
+  Description: As battery is critically low (10.0%), taking aggressive measures
 Restricted background activity for non-critical apps
   Severity: info
 
@@ -777,29 +501,16 @@ INSIGHT 2:
   Severity: high
 
 INSIGHT 3:
-  Type: DataWarning
-  Title: Limited Data Remaining
-  Description: You have 1000MB of data remaining. Restricting background data usage to conserve data.
-  Severity: medium
-
-INSIGHT 4:
   Type: CriticalApps
   Title: Protected Critical Apps
   Description: Maintaining full functionality for: Google Maps
   Severity: info
 
-INSIGHT 5:
+INSIGHT 4:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 14 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: WhatsApp, Gmail, Facebook, and 2 more apps.
-  Severity: info
-
-INSIGHT 6:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 167 MB
-Optimizing data usage for: WhatsApp, Gmail, Facebook, and 2 more apps.
   Severity: info
 
 SCORES:
@@ -808,11 +519,11 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 18.0 minutes
-  Data: 197.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is focusing on optimizing DATA usage
+PowerGuard is focusing on optimizing BATTERY usage
 
 System-wide changes recommended:
 - Manage system wake locks
@@ -822,15 +533,14 @@ Preserving functionality for critical apps:
 - Google Maps
 
 Optimizing 5 apps:
+- Spotify: Optimizing data
 - Gmail: Optimizing data
 - Facebook: Optimizing data
 - WhatsApp: Optimizing data
 - Netflix: Optimizing data
-- Spotify: Optimizing data
 
 Estimated impact of these changes:
-- Battery life extended by ~18.0 minutes
-- Data usage reduced by ~197.0 MB
+- Battery life extended by ~30.0 minutes
 
 Request completed in 0.02 seconds
 
@@ -840,7 +550,7 @@ PROMPT: 'Going on a 2-hour drive — save battery and data'
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 38%
+  Battery Level: 35%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -927,35 +637,36 @@ ACTIONABLE 13:
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom battery strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 14 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
 INSIGHT 3:
   Type: DataSavings
   Title: Reduced Data Usage
-  Description: Estimated data savings: 37 MB
+  Description: Estimated data savings: 20.0 MB
 Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
 SCORES:
-  Battery Score: 88.0
+  Battery Score: 85.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 9.0 minutes
-  Data: 73.0 MB
+  Battery: 30.0 minutes
+  Data: 20.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing DATA usage
 
 System-wide changes recommended:
 - Restrict background data usage
@@ -969,8 +680,247 @@ Optimizing 12 apps:
 - WhatsApp: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~9.0 minutes
-- Data usage reduced by ~73.0 MB
+- Battery life extended by ~30.0 minutes
+- Data usage reduced by ~20.0 MB
+
+Request completed in 0.02 seconds
+
+
+================================================================================
+PROMPT: 'I only have 500MB data left this month'
+================================================================================
+
+DEVICE DATA:
+  Battery Level: 50%
+  Data Downloaded: 1573 MB
+  Data Uploaded: 292 MB
+  Number of Apps: 6
+
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+
+ACTIONABLE 1:
+  Type: SET_STANDBY_BUCKET
+  Package: system
+  Description: Apply default battery optimization
+  Mode: optimized
+
+INSIGHT 1:
+  Type: Strategy
+  Title: Designed a custom data strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
+  Severity: info
+
+INSIGHT 2:
+  Type: DataSavings
+  Title: Reduced Data Usage
+  Description: Estimated data savings: 20.0 MB
+Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
+  Severity: info
+
+SCORES:
+  Battery Score: 100.0
+  Data Score: 100.0
+  Performance Score: 50.0
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 20.0 MB
+
+HUMAN-READABLE SUMMARY:
+PowerGuard is focusing on optimizing DATA usage
+
+System-wide changes recommended:
+- Apply default battery optimization
+
+Estimated impact of these changes:
+- Data usage reduced by ~20.0 MB
+
+Request completed in 0.02 seconds
+
+
+================================================================================
+PROMPT: 'Tell me top 4 battery consuming apps'
+================================================================================
+
+DEVICE DATA:
+  Battery Level: 35%
+  Data Downloaded: 800 MB
+  Data Uploaded: 200 MB
+  Number of Apps: 6
+
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+
+ACTIONABLES: None
+
+INSIGHT 1:
+  Type: BatteryStatus
+  Title: Battery Status
+  Description: Current battery level is 35.0% and discharging.
+  Severity: low
+
+INSIGHT 2:
+  Type: BatteryUsage
+  Title: Top 4 Battery Consuming Apps
+  Description: The following apps are consuming the most battery:
+- Netflix: 31.0%
+- Google Maps: 28.0%
+- Facebook: 25.0%
+- Spotify: 23.0%
+
+Consider restricting background activity for Netflix, Google Maps, Facebook, Spotify to save battery.
+  Severity: info
+
+SCORES:
+  Battery Score: 85.0
+  Data Score: 100.0
+  Performance Score: 50.0
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 0.0 MB
+
+HUMAN-READABLE SUMMARY:
+PowerGuard is providing general optimization suggestions
+
+Request completed in 0.02 seconds
+
+
+================================================================================
+PROMPT: 'Give me top 3 battery consuming apps'
+================================================================================
+
+DEVICE DATA:
+  Battery Level: 38%
+  Data Downloaded: 800 MB
+  Data Uploaded: 200 MB
+  Number of Apps: 6
+
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+
+ACTIONABLES: None
+
+INSIGHT 1:
+  Type: BatteryStatus
+  Title: Battery Status
+  Description: Current battery level is 38.0% and discharging.
+  Severity: low
+
+INSIGHT 2:
+  Type: BatteryUsage
+  Title: Top 3 Battery Consuming Apps
+  Description: The following apps are consuming the most battery:
+- WhatsApp: 29.0%
+- Google Maps: 19.0%
+- Spotify: 18.0%
+
+Consider restricting background activity for WhatsApp to save battery.
+  Severity: info
+
+SCORES:
+  Battery Score: 88.0
+  Data Score: 100.0
+  Performance Score: 50.0
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 0.0 MB
+
+HUMAN-READABLE SUMMARY:
+PowerGuard is providing general optimization suggestions
+
+Request completed in 0.02 seconds
+
+
+================================================================================
+PROMPT: 'Show me the top 5 data consuming apps'
+================================================================================
+
+DEVICE DATA:
+  Battery Level: 50%
+  Data Downloaded: 1783 MB
+  Data Uploaded: 344 MB
+  Number of Apps: 6
+
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+
+ACTIONABLES: None
+
+INSIGHT 1:
+  Type: NetworkStatus
+  Title: Network Status
+  Description: Connected to wifi with 85.0% signal strength. Your data usage is good with 2000MB remaining.
+  Severity: low
+
+INSIGHT 2:
+  Type: DataUsage
+  Title: Top 5 Data Consuming Apps
+  Description: The following apps are consuming the most data:
+- Gmail: 490.0 MB
+- Google Maps: 466.0 MB
+- Spotify: 454.0 MB
+- Netflix: 395.0 MB
+- WhatsApp: 333.0 MB
+
+Consider restricting background data for Gmail, Google Maps, Spotify, Netflix, WhatsApp to save mobile data.
+  Severity: info
+
+SCORES:
+  Battery Score: 100.0
+  Data Score: 100.0
+  Performance Score: 50.0
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 0.0 MB
+
+HUMAN-READABLE SUMMARY:
+PowerGuard is providing general optimization suggestions
+
+Request completed in 0.02 seconds
+
+
+================================================================================
+PROMPT: 'List the top 2 data consuming apps'
+================================================================================
+
+DEVICE DATA:
+  Battery Level: 50%
+  Data Downloaded: 1728 MB
+  Data Uploaded: 250 MB
+  Number of Apps: 6
+
+CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
+
+ACTIONABLES: None
+
+INSIGHT 1:
+  Type: NetworkStatus
+  Title: Network Status
+  Description: Connected to wifi with 85.0% signal strength. Your data usage is good with 2000MB remaining.
+  Severity: low
+
+INSIGHT 2:
+  Type: DataUsage
+  Title: Top 2 Data Consuming Apps
+  Description: The following apps are consuming the most data:
+- WhatsApp: 487.0 MB
+- Google Maps: 405.0 MB
+
+Consider restricting background data for WhatsApp, Google Maps to save mobile data.
+  Severity: info
+
+SCORES:
+  Battery Score: 100.0
+  Data Score: 100.0
+  Performance Score: 50.0
+
+ESTIMATED SAVINGS:
+  Battery: 0.0 minutes
+  Data: 0.0 MB
+
+HUMAN-READABLE SUMMARY:
+PowerGuard is providing general optimization suggestions
 
 Request completed in 0.02 seconds
 
@@ -1061,7 +1011,7 @@ Expected Focus: data
 Focus Result: Incorrect
 Battery Actions: 0
 Data Actions: 0
-Request completed in 0.01 seconds
+Request completed in 0.00 seconds
 
 TESTING 'What are the top 3 apps draining my data?' with High Battery, High Data
 --------------------------------------------------------------------------------
@@ -1131,14 +1081,14 @@ Data Remaining: 500 MB
 
 Expected Focus: both
 Focus Result: Correct
-Battery Actions: 2
-Data Actions: 12
+Battery Actions: 3
+Data Actions: 5
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (2 actions)
-System changes: MANAGE_WAKE_LOCKS, RESTRICT_BACKGROUND_DATA
-Savings: 8.0 min battery, 43.0 MB data
+Focus: Battery optimization (3 actions)
+System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE
+Savings: 30.0 min battery
 
 TESTING 'Save my battery' with Low Battery, High Data
 --------------------------------------------------------------------------------
@@ -1147,15 +1097,15 @@ Battery Level: 15%
 Data Remaining: 4000 MB
 
 Expected Focus: battery
-Focus Result: Correct
-Battery Actions: 8
-Data Actions: 6
-Request completed in 0.00 seconds
+Focus Result: Incorrect
+Battery Actions: 3
+Data Actions: 5
+Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (8 actions)
-System changes: MANAGE_WAKE_LOCKS, RESTRICT_BACKGROUND_DATA
-Savings: 9.0 min battery, 42.0 MB data
+Focus: Battery optimization (3 actions)
+System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE
+Savings: 30.0 min battery
 
 TESTING 'Save my battery' with High Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1164,15 +1114,14 @@ Battery Level: 85%
 Data Remaining: 500 MB
 
 Expected Focus: data
-Focus Result: Correct
-Battery Actions: 0
-Data Actions: 7
+Focus Result: Incorrect
+Battery Actions: 6
+Data Actions: 0
 Request completed in 0.00 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Data optimization (7 actions)
-System changes: RESTRICT_BACKGROUND_DATA
-Savings: 38.0 MB data
+Focus: Battery optimization (6 actions)
+Savings: 30.0 min battery
 
 TESTING 'Save my battery' with High Battery, High Data
 --------------------------------------------------------------------------------
@@ -1188,7 +1137,7 @@ Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
 Focus: Battery optimization (6 actions)
-Savings: 8.0 min battery
+Savings: 30.0 min battery
 
 TESTING 'I urgently need my battery to last for the next 2 hours while I keep using WhatsApp.' with Low Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1206,7 +1155,7 @@ RECOMMENDATION SUMMARY:
 Focus: Battery optimization (4 actions)
 System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE
 Protected apps: WhatsApp
-Savings: 17.0 min battery, 135.0 MB data
+Savings: 30.0 min battery
 
 TESTING 'I urgently need my battery to last for the next 2 hours while I keep using WhatsApp.' with Low Battery, High Data
 --------------------------------------------------------------------------------
@@ -1218,13 +1167,13 @@ Expected Focus: battery
 Focus Result: Correct
 Battery Actions: 4
 Data Actions: 4
-Request completed in 0.00 seconds
+Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
 Focus: Battery optimization (4 actions)
 System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE
 Protected apps: WhatsApp
-Savings: 17.0 min battery
+Savings: 30.0 min battery
 
 TESTING 'I urgently need my battery to last for the next 2 hours while I keep using WhatsApp.' with High Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1233,16 +1182,15 @@ Battery Level: 85%
 Data Remaining: 500 MB
 
 Expected Focus: data
-Focus Result: Correct
-Battery Actions: 1
-Data Actions: 6
+Focus Result: Incorrect
+Battery Actions: 6
+Data Actions: 0
 Request completed in 0.00 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Data optimization (6 actions)
-System changes: RESTRICT_BACKGROUND_DATA
+Focus: Battery optimization (6 actions)
 Protected apps: WhatsApp
-Savings: 45.0 MB data
+Savings: 30.0 min battery
 
 TESTING 'I urgently need my battery to last for the next 2 hours while I keep using WhatsApp.' with High Battery, High Data
 --------------------------------------------------------------------------------
@@ -1254,12 +1202,12 @@ Expected Focus: balanced
 Focus Result: Correct
 Battery Actions: 6
 Data Actions: 0
-Request completed in 0.00 seconds
+Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
 Focus: Battery optimization (6 actions)
 Protected apps: WhatsApp
-Savings: 6.0 min battery
+Savings: 30.0 min battery
 
 TESTING 'Reduce data usage' with Low Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1268,15 +1216,15 @@ Battery Level: 15%
 Data Remaining: 500 MB
 
 Expected Focus: both
-Focus Result: Correct
-Battery Actions: 2
-Data Actions: 12
+Focus Result: Incorrect
+Battery Actions: 1
+Data Actions: 0
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (2 actions)
-System changes: MANAGE_WAKE_LOCKS, RESTRICT_BACKGROUND_DATA
-Savings: 14.0 min battery, 59.0 MB data
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
 
 TESTING 'Reduce data usage' with Low Battery, High Data
 --------------------------------------------------------------------------------
@@ -1286,14 +1234,14 @@ Data Remaining: 4000 MB
 
 Expected Focus: battery
 Focus Result: Correct
-Battery Actions: 8
-Data Actions: 6
-Request completed in 0.01 seconds
+Battery Actions: 1
+Data Actions: 0
+Request completed in 0.00 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (8 actions)
-System changes: MANAGE_WAKE_LOCKS, RESTRICT_BACKGROUND_DATA
-Savings: 15.0 min battery, 62.0 MB data
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
 
 TESTING 'Reduce data usage' with High Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1302,15 +1250,15 @@ Battery Level: 85%
 Data Remaining: 500 MB
 
 Expected Focus: data
-Focus Result: Correct
-Battery Actions: 0
-Data Actions: 7
+Focus Result: Incorrect
+Battery Actions: 1
+Data Actions: 0
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Data optimization (7 actions)
-System changes: RESTRICT_BACKGROUND_DATA
-Savings: 46.0 MB data
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
 
 TESTING 'Reduce data usage' with High Battery, High Data
 --------------------------------------------------------------------------------
@@ -1320,14 +1268,14 @@ Data Remaining: 4000 MB
 
 Expected Focus: balanced
 Focus Result: Correct
-Battery Actions: 6
-Data Actions: 1
+Battery Actions: 1
+Data Actions: 0
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Data optimization (1 actions)
-System changes: RESTRICT_BACKGROUND_DATA
-Savings: 13.0 MB data
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
 
 TESTING 'Save data but keep messages running' with Low Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1336,16 +1284,15 @@ Battery Level: 15%
 Data Remaining: 500 MB
 
 Expected Focus: both
-Focus Result: Correct
-Battery Actions: 4
-Data Actions: 8
+Focus Result: Incorrect
+Battery Actions: 1
+Data Actions: 0
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (4 actions)
-System changes: MANAGE_WAKE_LOCKS, RESTRICT_BACKGROUND_DATA
-Protected apps: Gmail, WhatsApp
-Savings: 4.0 min battery, 37.0 MB data
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
 
 TESTING 'Save data but keep messages running' with Low Battery, High Data
 --------------------------------------------------------------------------------
@@ -1355,15 +1302,14 @@ Data Remaining: 4000 MB
 
 Expected Focus: battery
 Focus Result: Correct
-Battery Actions: 8
-Data Actions: 4
-Request completed in 0.00 seconds
+Battery Actions: 1
+Data Actions: 0
+Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (8 actions)
-System changes: MANAGE_WAKE_LOCKS, RESTRICT_BACKGROUND_DATA
-Protected apps: Gmail, WhatsApp
-Savings: 8.0 min battery, 57.0 MB data
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
 
 TESTING 'Save data but keep messages running' with High Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1372,16 +1318,15 @@ Battery Level: 85%
 Data Remaining: 500 MB
 
 Expected Focus: data
-Focus Result: Correct
-Battery Actions: 2
-Data Actions: 5
-Request completed in 0.00 seconds
+Focus Result: Incorrect
+Battery Actions: 1
+Data Actions: 0
+Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Data optimization (5 actions)
-System changes: RESTRICT_BACKGROUND_DATA
-Protected apps: Gmail, WhatsApp
-Savings: 29.0 MB data
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
 
 TESTING 'Save data but keep messages running' with High Battery, High Data
 --------------------------------------------------------------------------------
@@ -1391,15 +1336,14 @@ Data Remaining: 4000 MB
 
 Expected Focus: balanced
 Focus Result: Correct
-Battery Actions: 6
-Data Actions: 1
+Battery Actions: 1
+Data Actions: 0
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Data optimization (1 actions)
-System changes: RESTRICT_BACKGROUND_DATA
-Protected apps: Gmail, WhatsApp
-Savings: 7.0 MB data
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
 
 TESTING 'I'm on a trip with 10% battery and need Maps' with Low Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1409,15 +1353,15 @@ Data Remaining: 500 MB
 
 Expected Focus: both
 Focus Result: Correct
-Battery Actions: 3
-Data Actions: 10
+Battery Actions: 4
+Data Actions: 4
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (3 actions)
-System changes: MANAGE_WAKE_LOCKS, RESTRICT_BACKGROUND_DATA
+Focus: Battery optimization (4 actions)
+System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE
 Protected apps: Google Maps
-Savings: 6.0 min battery, 36.0 MB data
+Savings: 30.0 min battery
 
 TESTING 'I'm on a trip with 10% battery and need Maps' with Low Battery, High Data
 --------------------------------------------------------------------------------
@@ -1427,15 +1371,15 @@ Data Remaining: 4000 MB
 
 Expected Focus: battery
 Focus Result: Correct
-Battery Actions: 8
-Data Actions: 5
+Battery Actions: 4
+Data Actions: 4
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (8 actions)
-System changes: MANAGE_WAKE_LOCKS, RESTRICT_BACKGROUND_DATA
+Focus: Battery optimization (4 actions)
+System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE
 Protected apps: Google Maps
-Savings: 4.0 min battery, 66.0 MB data
+Savings: 30.0 min battery
 
 TESTING 'I'm on a trip with 10% battery and need Maps' with High Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1444,16 +1388,15 @@ Battery Level: 85%
 Data Remaining: 500 MB
 
 Expected Focus: data
-Focus Result: Correct
-Battery Actions: 1
-Data Actions: 6
+Focus Result: Incorrect
+Battery Actions: 6
+Data Actions: 0
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Data optimization (6 actions)
-System changes: RESTRICT_BACKGROUND_DATA
+Focus: Battery optimization (6 actions)
 Protected apps: Google Maps
-Savings: 33.0 MB data
+Savings: 30.0 min battery
 
 TESTING 'I'm on a trip with 10% battery and need Maps' with High Battery, High Data
 --------------------------------------------------------------------------------
@@ -1465,12 +1408,12 @@ Expected Focus: balanced
 Focus Result: Correct
 Battery Actions: 6
 Data Actions: 0
-Request completed in 0.02 seconds
+Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
 Focus: Battery optimization (6 actions)
 Protected apps: Google Maps
-Savings: 6.0 min battery
+Savings: 30.0 min battery
 
 TESTING 'Going on a 2-hour drive — save battery and data' with Low Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1481,13 +1424,13 @@ Data Remaining: 500 MB
 Expected Focus: both
 Focus Result: Correct
 Battery Actions: 3
-Data Actions: 5
-Request completed in 0.02 seconds
+Data Actions: 12
+Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (3 actions)
-System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE
-Savings: 16.0 min battery, 91.0 MB data
+Focus: Data optimization (12 actions)
+System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE, RESTRICT_BACKGROUND_DATA
+Savings: 30.0 min battery, 20.0 MB data
 
 TESTING 'Going on a 2-hour drive — save battery and data' with Low Battery, High Data
 --------------------------------------------------------------------------------
@@ -1498,13 +1441,13 @@ Data Remaining: 4000 MB
 Expected Focus: battery
 Focus Result: Incorrect
 Battery Actions: 3
-Data Actions: 5
+Data Actions: 12
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (3 actions)
-System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE
-Savings: 11.0 min battery, 148.0 MB data
+Focus: Data optimization (12 actions)
+System changes: MANAGE_WAKE_LOCKS, THROTTLE_CPU_USAGE, RESTRICT_BACKGROUND_DATA
+Savings: 30.0 min battery, 20.0 MB data
 
 TESTING 'Going on a 2-hour drive — save battery and data' with High Battery, Low Data
 --------------------------------------------------------------------------------
@@ -1514,14 +1457,14 @@ Data Remaining: 500 MB
 
 Expected Focus: data
 Focus Result: Correct
-Battery Actions: 0
+Battery Actions: 6
 Data Actions: 7
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
 Focus: Data optimization (7 actions)
 System changes: RESTRICT_BACKGROUND_DATA
-Savings: 59.0 MB data
+Savings: 30.0 min battery, 20.0 MB data
 
 TESTING 'Going on a 2-hour drive — save battery and data' with High Battery, High Data
 --------------------------------------------------------------------------------
@@ -1536,9 +1479,269 @@ Data Actions: 1
 Request completed in 0.01 seconds
 
 RECOMMENDATION SUMMARY:
-Focus: Battery optimization (12 actions)
+Focus: Data optimization (1 actions)
 System changes: RESTRICT_BACKGROUND_DATA
-Savings: 7.0 min battery, 25.0 MB data
+Savings: 30.0 min battery, 20.0 MB data
+
+TESTING 'I only have 500MB data left this month' with Low Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 500 MB
+
+Expected Focus: both
+Focus Result: Incorrect
+Battery Actions: 1
+Data Actions: 0
+Request completed in 0.01 seconds
+
+RECOMMENDATION SUMMARY:
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
+
+TESTING 'I only have 500MB data left this month' with Low Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 4000 MB
+
+Expected Focus: battery
+Focus Result: Correct
+Battery Actions: 1
+Data Actions: 0
+Request completed in 0.00 seconds
+
+RECOMMENDATION SUMMARY:
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
+
+TESTING 'I only have 500MB data left this month' with High Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 500 MB
+
+Expected Focus: data
+Focus Result: Incorrect
+Battery Actions: 1
+Data Actions: 0
+Request completed in 0.01 seconds
+
+RECOMMENDATION SUMMARY:
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
+
+TESTING 'I only have 500MB data left this month' with High Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 4000 MB
+
+Expected Focus: balanced
+Focus Result: Correct
+Battery Actions: 1
+Data Actions: 0
+Request completed in 0.01 seconds
+
+RECOMMENDATION SUMMARY:
+Focus: Data optimization (0 actions)
+System changes: SET_STANDBY_BUCKET
+Savings: 20.0 MB data
+
+TESTING 'Tell me top 4 battery consuming apps' with Low Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 500 MB
+
+Expected Focus: both
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Tell me top 4 battery consuming apps' with Low Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 4000 MB
+
+Expected Focus: battery
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Tell me top 4 battery consuming apps' with High Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 500 MB
+
+Expected Focus: data
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Tell me top 4 battery consuming apps' with High Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 4000 MB
+
+Expected Focus: balanced
+Focus Result: Correct
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Give me top 3 battery consuming apps' with Low Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 500 MB
+
+Expected Focus: both
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Give me top 3 battery consuming apps' with Low Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 4000 MB
+
+Expected Focus: battery
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Give me top 3 battery consuming apps' with High Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 500 MB
+
+Expected Focus: data
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.01 seconds
+
+TESTING 'Give me top 3 battery consuming apps' with High Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 4000 MB
+
+Expected Focus: balanced
+Focus Result: Correct
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Show me the top 5 data consuming apps' with Low Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 500 MB
+
+Expected Focus: both
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Show me the top 5 data consuming apps' with Low Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 4000 MB
+
+Expected Focus: battery
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Show me the top 5 data consuming apps' with High Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 500 MB
+
+Expected Focus: data
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'Show me the top 5 data consuming apps' with High Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 4000 MB
+
+Expected Focus: balanced
+Focus Result: Correct
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'List the top 2 data consuming apps' with Low Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 500 MB
+
+Expected Focus: both
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'List the top 2 data consuming apps' with Low Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 15%
+Data Remaining: 4000 MB
+
+Expected Focus: battery
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'List the top 2 data consuming apps' with High Battery, Low Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 500 MB
+
+Expected Focus: data
+Focus Result: Incorrect
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
+
+TESTING 'List the top 2 data consuming apps' with High Battery, High Data
+--------------------------------------------------------------------------------
+
+Battery Level: 85%
+Data Remaining: 4000 MB
+
+Expected Focus: balanced
+Focus Result: Correct
+Battery Actions: 0
+Data Actions: 0
+Request completed in 0.00 seconds
 
 
 BATTERY AND DATA COMBINATIONS TESTING COMPLETE
@@ -1575,88 +1778,52 @@ ACTIONABLE 1:
   Mode: enabled
 
 ACTIONABLE 2:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: THROTTLE_CPU_USAGE
   Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Description: Throttle CPU usage for background apps
+  Mode: optimized
 
 ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.google.android.gm
+  Description: Throttle CPU usage for Gmail
+  Mode: throttled
 
 ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.facebook.katana
+  Description: Throttle CPU usage for Facebook
+  Mode: throttled
 
 ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.netflix.mediaclient
+  Description: Throttle CPU usage for Netflix
+  Mode: throttled
 
 ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.google.android.apps.maps
+  Description: Throttle CPU usage for Google Maps
+  Mode: throttled
 
 ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.whatsapp
+  Description: Throttle CPU usage for WhatsApp
+  Mode: throttled
 
 ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 14:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.spotify.music
+  Description: Throttle CPU usage for Spotify
+  Mode: throttled
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: As battery is low (30.0%), optimizing usage
-Applied moderate optimization for non-critical apps
+Restricted background activity for non-critical apps
   Severity: info
 
 INSIGHT 2:
@@ -1668,15 +1835,8 @@ INSIGHT 2:
 INSIGHT 3:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 13 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
-  Severity: info
-
-INSIGHT 4:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 34 MB
-Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
 SCORES:
@@ -1685,29 +1845,28 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 12.0 minutes
-  Data: 48.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is focusing on optimizing BATTERY usage
 
 System-wide changes recommended:
 - Manage system wake locks
-- Restrict background data usage
+- Throttle CPU usage for background apps
 
-Optimizing 12 apps:
-- Netflix: Optimizing battery
-- Spotify: Optimizing battery
-- Facebook: Optimizing battery
-- Google Maps: Optimizing battery
+Optimizing 6 apps:
 - Gmail: Optimizing battery
+- Facebook: Optimizing battery
+- Netflix: Optimizing battery
+- Google Maps: Optimizing battery
 - WhatsApp: Optimizing battery
+- Spotify: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~12.0 minutes
-- Data usage reduced by ~48.0 MB
+- Battery life extended by ~30.0 minutes
 
-Request completed in 0.03 seconds
+Request completed in 0.02 seconds
 
 TESTING 'Reduce data usage' with clean_db patterns
 --------------------------------------------------------------------------------
@@ -1719,107 +1878,29 @@ PROMPT: 'Reduce data usage'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1705 MB
-  Data Uploaded: 298 MB
+  Data Downloaded: 1619 MB
+  Data Uploaded: 322 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: SET_STANDBY_BUCKET
   Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
+  Description: Apply default battery optimization
+  Mode: optimized
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom data strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: BatterySavings
-  Title: Extended Battery Life
-  Description: Estimated battery extension: 11 minutes
-Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 2 more apps.
-  Severity: info
-
-INSIGHT 3:
   Type: DataSavings
   Title: Reduced Data Usage
-  Description: Estimated data savings: 61 MB
+  Description: Estimated data savings: 20.0 MB
 Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
@@ -1829,28 +1910,19 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 7.0 minutes
-  Data: 48.0 MB
+  Battery: 0.0 minutes
+  Data: 20.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing DATA usage
 
 System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Facebook: Optimizing battery
-- Spotify: Optimizing battery
-- WhatsApp: Optimizing battery
-- Google Maps: Optimizing battery
-- Netflix: Optimizing battery
-- Gmail: Optimizing battery
+- Apply default battery optimization
 
 Estimated impact of these changes:
-- Battery life extended by ~7.0 minutes
-- Data usage reduced by ~48.0 MB
+- Data usage reduced by ~20.0 MB
 
-Request completed in 0.03 seconds
+Request completed in 0.02 seconds
 
 TESTING 'I urgently need my battery to last for the next 2 hours while I keep using WhatsApp.' with clean_db patterns
 --------------------------------------------------------------------------------
@@ -1861,7 +1933,7 @@ PROMPT: 'I urgently need my battery to last for the next 2 hours while I keep us
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 34%
+  Battery Level: 32%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -1869,10 +1941,10 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Type: SET_STANDBY_BUCKET
+  Package: com.whatsapp
+  Description: Set WhatsApp to normal priority
+  Mode: normal
 
 ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
@@ -1882,8 +1954,8 @@ ACTIONABLE 2:
 
 ACTIONABLE 3:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.google.android.apps.maps
+  Description: Place Google Maps in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 4:
@@ -1894,112 +1966,59 @@ ACTIONABLE 4:
 
 ACTIONABLE 5:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 6:
   Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
   Package: com.google.android.gm
   Description: Place Gmail in restricted standby bucket
   Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Set WhatsApp to normal priority
-  Mode: normal
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: TimeConstraint
-  Title: Optimized for 2 Hours Usage
-  Description: Adjusting power management to ensure device lasts for 2 hours.
-  Severity: info
-
-INSIGHT 3:
   Type: CriticalApps
   Title: Protected Critical Apps
   Description: Maintaining full functionality for: WhatsApp
   Severity: info
 
-INSIGHT 4:
+INSIGHT 3:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 13 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: Gmail, Google Maps, Facebook, and 2 more apps.
   Severity: info
 
-INSIGHT 5:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 39 MB
-Optimizing data usage for: Gmail, Google Maps, Facebook, and 2 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 84.0
+  Battery Score: 82.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 12.0 minutes
-  Data: 69.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
 Preserving functionality for critical apps:
 - WhatsApp
 
-Optimizing 10 apps:
+Optimizing 5 apps:
 - Netflix: Optimizing battery
+- Google Maps: Optimizing battery
 - Spotify: Optimizing battery
 - Facebook: Optimizing battery
-- Google Maps: Optimizing battery
 - Gmail: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~12.0 minutes
-- Data usage reduced by ~69.0 MB
+- Battery life extended by ~30.0 minutes
 
 Request completed in 0.02 seconds
 
@@ -2015,7 +2034,7 @@ PROMPT: 'Save my battery'
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 36%
+  Battery Level: 38%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -2023,129 +2042,76 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Type: SET_STANDBY_BUCKET
+  Package: com.whatsapp
+  Description: Place WhatsApp in restricted standby bucket
+  Mode: restricted
 
 ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 3:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.spotify.music
+  Description: Place Spotify in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 4:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 5:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.netflix.mediaclient
+  Description: Place Netflix in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 6:
   Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
   Package: com.google.android.apps.maps
   Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
   Mode: restricted
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 12 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
-INSIGHT 3:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 45 MB
-Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 86.0
+  Battery Score: 88.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 13.0 minutes
-  Data: 37.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Netflix: Optimizing battery
+Optimizing 6 apps:
+- WhatsApp: Optimizing battery
+- Gmail: Optimizing battery
 - Spotify: Optimizing battery
 - Facebook: Optimizing battery
+- Netflix: Optimizing battery
 - Google Maps: Optimizing battery
-- Gmail: Optimizing battery
-- WhatsApp: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~13.0 minutes
-- Data usage reduced by ~37.0 MB
+- Battery life extended by ~30.0 minutes
 
 Request completed in 0.02 seconds
 
@@ -2159,107 +2125,29 @@ PROMPT: 'Reduce data usage'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1726 MB
-  Data Uploaded: 347 MB
+  Data Downloaded: 1579 MB
+  Data Uploaded: 333 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: SET_STANDBY_BUCKET
   Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
+  Description: Apply default battery optimization
+  Mode: optimized
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom data strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: BatterySavings
-  Title: Extended Battery Life
-  Description: Estimated battery extension: 14 minutes
-Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 2 more apps.
-  Severity: info
-
-INSIGHT 3:
   Type: DataSavings
   Title: Reduced Data Usage
-  Description: Estimated data savings: 60 MB
+  Description: Estimated data savings: 20.0 MB
 Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
@@ -2269,28 +2157,19 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 5.0 minutes
-  Data: 30.0 MB
+  Battery: 0.0 minutes
+  Data: 20.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing DATA usage
 
 System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Gmail: Optimizing battery
-- Netflix: Optimizing battery
-- Facebook: Optimizing battery
-- Google Maps: Optimizing battery
-- WhatsApp: Optimizing battery
-- Spotify: Optimizing battery
+- Apply default battery optimization
 
 Estimated impact of these changes:
-- Battery life extended by ~5.0 minutes
-- Data usage reduced by ~30.0 MB
+- Data usage reduced by ~20.0 MB
 
-Request completed in 0.03 seconds
+Request completed in 0.02 seconds
 
 TESTING 'I urgently need my battery to last for the next 2 hours while I keep using WhatsApp.' with heavy_battery_users patterns
 --------------------------------------------------------------------------------
@@ -2301,7 +2180,7 @@ PROMPT: 'I urgently need my battery to last for the next 2 hours while I keep us
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 31%
+  Battery Level: 38%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -2309,139 +2188,86 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Type: SET_STANDBY_BUCKET
+  Package: com.google.android.apps.maps
+  Description: Place Google Maps in restricted standby bucket
+  Mode: restricted
 
 ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.spotify.music
+  Description: Place Spotify in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 3:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 4:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
   Type: SET_STANDBY_BUCKET
   Package: com.whatsapp
   Description: Set WhatsApp to normal priority
   Mode: normal
 
+ACTIONABLE 6:
+  Type: SET_STANDBY_BUCKET
+  Package: com.netflix.mediaclient
+  Description: Place Netflix in restricted standby bucket
+  Mode: restricted
+
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: TimeConstraint
-  Title: Optimized for 2 Hours Usage
-  Description: Adjusting power management to ensure device lasts for 2 hours.
-  Severity: info
-
-INSIGHT 3:
   Type: CriticalApps
   Title: Protected Critical Apps
   Description: Maintaining full functionality for: WhatsApp
   Severity: info
 
-INSIGHT 4:
+INSIGHT 3:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 9 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: Gmail, Google Maps, Facebook, and 2 more apps.
   Severity: info
 
-INSIGHT 5:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 67 MB
-Optimizing data usage for: Gmail, Google Maps, Facebook, and 2 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 81.0
+  Battery Score: 88.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 9.0 minutes
-  Data: 60.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
 Preserving functionality for critical apps:
 - WhatsApp
 
-Optimizing 10 apps:
-- Netflix: Optimizing battery
-- Spotify: Optimizing battery
-- Facebook: Optimizing battery
+Optimizing 5 apps:
 - Google Maps: Optimizing battery
+- Spotify: Optimizing battery
 - Gmail: Optimizing battery
+- Facebook: Optimizing battery
+- Netflix: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~9.0 minutes
-- Data usage reduced by ~60.0 MB
+- Battery life extended by ~30.0 minutes
 
-Request completed in 0.03 seconds
+Request completed in 0.02 seconds
 
 TESTING WITH HEAVY_DATA_USERS PATTERNS
 --------------------------------------------------------------------------------
@@ -2463,33 +2289,33 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Type: SET_STANDBY_BUCKET
+  Package: com.whatsapp
+  Description: Place WhatsApp in restricted standby bucket
+  Mode: restricted
 
 ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.spotify.music
+  Description: Place Spotify in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 3:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 4:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.netflix.mediaclient
+  Description: Place Netflix in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 5:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.google.android.apps.maps
+  Description: Place Google Maps in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 6:
@@ -2498,66 +2324,17 @@ ACTIONABLE 6:
   Description: Place Facebook in restricted standby bucket
   Mode: restricted
 
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 10 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
-  Severity: info
-
-INSIGHT 3:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 68 MB
-Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
 SCORES:
@@ -2566,28 +2343,24 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 6.0 minutes
-  Data: 67.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Netflix: Optimizing battery
-- Spotify: Optimizing battery
-- Facebook: Optimizing battery
-- Google Maps: Optimizing battery
-- Gmail: Optimizing battery
+Optimizing 6 apps:
 - WhatsApp: Optimizing battery
+- Spotify: Optimizing battery
+- Gmail: Optimizing battery
+- Netflix: Optimizing battery
+- Google Maps: Optimizing battery
+- Facebook: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~6.0 minutes
-- Data usage reduced by ~67.0 MB
+- Battery life extended by ~30.0 minutes
 
-Request completed in 0.03 seconds
+Request completed in 0.02 seconds
 
 TESTING 'Reduce data usage' with heavy_data_users patterns
 --------------------------------------------------------------------------------
@@ -2599,107 +2372,29 @@ PROMPT: 'Reduce data usage'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1769 MB
-  Data Uploaded: 326 MB
+  Data Downloaded: 1583 MB
+  Data Uploaded: 258 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: SET_STANDBY_BUCKET
   Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
+  Description: Apply default battery optimization
+  Mode: optimized
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom data strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: BatterySavings
-  Title: Extended Battery Life
-  Description: Estimated battery extension: 7 minutes
-Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 2 more apps.
-  Severity: info
-
-INSIGHT 3:
   Type: DataSavings
   Title: Reduced Data Usage
-  Description: Estimated data savings: 35 MB
+  Description: Estimated data savings: 20.0 MB
 Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
@@ -2709,26 +2404,17 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 10.0 minutes
-  Data: 36.0 MB
+  Battery: 0.0 minutes
+  Data: 20.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing DATA usage
 
 System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Google Maps: Optimizing battery
-- Netflix: Optimizing battery
-- Spotify: Optimizing battery
-- Gmail: Optimizing battery
-- WhatsApp: Optimizing battery
-- Facebook: Optimizing battery
+- Apply default battery optimization
 
 Estimated impact of these changes:
-- Battery life extended by ~10.0 minutes
-- Data usage reduced by ~36.0 MB
+- Data usage reduced by ~20.0 MB
 
 Request completed in 0.02 seconds
 
@@ -2749,27 +2435,27 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Type: SET_STANDBY_BUCKET
+  Package: com.whatsapp
+  Description: Set WhatsApp to normal priority
+  Mode: normal
 
 ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.google.android.apps.maps
+  Description: Place Google Maps in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 3:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 4:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 5:
@@ -2780,76 +2466,27 @@ ACTIONABLE 5:
 
 ACTIONABLE 6:
   Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
+  Package: com.netflix.mediaclient
+  Description: Place Netflix in restricted standby bucket
   Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Set WhatsApp to normal priority
-  Mode: normal
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: TimeConstraint
-  Title: Optimized for 2 Hours Usage
-  Description: Adjusting power management to ensure device lasts for 2 hours.
-  Severity: info
-
-INSIGHT 3:
   Type: CriticalApps
   Title: Protected Critical Apps
   Description: Maintaining full functionality for: WhatsApp
   Severity: info
 
-INSIGHT 4:
+INSIGHT 3:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 9 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: Gmail, Google Maps, Facebook, and 2 more apps.
-  Severity: info
-
-INSIGHT 5:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 70 MB
-Optimizing data usage for: Gmail, Google Maps, Facebook, and 2 more apps.
   Severity: info
 
 SCORES:
@@ -2858,28 +2495,24 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 10.0 minutes
-  Data: 45.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
 Preserving functionality for critical apps:
 - WhatsApp
 
-Optimizing 10 apps:
-- Netflix: Optimizing battery
-- Spotify: Optimizing battery
-- Facebook: Optimizing battery
+Optimizing 5 apps:
 - Google Maps: Optimizing battery
+- Facebook: Optimizing battery
 - Gmail: Optimizing battery
+- Spotify: Optimizing battery
+- Netflix: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~10.0 minutes
-- Data usage reduced by ~45.0 MB
+- Battery life extended by ~30.0 minutes
 
 Request completed in 0.02 seconds
 
@@ -2895,7 +2528,7 @@ PROMPT: 'Save my battery'
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 34%
+  Battery Level: 37%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -2903,10 +2536,10 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Type: SET_STANDBY_BUCKET
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
+  Mode: restricted
 
 ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
@@ -2916,14 +2549,14 @@ ACTIONABLE 2:
 
 ACTIONABLE 3:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.whatsapp
+  Description: Place WhatsApp in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 4:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 5:
@@ -2934,98 +2567,45 @@ ACTIONABLE 5:
 
 ACTIONABLE 6:
   Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
   Package: com.google.android.apps.maps
   Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
   Mode: restricted
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 9 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
-INSIGHT 3:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 66 MB
-Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 84.0
+  Battery Score: 87.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 7.0 minutes
-  Data: 55.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Netflix: Optimizing battery
-- Spotify: Optimizing battery
-- Facebook: Optimizing battery
-- Google Maps: Optimizing battery
+Optimizing 6 apps:
 - Gmail: Optimizing battery
+- Netflix: Optimizing battery
 - WhatsApp: Optimizing battery
+- Facebook: Optimizing battery
+- Spotify: Optimizing battery
+- Google Maps: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~7.0 minutes
-- Data usage reduced by ~55.0 MB
+- Battery life extended by ~30.0 minutes
 
 Request completed in 0.02 seconds
 
@@ -3039,107 +2619,29 @@ PROMPT: 'Reduce data usage'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1699 MB
-  Data Uploaded: 251 MB
+  Data Downloaded: 1647 MB
+  Data Uploaded: 284 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: SET_STANDBY_BUCKET
   Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
+  Description: Apply default battery optimization
+  Mode: optimized
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom data strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: BatterySavings
-  Title: Extended Battery Life
-  Description: Estimated battery extension: 6 minutes
-Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 2 more apps.
-  Severity: info
-
-INSIGHT 3:
   Type: DataSavings
   Title: Reduced Data Usage
-  Description: Estimated data savings: 54 MB
+  Description: Estimated data savings: 20.0 MB
 Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
@@ -3149,28 +2651,19 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 13.0 minutes
-  Data: 49.0 MB
+  Battery: 0.0 minutes
+  Data: 20.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing DATA usage
 
 System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Netflix: Optimizing battery
-- Gmail: Optimizing battery
-- Spotify: Optimizing battery
-- Google Maps: Optimizing battery
-- WhatsApp: Optimizing battery
-- Facebook: Optimizing battery
+- Apply default battery optimization
 
 Estimated impact of these changes:
-- Battery life extended by ~13.0 minutes
-- Data usage reduced by ~49.0 MB
+- Data usage reduced by ~20.0 MB
 
-Request completed in 0.03 seconds
+Request completed in 0.02 seconds
 
 TESTING 'I urgently need my battery to last for the next 2 hours while I keep using WhatsApp.' with background_abusers patterns
 --------------------------------------------------------------------------------
@@ -3181,7 +2674,7 @@ PROMPT: 'I urgently need my battery to last for the next 2 hours while I keep us
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 31%
+  Battery Level: 35%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -3189,139 +2682,86 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
+  Type: SET_STANDBY_BUCKET
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
+  Mode: restricted
 
 ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.spotify.music
+  Description: Place Spotify in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
   Type: SET_STANDBY_BUCKET
   Package: com.whatsapp
   Description: Set WhatsApp to normal priority
   Mode: normal
 
+ACTIONABLE 4:
+  Type: SET_STANDBY_BUCKET
+  Package: com.netflix.mediaclient
+  Description: Place Netflix in restricted standby bucket
+  Mode: restricted
+
+ACTIONABLE 5:
+  Type: SET_STANDBY_BUCKET
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
+  Mode: restricted
+
+ACTIONABLE 6:
+  Type: SET_STANDBY_BUCKET
+  Package: com.google.android.apps.maps
+  Description: Place Google Maps in restricted standby bucket
+  Mode: restricted
+
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: TimeConstraint
-  Title: Optimized for 2 Hours Usage
-  Description: Adjusting power management to ensure device lasts for 2 hours.
-  Severity: info
-
-INSIGHT 3:
   Type: CriticalApps
   Title: Protected Critical Apps
   Description: Maintaining full functionality for: WhatsApp
   Severity: info
 
-INSIGHT 4:
+INSIGHT 3:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 12 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: Gmail, Google Maps, Facebook, and 2 more apps.
   Severity: info
 
-INSIGHT 5:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 36 MB
-Optimizing data usage for: Gmail, Google Maps, Facebook, and 2 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 81.0
+  Battery Score: 85.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 11.0 minutes
-  Data: 39.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
 Preserving functionality for critical apps:
 - WhatsApp
 
-Optimizing 10 apps:
-- Netflix: Optimizing battery
+Optimizing 5 apps:
+- Gmail: Optimizing battery
 - Spotify: Optimizing battery
+- Netflix: Optimizing battery
 - Facebook: Optimizing battery
 - Google Maps: Optimizing battery
-- Gmail: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~11.0 minutes
-- Data usage reduced by ~39.0 MB
+- Battery life extended by ~30.0 minutes
 
-Request completed in 0.03 seconds
+Request completed in 0.02 seconds
 
 TESTING WITH CHANGING_BEHAVIOR PATTERNS
 --------------------------------------------------------------------------------
@@ -3335,7 +2775,7 @@ PROMPT: 'Save my battery'
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 38%
+  Battery Level: 30%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -3343,129 +2783,99 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: MANAGE_WAKE_LOCKS
   Package: system
-  Description: Restrict background data usage
+  Description: Manage system wake locks
   Mode: enabled
 
 ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: system
+  Description: Throttle CPU usage for background apps
+  Mode: optimized
 
 ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
+  Type: THROTTLE_CPU_USAGE
   Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
+  Description: Throttle CPU usage for Netflix
+  Mode: throttled
 
 ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.google.android.apps.maps
+  Description: Throttle CPU usage for Google Maps
+  Mode: throttled
 
 ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.whatsapp
+  Description: Throttle CPU usage for WhatsApp
+  Mode: throttled
 
 ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.google.android.gm
+  Description: Throttle CPU usage for Gmail
+  Mode: throttled
 
 ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
+  Type: THROTTLE_CPU_USAGE
   Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
+  Description: Throttle CPU usage for Facebook
+  Mode: throttled
 
 ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
+  Type: THROTTLE_CPU_USAGE
+  Package: com.spotify.music
+  Description: Throttle CPU usage for Spotify
+  Mode: throttled
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom battery strategy for you
+  Description: As battery is low (30.0%), optimizing usage
+Restricted background activity for non-critical apps
   Severity: info
 
 INSIGHT 2:
+  Type: BatteryWarning
+  Title: Low Battery Level
+  Description: Battery level is low at 30.0%. Optimizing usage to extend battery life.
+  Severity: medium
+
+INSIGHT 3:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 5 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
-INSIGHT 3:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 57 MB
-Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 88.0
+  Battery Score: 80.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 11.0 minutes
-  Data: 32.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing BATTERY usage
 
 System-wide changes recommended:
-- Restrict background data usage
+- Manage system wake locks
+- Throttle CPU usage for background apps
 
-Optimizing 12 apps:
+Optimizing 6 apps:
 - Netflix: Optimizing battery
-- Spotify: Optimizing battery
-- Facebook: Optimizing battery
 - Google Maps: Optimizing battery
-- Gmail: Optimizing battery
 - WhatsApp: Optimizing battery
+- Gmail: Optimizing battery
+- Facebook: Optimizing battery
+- Spotify: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~11.0 minutes
-- Data usage reduced by ~32.0 MB
+- Battery life extended by ~30.0 minutes
 
 Request completed in 0.02 seconds
 
@@ -3479,107 +2889,29 @@ PROMPT: 'Reduce data usage'
 
 DEVICE DATA:
   Battery Level: 50%
-  Data Downloaded: 1736 MB
-  Data Uploaded: 307 MB
+  Data Downloaded: 1603 MB
+  Data Uploaded: 320 MB
   Number of Apps: 6
 
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
+  Type: SET_STANDBY_BUCKET
   Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 3:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 4:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 5:
-  Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 13:
-  Type: SET_STANDBY_BUCKET
-  Package: com.whatsapp
-  Description: Place WhatsApp in restricted standby bucket
-  Mode: restricted
+  Description: Apply default battery optimization
+  Mode: optimized
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
-  Description: Applied moderate optimization for non-critical apps
+  Title: Designed a custom data strategy for you
+  Description: Optimizing data consumption for your device
+Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: BatterySavings
-  Title: Extended Battery Life
-  Description: Estimated battery extension: 13 minutes
-Optimizing battery usage for: WhatsApp, Gmail, Google Maps, and 2 more apps.
-  Severity: info
-
-INSIGHT 3:
   Type: DataSavings
   Title: Reduced Data Usage
-  Description: Estimated data savings: 67 MB
+  Description: Estimated data savings: 20.0 MB
 Optimizing data usage for: WhatsApp, Gmail, Google Maps, and 3 more apps.
   Severity: info
 
@@ -3589,28 +2921,19 @@ SCORES:
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 10.0 minutes
-  Data: 49.0 MB
+  Battery: 0.0 minutes
+  Data: 20.0 MB
 
 HUMAN-READABLE SUMMARY:
-PowerGuard is providing general optimization suggestions
+PowerGuard is focusing on optimizing DATA usage
 
 System-wide changes recommended:
-- Restrict background data usage
-
-Optimizing 12 apps:
-- Gmail: Optimizing battery
-- Spotify: Optimizing battery
-- Facebook: Optimizing battery
-- Netflix: Optimizing battery
-- Google Maps: Optimizing battery
-- WhatsApp: Optimizing battery
+- Apply default battery optimization
 
 Estimated impact of these changes:
-- Battery life extended by ~10.0 minutes
-- Data usage reduced by ~49.0 MB
+- Data usage reduced by ~20.0 MB
 
-Request completed in 0.03 seconds
+Request completed in 0.02 seconds
 
 TESTING 'I urgently need my battery to last for the next 2 hours while I keep using WhatsApp.' with changing_behavior patterns
 --------------------------------------------------------------------------------
@@ -3621,7 +2944,7 @@ PROMPT: 'I urgently need my battery to last for the next 2 hours while I keep us
 ================================================================================
 
 DEVICE DATA:
-  Battery Level: 34%
+  Battery Level: 37%
   Data Downloaded: 800 MB
   Data Uploaded: 200 MB
   Number of Apps: 6
@@ -3629,72 +2952,36 @@ DEVICE DATA:
 CURL COMMAND: curl -X POST "http://localhost:8000/api/analyze" -H "Content-Type: application/json" -d @temp_device_data.json
 
 ACTIONABLE 1:
-  Type: RESTRICT_BACKGROUND_DATA
-  Package: system
-  Description: Restrict background data usage
-  Mode: enabled
-
-ACTIONABLE 2:
   Type: SET_STANDBY_BUCKET
   Package: com.netflix.mediaclient
   Description: Place Netflix in restricted standby bucket
+  Mode: restricted
+
+ACTIONABLE 2:
+  Type: SET_STANDBY_BUCKET
+  Package: com.facebook.katana
+  Description: Place Facebook in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 3:
   Type: SET_STANDBY_BUCKET
-  Package: com.netflix.mediaclient
-  Description: Place Netflix in restricted standby bucket
+  Package: com.spotify.music
+  Description: Place Spotify in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 4:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.google.android.gm
+  Description: Place Gmail in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 5:
   Type: SET_STANDBY_BUCKET
-  Package: com.spotify.music
-  Description: Place Spotify in restricted standby bucket
+  Package: com.google.android.apps.maps
+  Description: Place Google Maps in restricted standby bucket
   Mode: restricted
 
 ACTIONABLE 6:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 7:
-  Type: SET_STANDBY_BUCKET
-  Package: com.facebook.katana
-  Description: Place Facebook in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 8:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 9:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.apps.maps
-  Description: Place Google Maps in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 10:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 11:
-  Type: SET_STANDBY_BUCKET
-  Package: com.google.android.gm
-  Description: Place Gmail in restricted standby bucket
-  Mode: restricted
-
-ACTIONABLE 12:
   Type: SET_STANDBY_BUCKET
   Package: com.whatsapp
   Description: Set WhatsApp to normal priority
@@ -3702,64 +2989,47 @@ ACTIONABLE 12:
 
 INSIGHT 1:
   Type: Strategy
-  Title: Designed a custom resource strategy for you
+  Title: Designed a custom battery strategy for you
   Description: Applied moderate optimization for non-critical apps
   Severity: info
 
 INSIGHT 2:
-  Type: TimeConstraint
-  Title: Optimized for 2 Hours Usage
-  Description: Adjusting power management to ensure device lasts for 2 hours.
-  Severity: info
-
-INSIGHT 3:
   Type: CriticalApps
   Title: Protected Critical Apps
   Description: Maintaining full functionality for: WhatsApp
   Severity: info
 
-INSIGHT 4:
+INSIGHT 3:
   Type: BatterySavings
   Title: Extended Battery Life
-  Description: Estimated battery extension: 12 minutes
+  Description: Estimated battery extension: 30.0 minutes
 Optimizing battery usage for: Gmail, Google Maps, Facebook, and 2 more apps.
   Severity: info
 
-INSIGHT 5:
-  Type: DataSavings
-  Title: Reduced Data Usage
-  Description: Estimated data savings: 40 MB
-Optimizing data usage for: Gmail, Google Maps, Facebook, and 2 more apps.
-  Severity: info
-
 SCORES:
-  Battery Score: 84.0
+  Battery Score: 87.0
   Data Score: 100.0
   Performance Score: 50.0
 
 ESTIMATED SAVINGS:
-  Battery: 8.0 minutes
-  Data: 52.0 MB
+  Battery: 30.0 minutes
+  Data: 0.0 MB
 
 HUMAN-READABLE SUMMARY:
 PowerGuard is providing general optimization suggestions
 
-System-wide changes recommended:
-- Restrict background data usage
-
 Preserving functionality for critical apps:
 - WhatsApp
 
-Optimizing 10 apps:
+Optimizing 5 apps:
 - Netflix: Optimizing battery
-- Spotify: Optimizing battery
 - Facebook: Optimizing battery
-- Google Maps: Optimizing battery
+- Spotify: Optimizing battery
 - Gmail: Optimizing battery
+- Google Maps: Optimizing battery
 
 Estimated impact of these changes:
-- Battery life extended by ~8.0 minutes
-- Data usage reduced by ~52.0 MB
+- Battery life extended by ~30.0 minutes
 
 Request completed in 0.02 seconds
 
@@ -3881,8 +3151,8 @@ Impact on Savings Estimates:
 TEST SUMMARY
 ================================================================================
 
-Total Prompts Tested: 9
-Successful Tests: 9/9 (100.0%)
+Total Prompts Tested: 14
+Successful Tests: 14/14 (100.0%)
 
 PROMPT SUMMARY TABLE:
 --------------------------------------------------------------------------------------------------------------
@@ -3897,12 +3167,17 @@ Reduce data usage                        | Success  | 0            | 0          
 Save data but keep messages running      | Success  | 0            | 0          | 0               | 0         
 I'm on a trip with 10% battery and ne... | Success  | 0            | 0          | 0               | 0         
 Going on a 2-hour drive — save batter... | Success  | 0            | 0          | 0               | 0         
+I only have 500MB data left this month   | Success  | 0            | 0          | 0               | 0         
+Tell me top 4 battery consuming apps     | Success  | 0            | 0          | 0               | 0         
+Give me top 3 battery consuming apps     | Success  | 0            | 0          | 0               | 0         
+Show me the top 5 data consuming apps    | Success  | 0            | 0          | 0               | 0         
+List the top 2 data consuming apps       | Success  | 0            | 0          | 0               | 0         
 
 
 COMBINATION TEST SUMMARY:
 --------------------------------------------------------------------------------
-Total Combination Tests: 9
-Correct Focus Predictions: 0/9 (0.0%)
+Total Combination Tests: 14
+Correct Focus Predictions: 0/14 (0.0%)
 
 
 USAGE PATTERN TEST SUMMARY:
