@@ -192,222 +192,57 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
     return insights
 
 def generate_information_insights(strategy: dict, device_data: dict, prompt: str = "") -> List[Dict]:
-    """Generate insights for information requests."""
+    """
+    Generate insights for information queries.
+    
+    Args:
+        strategy: The determined strategy
+        device_data: The device data dictionary
+        prompt: The user's prompt
+        
+    Returns:
+        List of insight dictionaries
+    """
+    logger.debug("[PowerGuard] Generating information insights")
+    
     insights = []
     
-    # Extract app count from prompt
-    app_count = extract_app_count_from_prompt(prompt)
-    logger.debug(f"[PowerGuard] Extracted app count from prompt: {app_count}")
-    
-    # Determine if this is specifically a battery or data query
-    is_battery_query = strategy.get("optimize_battery", False)
-    is_data_query = strategy.get("optimize_data", False)
-    
-    # Create more specific pattern matches
-    battery_patterns = [
-        r'battery',
-        r'power',
-        r'drain(?:ing)?(?:\s+(?:my|the))?\s+battery',
-        r'(?:using|consuming)(?:\s+(?:my|the))?\s+battery',
-        r'battery\s+(?:usage|consumption|drain)',
-        r'battery\s+life',
-        r'charge',
-        r'energy',
-        r'juice'
-    ]
-    
-    data_patterns = [
-        r'data',
-        r'network',
-        r'wifi',
-        r'internet',
-        r'drain(?:ing)?(?:\s+(?:my|the))?\s+data',
-        r'(?:using|consuming)(?:\s+(?:my|the))?\s+data',
-        r'data\s+(?:usage|consumption|drain)',
-        r'mb',
-        r'gb',
-        r'megabyte',
-        r'gigabyte'
-    ]
-    
-    if prompt:
-        prompt_lower = prompt.lower()
-        is_battery_query = any(re.search(pattern, prompt_lower) for pattern in battery_patterns)
-        is_data_query = any(re.search(pattern, prompt_lower) for pattern in data_patterns)
-        
-        # Handle edge cases where both might be matched
-        if is_battery_query and is_data_query:
-            # Special cases for clear data-only queries
-            if any(phrase in prompt_lower for phrase in [
-                "top data", 
-                "data-consuming",
-                "data consuming", 
-                "using data",
-                "draining data",
-                "consuming data"
-            ]):
-                is_battery_query = False
-            
-            # Special cases for clear battery-only queries
-            elif any(phrase in prompt_lower for phrase in [
-                "top battery", 
-                "battery-consuming",
-                "battery consuming", 
-                "using battery",
-                "draining battery",
-                "consuming battery"
-            ]):
-                is_data_query = False
-    
-    # If neither is explicitly mentioned, use the strategy focus
-    if not is_battery_query and not is_data_query:
-        is_battery_query = strategy.get("optimize_battery", False)
-        is_data_query = strategy.get("optimize_data", False)
-    
-    logger.debug(f"[PowerGuard] Query type: battery={is_battery_query}, data={is_data_query}")
-    
-    # Device-level insights
-    battery_level = device_data.get("battery", {}).get("level", 0)
-    
-    # Add battery status insight
-    if is_battery_query:
-        charging = device_data.get("battery", {}).get("isCharging", False)
-        status = "charging" if charging else "discharging"
-        severity = "low"
-        
-        if not charging and battery_level <= 15:
-            severity = "high"
-        elif not charging and battery_level <= 30:
-            severity = "medium"
-            
-        insights.append({
-            "type": "BatteryStatus",
-            "title": "Battery Status",
-            "description": f"Current battery level is {battery_level}% and {status}.",
-            "severity": severity
-        })
-    
-    # Add network status insight
-    if is_data_query:
-        network_type = device_data.get("network", {}).get("type", "unknown")
-        network_strength = device_data.get("network", {}).get("strength", 0)
-        data_used = device_data.get("network", {}).get("dataUsed", 0)
-        
-        data_status = "good"
-        severity = "low"
-        
-        if data_used > 1800:  # Over 90% of 2GB
-            data_status = "nearly depleted"
-            severity = "high"
-        elif data_used > 1500:  # Over 75% of 2GB
-            data_status = "running low"
-            severity = "medium"
-            
-        insights.append({
-            "type": "NetworkStatus",
-            "title": "Network Status",
-            "description": f"Connected to {network_type} with {network_strength}% signal strength. Your data usage is {data_status} with {2000-data_used}MB remaining.",
-            "severity": severity
-        })
-    
-    # Get top battery consuming apps
-    if is_battery_query:
+    # Extract app count from prompt if specified
+    app_count = 3  # Default to top 3
+    if "top" in prompt.lower():
         try:
-            logger.debug(f"[PowerGuard] Getting top battery consuming apps with limit: {app_count}")
-            battery_apps = get_top_consuming_apps(device_data, "battery", app_count)
-            logger.debug(f"[PowerGuard] Got {len(battery_apps)} battery apps")
-            
-            # Create base battery insight
-            battery_insight = {
-                "type": "BatteryUsage",
-                "title": "Battery Usage Information",
-                "severity": "info"
-            }
-            
-            # Add battery level information
-            battery_level = device_data.get("battery", {}).get("level", 0)
-            charging_status = device_data.get("battery", {}).get("isCharging", False)
-            battery_status = f"Current battery level is {battery_level}%" + (" and charging." if charging_status else ".")
-            
-            if battery_apps:
-                apps_str = "\n".join([f"- {app.get('name', 'Unknown App')}: {app.get('usage', 0)}%" for app in battery_apps])
-                battery_insight["description"] = f"{battery_status}\n\nTop battery consuming apps:\n{apps_str}"
-                
-                # Add recommendations for high-consuming apps
-                high_usage_threshold = 20  # % threshold for recommendations
-                try:
-                    first_app_usage = float(battery_apps[0].get("usage", 0))
-                    if first_app_usage > high_usage_threshold:
-                        high_usage_apps = []
-                        for app in battery_apps:
-                            try:
-                                usage = float(app.get("usage", 0))
-                                if usage > high_usage_threshold:
-                                    high_usage_apps.append(app.get("name", "Unknown App"))
-                            except (ValueError, TypeError):
-                                logger.debug(f"[PowerGuard] Invalid usage value for app {app.get('name', 'Unknown App')}: {app.get('usage')}")
-                                continue
-                        
-                        if high_usage_apps:
-                            battery_insight["description"] += f"\n\nConsider restricting background activity for {', '.join(high_usage_apps)} to save battery."
-                except (ValueError, TypeError):
-                    logger.debug(f"[PowerGuard] Invalid usage value for first app: {battery_apps[0].get('usage')}")
-            else:
-                battery_insight["description"] = f"{battery_status}\n\nNo significant battery consumption detected from any apps."
-            
-            insights.append(battery_insight)
-        except Exception as e:
-            # Log the error but don't crash
-            logger.error(f"Error generating battery usage insights: {str(e)}", exc_info=True)
-            
-            # Add a basic insight with the error information
-            insights.append({
-                "type": "BatteryUsage",
-                "title": "Battery Usage Information",
-                "description": "Unable to analyze battery usage for apps. Please check your device settings for accurate usage statistics.",
-                "severity": "info"
-            })
+            count_str = prompt.lower().split("top")[1].split()[0]
+            app_count = int(count_str)
+        except (IndexError, ValueError):
+            pass
     
-    # Get top data consuming apps
+    # Determine if query is about battery or data
+    is_battery_query = any(term in prompt.lower() for term in ["battery", "power", "charge"])
+    is_data_query = any(term in prompt.lower() for term in ["data", "network", "wifi", "cellular"])
+    
+    if is_battery_query:
+        # Get top battery consuming apps
+        top_apps = get_top_consuming_apps(device_data, "battery", app_count)
+        
+        if top_apps and top_apps[0].get("is_default"):
+            insights.append("No significant battery usage detected for any apps.")
+        else:
+            insights.append(f"Top {len(top_apps)} battery consuming apps:")
+            for app in top_apps:
+                insights.append(f"- {app['name']}: {app['usage']}%")
+    
     if is_data_query:
-        try:
-            logger.debug(f"[PowerGuard] Getting top data consuming apps with limit: {app_count}")
-            data_apps = get_top_consuming_apps(device_data, "data", app_count)
-            logger.debug(f"[PowerGuard] Got {len(data_apps)} data apps")
-            if data_apps:
-                apps_str = "\n".join([f"- {app.get('name', 'Unknown App')}: {app.get('usage', 0)} MB" for app in data_apps])
-                data_insight = {
-                    "type": "DataUsage",
-                    "title": f"Top {len(data_apps)} Data Consuming Apps",
-                    "description": f"The following apps are consuming the most data:\n{apps_str}",
-                    "severity": "info"
-                }
-                
-                # Add recommendations for high-consuming apps - safely compare values
-                high_usage_threshold = 100  # MB threshold for recommendations
-                if data_apps and data_apps[0].get("usage", 0) > high_usage_threshold:
-                    # Safely check each app's usage value
-                    high_usage_apps = []
-                    for app in data_apps:
-                        usage = app.get("usage", 0)
-                        if usage is not None and usage > high_usage_threshold:
-                            high_usage_apps.append(app.get("name", "Unknown App"))
-                    
-                    if high_usage_apps:
-                        data_insight["description"] += f"\n\nConsider restricting background data for {', '.join(high_usage_apps)} to save mobile data."
-                
-                insights.append(data_insight)
-        except Exception as e:
-            # Log the error but don't crash
-            logger.error(f"Error generating data usage insights: {str(e)}", exc_info=True)
-            
-            # Add a basic insight with the error information
-            insights.append({
-                "type": "DataUsage",
-                "title": "Data Usage Information",
-                "description": "Unable to analyze data usage for apps. Please check your device settings for accurate usage statistics.",
-                "severity": "info"
-            })
+        # Get top data consuming apps
+        top_apps = get_top_consuming_apps(device_data, "data", app_count)
+        
+        if top_apps and top_apps[0].get("is_default"):
+            insights.append("No significant data usage detected for any apps.")
+        else:
+            insights.append(f"Top {len(top_apps)} data consuming apps:")
+            for app in top_apps:
+                # Convert bytes to MB for readability
+                usage_mb = app['usage'] / (1024 * 1024)
+                insights.append(f"- {app['name']}: {usage_mb:.1f} MB")
     
     return insights
 
@@ -522,6 +357,15 @@ def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5
                 })
     
     logger.debug(f"[PowerGuard] Found {len(valid_apps)} valid apps with {resource_type} usage data")
+    
+    # If no valid apps found, return a default message
+    if not valid_apps:
+        logger.debug(f"[PowerGuard] No valid apps found with {resource_type} usage data")
+        return [{
+            "name": "No significant usage detected",
+            "usage": 0,
+            "is_default": True
+        }]
     
     # Sort by usage (descending)
     # Use a safe lambda function that handles None values
