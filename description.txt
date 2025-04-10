@@ -49,6 +49,8 @@ PowerGuard addresses these limitations through a sophisticated AI-powered backen
 
 7. **Dynamic Strategy Adjustment**: Changes optimization strategies as conditions change (battery level drops, data usage increases, etc.).
 
+8. **Lock Screen Integration**: Features a beautiful, minimal lock screen interface with quick access to optimization controls, smart travel mode, and voice-enabled AI assistant, all seamlessly integrated with the device's native lock screen experience.
+
 ## Technical Architecture
 
 PowerGuard is built on a modern, scalable architecture:

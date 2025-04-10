@@ -28,6 +28,17 @@
 - 🔒 Protected app handling for critical applications
 - 📈 Performance scoring and savings estimation
 
+## 🔒 Lock Screen Experience
+
+PowerGuard integrates seamlessly with your device's lock screen, providing at-a-glance access to essential battery and data optimization features:
+
+- Clean, modern interface with time and date display
+- Quick access buttons for battery and data optimization
+- Smart Travel Mode toggle for optimized settings while traveling
+- Voice-enabled AI assistant for hands-free optimization
+- Beautiful background that adapts to your device theme
+- Minimal, non-intrusive design that complements your lock screen
+
 ## 🚀 API Endpoints
 
 - `POST /api/analyze` - Analyze device data and get optimization recommendations
