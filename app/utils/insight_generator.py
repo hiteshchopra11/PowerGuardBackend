@@ -40,7 +40,7 @@ def generate_insights(
     
     # Generate regular insights based on request type
     if is_information_request:
-        insights.extend(generate_information_insights(strategy, device_data, prompt))
+        insights.extend(generate_information_insights(prompt, device_data))
     else:
         insights.extend(generate_optimization_insights(strategy, device_data))
         
@@ -191,14 +191,13 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
     
     return insights
 
-def generate_information_insights(strategy: dict, device_data: dict, prompt: str = "") -> List[Dict]:
+def generate_information_insights(prompt: str, device_data: dict) -> List[Dict]:
     """
     Generate insights for information queries.
     
     Args:
-        strategy: The determined strategy
-        device_data: The device data dictionary
         prompt: The user's prompt
+        device_data: The device data dictionary
         
     Returns:
         List of insight dictionaries
@@ -225,24 +224,40 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
         top_apps = get_top_consuming_apps(device_data, "battery", app_count)
         
         if top_apps and top_apps[0].get("is_default"):
-            insights.append("No significant battery usage detected for any apps.")
+            insights.append({
+                "type": "BatteryUsage",
+                "title": "Battery Usage Information",
+                "description": "No significant battery usage detected for any apps.",
+                "severity": "info"
+            })
         else:
-            insights.append(f"Top {len(top_apps)} battery consuming apps:")
-            for app in top_apps:
-                insights.append(f"- {app['name']}: {app['usage']}%")
+            apps_str = "\n".join([f"- {app['name']}: {app['usage']}%" for app in top_apps])
+            insights.append({
+                "type": "BatteryUsage",
+                "title": f"Top {len(top_apps)} Battery Consuming Apps",
+                "description": f"The following apps are consuming the most battery:\n{apps_str}",
+                "severity": "info"
+            })
     
     if is_data_query:
         # Get top data consuming apps
         top_apps = get_top_consuming_apps(device_data, "data", app_count)
         
         if top_apps and top_apps[0].get("is_default"):
-            insights.append("No significant data usage detected for any apps.")
+            insights.append({
+                "type": "DataUsage",
+                "title": "Data Usage Information",
+                "description": "No significant data usage detected for any apps.",
+                "severity": "info"
+            })
         else:
-            insights.append(f"Top {len(top_apps)} data consuming apps:")
-            for app in top_apps:
-                # Convert bytes to MB for readability
-                usage_mb = app['usage'] / (1024 * 1024)
-                insights.append(f"- {app['name']}: {usage_mb:.1f} MB")
+            apps_str = "\n".join([f"- {app['name']}: {app['usage']/1024/1024:.1f} MB" for app in top_apps])
+            insights.append({
+                "type": "DataUsage",
+                "title": f"Top {len(top_apps)} Data Consuming Apps",
+                "description": f"The following apps are consuming the most data:\n{apps_str}",
+                "severity": "info"
+            })
     
     return insights
 
