@@ -461,7 +461,7 @@ def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5
         if usage_field not in app:
             continue
             
-        app_name = get_app_name(app.get("packageName", ""))
+        app_name = app.get("appName", "Unknown App")
         if resource_type == "battery":
             # Battery usage is a simple value
             usage = app.get(usage_field, 0)
