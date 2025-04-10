@@ -301,19 +301,26 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
             logger.debug(f"[PowerGuard] Getting top battery consuming apps with limit: {app_count}")
             battery_apps = get_top_consuming_apps(device_data, "battery", app_count)
             logger.debug(f"[PowerGuard] Got {len(battery_apps)} battery apps")
+            
+            # Create base battery insight
+            battery_insight = {
+                "type": "BatteryUsage",
+                "title": "Battery Usage Information",
+                "severity": "info"
+            }
+            
+            # Add battery level information
+            battery_level = device_data.get("battery", {}).get("level", 0)
+            charging_status = device_data.get("battery", {}).get("isCharging", False)
+            battery_status = f"Current battery level is {battery_level}%" + (" and charging." if charging_status else ".")
+            
             if battery_apps:
                 apps_str = "\n".join([f"- {app.get('name', 'Unknown App')}: {app.get('usage', 0)}%" for app in battery_apps])
-                battery_insight = {
-                    "type": "BatteryUsage",
-                    "title": f"Top {len(battery_apps)} Battery Consuming Apps",
-                    "description": f"The following apps are consuming the most battery:\n{apps_str}",
-                    "severity": "info"
-                }
+                battery_insight["description"] = f"{battery_status}\n\nTop battery consuming apps:\n{apps_str}"
                 
-                # Add recommendations for high-consuming apps - safely compare values
+                # Add recommendations for high-consuming apps
                 high_usage_threshold = 20  # % threshold for recommendations
-                if battery_apps and battery_apps[0].get("usage", 0) > high_usage_threshold:
-                    # Safely check each app's usage value
+                if battery_apps[0].get("usage", 0) > high_usage_threshold:
                     high_usage_apps = []
                     for app in battery_apps:
                         usage = app.get("usage", 0)
@@ -322,8 +329,10 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
                     
                     if high_usage_apps:
                         battery_insight["description"] += f"\n\nConsider restricting background activity for {', '.join(high_usage_apps)} to save battery."
-                
-                insights.append(battery_insight)
+            else:
+                battery_insight["description"] = f"{battery_status}\n\nNo significant battery consumption detected from any apps."
+            
+            insights.append(battery_insight)
         except Exception as e:
             # Log the error but don't crash
             logger.error(f"Error generating battery usage insights: {str(e)}", exc_info=True)
