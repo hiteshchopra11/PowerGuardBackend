@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
 </div>
 
-<p align="center">A battery and data optimization service that uses AI to analyze device usage patterns and provide actionable recommendations for better battery life and data usage.</p>
+<p align="center">An intelligent battery and data optimization service that uses AI to analyze device usage patterns and provide actionable recommendations for better battery life and data usage.</p>
 
 <div align="center">
   <img width="800" src="https://raw.githubusercontent.com/example/powerguard/main/docs/hero-image.png" alt="PowerGuard Hero Image" />
@@ -15,17 +15,18 @@
 
 ## ✨ Features
 
-- 🔋 Device usage analysis
-- 📊 Battery optimization recommendations
-- 📱 Usage pattern tracking
-- 🧠 Historical data analysis
-- 🤖 AI-powered insights
-- 💡 User-directed optimizations via prompts
-- 🔄 Hybrid rule-based and LLM prompt classification
-- 🧩 Smart context-aware prompt analysis with critical app protection
-- 🎯 Battery level based optimization strategy
-- ⏱️ Time and data constraint-aware recommendations
-- 💬 Information requests vs. optimization requests handling
+- 🔋 Smart battery optimization based on usage patterns
+- 📊 Data usage analysis and optimization
+- 📱 Intelligent app categorization and management
+- 🧠 AI-powered prompt analysis for user intent
+- 💡 Context-aware optimization strategies
+- 🔄 Hybrid rule-based and LLM-powered analysis
+- 🧩 Smart critical app protection
+- 🎯 Battery level-based optimization
+- ⏱️ Time constraint-aware recommendations
+- 💬 Natural language processing for user requests
+- 🔒 Protected app handling for critical applications
+- 📈 Performance scoring and savings estimation
 
 ## 🚀 API Endpoints
 
@@ -52,11 +53,13 @@ graph TD
         B5[Prompt Analyzer]
         B6[Strategy Determiner]
         B7[Error Handler]
+        B8[Actionable Generator]
         B1 --> B2
         B1 --> B4
         B2 --> B3
         B2 --> B5
         B5 --> B6
+        B6 --> B8
         B1 --> B7
     end
     
@@ -104,6 +107,7 @@ sequenceDiagram
     participant RL as Rate Limiter
     participant PA as Prompt Analyzer
     participant SD as Strategy Determiner
+    participant AG as Actionable Generator
     participant DB as SQLite DB
     participant LLM as Groq LLM
     
@@ -117,6 +121,7 @@ sequenceDiagram
     PA->>SD: Determine Strategy
     API->>DB: Get Historical Patterns
     DB-->>API: Return Patterns
+    SD->>AG: Generate Actionables
     API->>LLM: Send Analysis Request with strategy
     Note over LLM: Process with Retry Logic
     LLM-->>API: Generate Recommendations
@@ -137,11 +142,14 @@ sequenceDiagram
    - SQLite database for data persistence
    - Integration with Groq LLM
    - Usage pattern analysis
+   - Strategy determination
+   - Actionable generation
 
 3. **AI Service**
    - Groq LLM for intelligent analysis
    - Pattern recognition
    - Recommendation generation
+   - Prompt classification
 
 ## 🔋 Battery Level Based Strategies
 
