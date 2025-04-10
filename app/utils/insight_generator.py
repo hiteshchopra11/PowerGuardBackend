@@ -124,8 +124,15 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
         # Get names of apps being optimized for battery
         battery_optimized_apps = []
         for app in all_apps:
-            if app.get("batteryUsage", 0) > 10 and app.get("packageName") not in strategy["critical_apps"]:
-                battery_optimized_apps.append(app.get("appName", "Unknown App"))
+            battery_usage = app.get("batteryUsage")
+            if battery_usage is not None:
+                try:
+                    battery_usage_float = float(battery_usage)
+                    if battery_usage_float > 10 and app.get("packageName") not in strategy["critical_apps"]:
+                        battery_optimized_apps.append(app.get("appName", "Unknown App"))
+                except (ValueError, TypeError):
+                    logger.debug(f"[PowerGuard] Invalid battery usage value for app {app.get('appName', 'Unknown App')}: {battery_usage}")
+                    continue
         
         battery_insight = {
             "type": "BatterySavings",
@@ -148,14 +155,22 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
         # Get names of apps being optimized for data
         data_optimized_apps = []
         for app in all_apps:
-            data_usage = app.get("dataUsage", {})
-            if isinstance(data_usage, dict):
-                total_data = data_usage.get("foreground", 0) + data_usage.get("background", 0)
-            else:
-                total_data = data_usage
-            
-            if total_data > 50 and app.get("packageName") not in strategy["critical_apps"]:
-                data_optimized_apps.append(app.get("appName", "Unknown App"))
+            try:
+                data_usage = app.get("dataUsage", {})
+                total_data = 0
+                
+                if isinstance(data_usage, dict):
+                    foreground = float(data_usage.get("foreground", 0) or 0)
+                    background = float(data_usage.get("background", 0) or 0)
+                    total_data = foreground + background
+                elif isinstance(data_usage, (int, float)):
+                    total_data = float(data_usage)
+                
+                if total_data > 50 and app.get("packageName") not in strategy["critical_apps"]:
+                    data_optimized_apps.append(app.get("appName", "Unknown App"))
+            except (ValueError, TypeError):
+                logger.debug(f"[PowerGuard] Invalid data usage value for app {app.get('appName', 'Unknown App')}: {data_usage}")
+                continue
         
         data_insight = {
             "type": "DataSavings",
@@ -320,15 +335,23 @@ def generate_information_insights(strategy: dict, device_data: dict, prompt: str
                 
                 # Add recommendations for high-consuming apps
                 high_usage_threshold = 20  # % threshold for recommendations
-                if battery_apps[0].get("usage", 0) > high_usage_threshold:
-                    high_usage_apps = []
-                    for app in battery_apps:
-                        usage = app.get("usage", 0)
-                        if usage is not None and usage > high_usage_threshold:
-                            high_usage_apps.append(app.get("name", "Unknown App"))
-                    
-                    if high_usage_apps:
-                        battery_insight["description"] += f"\n\nConsider restricting background activity for {', '.join(high_usage_apps)} to save battery."
+                try:
+                    first_app_usage = float(battery_apps[0].get("usage", 0))
+                    if first_app_usage > high_usage_threshold:
+                        high_usage_apps = []
+                        for app in battery_apps:
+                            try:
+                                usage = float(app.get("usage", 0))
+                                if usage > high_usage_threshold:
+                                    high_usage_apps.append(app.get("name", "Unknown App"))
+                            except (ValueError, TypeError):
+                                logger.debug(f"[PowerGuard] Invalid usage value for app {app.get('name', 'Unknown App')}: {app.get('usage')}")
+                                continue
+                        
+                        if high_usage_apps:
+                            battery_insight["description"] += f"\n\nConsider restricting background activity for {', '.join(high_usage_apps)} to save battery."
+                except (ValueError, TypeError):
+                    logger.debug(f"[PowerGuard] Invalid usage value for first app: {battery_apps[0].get('usage')}")
             else:
                 battery_insight["description"] = f"{battery_status}\n\nNo significant battery consumption detected from any apps."
             
@@ -464,12 +487,18 @@ def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5
         app_name = app.get("appName", "Unknown App")
         if resource_type == "battery":
             # Battery usage is a simple value
-            usage = app.get(usage_field, 0)
-            if usage is not None and usage > 0:
-                valid_apps.append({
-                    "name": app_name,
-                    "usage": usage
-                })
+            usage = app.get(usage_field)
+            if usage is not None:
+                try:
+                    usage_float = float(usage)
+                    if usage_float > 0:
+                        valid_apps.append({
+                            "name": app_name,
+                            "usage": usage_float
+                        })
+                except (ValueError, TypeError):
+                    logger.debug(f"[PowerGuard] Invalid battery usage value for {app_name}: {usage}")
+                    continue
         else:
             # Data usage could be a dict or value
             data_usage = app.get(usage_field, 0)
