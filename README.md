@@ -9,9 +9,8 @@
 
 <p align="center">An intelligent battery and data optimization service that uses AI to analyze device usage patterns and provide actionable recommendations for better battery life and data usage.</p>
 
-<div align="center">
-  <img width="800" src="https://raw.githubusercontent.com/example/powerguard/main/docs/hero-image.png" alt="PowerGuard Hero Image" />
-</div>
+![image](https://github.com/user-attachments/assets/127536c3-aa29-48f9-86dc-0c3ee7933a3c)
+
 
 ## ✨ Features
 
