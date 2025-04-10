@@ -192,70 +192,54 @@ def generate_optimization_insights(strategy: dict, device_data: dict) -> List[Di
     return insights
 
 def generate_information_insights(prompt: str, device_data: dict) -> List[Dict]:
-    """
-    Generate insights for information queries.
-    
-    Args:
-        prompt: The user's prompt
-        device_data: The device data dictionary
-        
-    Returns:
-        List of insight dictionaries
-    """
-    logger.debug("[PowerGuard] Generating information insights")
-    
+    """Generate insights for information queries."""
     insights = []
     
     # Extract app count from prompt if specified
-    app_count = 3  # Default to top 3
-    if "top" in prompt.lower():
-        try:
-            count_str = prompt.lower().split("top")[1].split()[0]
-            app_count = int(count_str)
-        except (IndexError, ValueError):
-            pass
+    app_count = 3  # default
+    if "top" in prompt.lower() and any(str(i) in prompt for i in range(1, 10)):
+        for i in range(1, 10):
+            if str(i) in prompt:
+                app_count = i
+                break
     
-    # Determine if query is about battery or data
-    is_battery_query = any(term in prompt.lower() for term in ["battery", "power", "charge"])
-    is_data_query = any(term in prompt.lower() for term in ["data", "network", "wifi", "cellular"])
+    # Check if query is about battery or data
+    is_battery_query = any(word in prompt.lower() for word in ["battery", "power", "charge"])
+    is_data_query = any(word in prompt.lower() for word in ["data", "internet", "network"])
     
     if is_battery_query:
-        # Get top battery consuming apps
         top_apps = get_top_consuming_apps(device_data, "battery", app_count)
-        
-        if top_apps and top_apps[0].get("is_default"):
+        if all(app.get("is_default", False) for app in top_apps):
             insights.append({
                 "type": "BatteryUsage",
                 "title": "Battery Usage Information",
-                "description": "No significant battery usage detected for any apps.",
+                "description": "No significant battery usage detected for any apps. All apps are currently using 0% battery.",
                 "severity": "info"
             })
         else:
-            apps_str = "\n".join([f"- {app['name']}: {app['usage']}%" for app in top_apps])
+            app_list = "\n".join([f"- {app['name']}: {app['usage']}%" for app in top_apps])
             insights.append({
                 "type": "BatteryUsage",
-                "title": f"Top {len(top_apps)} Battery Consuming Apps",
-                "description": f"The following apps are consuming the most battery:\n{apps_str}",
+                "title": f"Top {app_count} Battery Consuming Apps",
+                "description": f"The following apps are consuming the most battery:\n{app_list}",
                 "severity": "info"
             })
     
     if is_data_query:
-        # Get top data consuming apps
         top_apps = get_top_consuming_apps(device_data, "data", app_count)
-        
-        if top_apps and top_apps[0].get("is_default"):
+        if all(app.get("is_default", False) for app in top_apps):
             insights.append({
                 "type": "DataUsage",
                 "title": "Data Usage Information",
-                "description": "No significant data usage detected for any apps.",
+                "description": "No significant data usage detected for any apps. All apps are currently using 0 MB of data.",
                 "severity": "info"
             })
         else:
-            apps_str = "\n".join([f"- {app['name']}: {app['usage']/1024/1024:.1f} MB" for app in top_apps])
+            app_list = "\n".join([f"- {app['name']}: {app['usage'] / (1024 * 1024):.1f} MB" for app in top_apps])
             insights.append({
                 "type": "DataUsage",
-                "title": f"Top {len(top_apps)} Data Consuming Apps",
-                "description": f"The following apps are consuming the most data:\n{apps_str}",
+                "title": f"Top {app_count} Data Consuming Apps",
+                "description": f"The following apps are consuming the most data:\n{app_list}",
                 "severity": "info"
             })
     
@@ -307,89 +291,46 @@ def generate_strategy_description(strategy: dict, battery_level: float, savings:
     
     return "\n".join(lines)
 
-def get_top_consuming_apps(device_data: dict, resource_type: str, limit: int = 5) -> List[Dict]:
-    """
-    Get the top consuming apps for a specific resource.
-    
-    Args:
-        device_data: The device data dictionary
-        resource_type: "battery" or "data"
-        limit: Maximum number of apps to return
-        
-    Returns:
-        List of dictionaries with app name and usage
-    """
-    logger.debug(f"[PowerGuard] Getting top {limit} consuming apps for {resource_type}")
-    
+def get_top_consuming_apps(device_data: dict, resource_type: str = "battery", count: int = 3) -> List[dict]:
+    """Get top consuming apps for either battery or data resources."""
     apps = device_data.get("apps", [])
-    if not apps:
-        logger.debug("[PowerGuard] No apps found in device data")
-        return []
-    
-    usage_field = "batteryUsage" if resource_type == "battery" else "dataUsage"
-    
-    # Filter and extract valid apps with usage data
     valid_apps = []
+    
     for app in apps:
-        if usage_field not in app:
-            continue
-            
-        app_name = app.get("appName", "Unknown App")
         if resource_type == "battery":
-            # Battery usage is a simple value
-            usage = app.get(usage_field)
-            if usage is not None:
-                try:
-                    usage_float = float(usage)
-                    if usage_float > 0:
-                        valid_apps.append({
-                            "name": app_name,
-                            "usage": usage_float
-                        })
-                except (ValueError, TypeError):
-                    logger.debug(f"[PowerGuard] Invalid battery usage value for {app_name}: {usage}")
-                    continue
-        else:
-            # Data usage could be a dict or value
-            data_usage = app.get(usage_field, 0)
-            total_usage = 0
-            
-            if data_usage is None:
-                continue
-            elif isinstance(data_usage, dict):
-                # Extract foreground and background usage
-                foreground = data_usage.get("foreground", 0)
-                background = data_usage.get("background", 0)
-                if isinstance(foreground, (int, float)) and isinstance(background, (int, float)):
-                    total_usage = foreground + background
-            elif isinstance(data_usage, (int, float)):
-                total_usage = data_usage
-                
-            if total_usage > 0:
+            usage = app.get("batteryUsage")
+            if usage is not None and usage > 0.0:
                 valid_apps.append({
-                    "name": app_name,
-                    "usage": total_usage
+                    "name": app.get("appName", "Unknown"),
+                    "usage": usage,
+                    "is_default": False
+                })
+        else:  # data usage
+            data_usage = app.get("dataUsage", {})
+            total_bytes = data_usage.get("rxBytes", 0.0) + data_usage.get("txBytes", 0.0)
+            if total_bytes > 0.0:
+                valid_apps.append({
+                    "name": app.get("appName", "Unknown"),
+                    "usage": total_bytes,
+                    "is_default": False
                 })
     
-    logger.debug(f"[PowerGuard] Found {len(valid_apps)} valid apps with {resource_type} usage data")
+    # Sort by usage in descending order
+    valid_apps.sort(key=lambda x: x["usage"], reverse=True)
     
-    # If no valid apps found, return a default message
+    # If no valid apps found, return default apps with 0% usage
     if not valid_apps:
-        logger.debug(f"[PowerGuard] No valid apps found with {resource_type} usage data")
-        return [{
-            "name": "No significant usage detected",
-            "usage": 0,
-            "is_default": True
-        }]
+        default_apps = []
+        for app in apps[:count]:
+            default_apps.append({
+                "name": app.get("appName", "Unknown"),
+                "usage": 0.0,
+                "is_default": True
+            })
+        return default_apps
     
-    # Sort by usage (descending)
-    # Use a safe lambda function that handles None values
-    sorted_apps = sorted(valid_apps, key=lambda app: float(app.get("usage", 0) or 0), reverse=True)
-    
-    # Return top N apps based on the limit parameter
-    result = sorted_apps[:limit]
-    logger.debug(f"[PowerGuard] Returning top {len(result)} apps (limit was {limit})")
-    return result
+    # Return top N apps
+    return valid_apps[:count]
 
 def analyze_yes_no_question(prompt: str, strategy: dict, device_data: dict) -> Optional[Dict]:
     """
@@ -533,11 +474,23 @@ def analyze_yes_no_question(prompt: str, strategy: dict, device_data: dict) -> O
             "netflix": "Netflix",
             "spotify": "Spotify",
             "facebook": "Facebook",
-            "instagram": "Instagram"
+            "instagram": "Instagram",
+            "message": "Messages",
+            "email": "Email",
+            "mail": "Email",
+            "messaging": "Messages"
         }
         
+        # Check for specific keywords in the prompt
+        if any(word in prompt_lower for word in ["message", "messages", "text", "whatsapp", "messaging"]):
+            critical_apps.append("WhatsApp")
+            critical_apps.append("Messages")
+        if any(word in prompt_lower for word in ["email", "mail", "gmail"]):
+            critical_apps.append("Gmail")
+        
+        # Also check for app names directly
         for app_key, app_name in common_apps.items():
-            if app_key in prompt_lower:
+            if app_key in prompt_lower and app_name not in critical_apps:
                 critical_apps.append(app_name)
         
         if not critical_apps:
