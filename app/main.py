@@ -523,8 +523,8 @@ async def get_all_entries(db: Session = Depends(get_db)):
         for entry in entries:
             result.append({
                 "id": entry.id,
-                "device_id": entry.device_id,
-                "package_name": entry.package_name,
+                "device_id": entry.deviceId,
+                "package_name": entry.packageName,
                 "pattern": entry.pattern,
                 "timestamp": datetime.fromtimestamp(entry.timestamp).strftime('%Y-%m-%d %H:%M:%S'),
                 "raw_timestamp": entry.timestamp
