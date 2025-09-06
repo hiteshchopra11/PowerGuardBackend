@@ -38,16 +38,18 @@ logger = logging.getLogger('powerguard_api')
 app = FastAPI(
     title="PowerGuard AI Backend",
     description="""
-    PowerGuard AI Backend is a battery optimization service that uses AI to analyze device usage patterns
-    and provide actionable recommendations for better battery life.
+    PowerGuard AI Backend is an advanced battery and data optimization service that uses AI to analyze device usage patterns
+    and provide actionable recommendations for better resource management.
     
     ## Features
-    * Device usage analysis
-    * Battery optimization recommendations
-    * Usage pattern tracking
-    * Historical data analysis
-    * AI-powered insights
-    * User-directed optimizations via prompts
+    * Advanced AI-powered query processing with 6 category types
+    * Battery and data optimization recommendations
+    * Smart resource type detection (BATTERY/DATA/OTHER)
+    * Information, predictive, optimization, monitoring, and pattern analysis queries
+    * Usage pattern tracking and historical analysis
+    * Exclusion handling for critical apps
+    * User-directed optimizations via natural language prompts
+    * Android app-compatible prompt system
     * Hybrid rule-based and LLM prompt classification
     
     ## API Endpoints
@@ -196,24 +198,39 @@ async def analyze_data(
     db: Session = Depends(get_db)
 ):
     """
-    Analyze device data and return optimization recommendations.
+    Analyze device data using advanced AI prompt system and return optimization recommendations.
     
-    This endpoint processes device usage data through an AI model to generate:
-    * Actionable recommendations for battery and data optimization
-    * Insights about device usage patterns
-    * Battery, data, and performance scores
-    * Estimated resource savings
+    ## New AI Prompt System Features:
+    This endpoint now uses a sophisticated 2-step analysis process similar to the Android app:
     
-    The response includes:
-    * List of specific actions to take
-    * Insights discovered during analysis
-    * Scores measuring efficiency and health
-    * Estimated savings in battery life and data usage
+    **Step 1: Resource Type Detection**
+    - Automatically detects if your query is about BATTERY, DATA, or OTHER resources
     
-    Optional 'prompt' field:
-    * Allows users to specify optimization goals (e.g., "save battery life", "reduce data usage")
-    * Customizes the analysis to focus on the user's specific needs
-    * Examples: "Optimize battery life", "Reduce network data usage", "I'm low on battery"
+    **Step 2: Query Categorization**
+    - Category 1: Information Queries ("Which apps use most battery?")
+    - Category 2: Predictive Queries ("Can I watch Netflix with current battery?")
+    - Category 3: Optimization Requests ("Save my battery for 3 hours")
+    - Category 4: Monitoring Triggers ("Notify when battery drops below 15%")
+    - Category 5: Pattern Analysis ("Optimize based on my usage patterns")
+    - Category 6: Invalid/Unrelated Queries
+    
+    ## Smart Features:
+    * **App Exclusion Handling**: "Optimize data but keep WhatsApp running"
+    * **Time Constraints**: "Save battery for the next 3 hours"
+    * **Number Specifications**: "Show me top 5 battery-consuming apps"
+    * **Critical App Protection**: Automatically protects messaging, navigation, email apps
+    
+    ## Response Types:
+    * **Information Responses**: Insights only, no actionables
+    * **Optimization Responses**: Both actionables and insights
+    * **Predictive Responses**: Yes/no answers with explanations
+    
+    ## Prompt Examples:
+    - "Which apps use the most battery?" (Information)
+    - "Can I stream video for 2 hours?" (Predictive) 
+    - "Optimize my data usage but keep Gmail working" (Optimization with exclusion)
+    - "Notify me when battery hits 20%" (Monitoring)
+    - "Optimize based on my typical evening usage" (Pattern Analysis)
     
     Response Example:
     ```json
@@ -775,4 +792,150 @@ async def seed_test_pattern(pattern_data: dict = Body(...), db: Session = Depend
         raise HTTPException(
             status_code=500,
             detail=f"Failed to seed test pattern: {str(e)}"
+        )
+
+@app.post("/api/test-prompt-system", tags=["Testing"])
+async def test_prompt_system(
+    prompt: str = Body(..., description="User query to test with the new prompt system"),
+    db: Session = Depends(get_db)
+):
+    """
+    Test endpoint specifically for the new Android app-style prompt system.
+    
+    This endpoint allows you to test individual prompts with sample device data
+    to see how the new 2-step AI analysis process works:
+    
+    1. **Resource Type Detection**: BATTERY, DATA, or OTHER
+    2. **Query Categorization**: 1-6 categories
+    3. **Response Generation**: Category-specific insights and actionables
+    
+    ## Test Query Examples:
+    - "Which apps use the most battery?"
+    - "Can I watch Netflix with current battery?" 
+    - "Save my battery for the next 3 hours"
+    - "Optimize data but keep WhatsApp running"
+    - "Notify me when battery drops below 15%"
+    
+    Returns the same response format as `/api/analyze` but with additional metadata
+    about the prompt processing steps.
+    """
+    from app.prompts.query_processor import QueryProcessor
+    from app.llm_service import groq_client
+    
+    # Sample device data for testing
+    sample_device_data = {
+        "deviceId": "test-device-prompt-system",
+        "timestamp": int(datetime.now().timestamp()),
+        "deviceInfo": {
+            "manufacturer": "Samsung",
+            "model": "Galaxy S21",
+            "osVersion": "Android 13"
+        },
+        "battery": {
+            "level": 25,
+            "temperature": 32,
+            "isCharging": False,
+            "voltage": 3.8,
+            "health": 2
+        },
+        "memory": {
+            "totalRam": 8192,
+            "availableRam": 3500,
+            "lowMemory": False
+        },
+        "cpu": {
+            "usage": 45,
+            "temperature": 38
+        },
+        "network": {
+            "type": "cellular",
+            "strength": 3,
+            "isRoaming": False,
+            "dataUsage": {
+                "foreground": 150,
+                "background": 75
+            },
+            "cellularGeneration": "5G"
+        },
+        "apps": [
+            {
+                "appName": "Instagram",
+                "packageName": "com.instagram.android", 
+                "batteryUsage": 18.5,
+                "foregroundTime": 3600000,
+                "backgroundTime": 1800000,
+                "dataUsage": {
+                    "foreground": 45.2,
+                    "background": 12.8
+                }
+            },
+            {
+                "appName": "YouTube",
+                "packageName": "com.google.android.youtube",
+                "batteryUsage": 22.1,
+                "foregroundTime": 5400000,
+                "backgroundTime": 300000,
+                "dataUsage": {
+                    "foreground": 124.7,
+                    "background": 2.1
+                }
+            },
+            {
+                "appName": "WhatsApp",
+                "packageName": "com.whatsapp",
+                "batteryUsage": 8.7,
+                "foregroundTime": 1800000,
+                "backgroundTime": 3600000,
+                "dataUsage": {
+                    "foreground": 15.6,
+                    "background": 8.2
+                }
+            }
+        ]
+    }
+    
+    try:
+        logger.info(f"[PowerGuard] Testing prompt system with query: '{prompt}'")
+        
+        # Use the query processor directly
+        processor = QueryProcessor(groq_client)
+        result = processor.process_query(
+            user_query=prompt,
+            device_data=sample_device_data,
+            past_usage_patterns="Instagram: High battery usage; YouTube: Very high data and battery usage"
+        )
+        
+        # Transform to match API response format
+        from app.llm_service import transform_analysis_result
+        response = transform_analysis_result(result, sample_device_data)
+        
+        # Add test-specific metadata
+        response["test_metadata"] = {
+            "original_prompt": prompt,
+            "detected_resource_type": result.get("resourceType"),
+            "detected_category": result.get("queryCategory"),
+            "category_names": {
+                1: "Information Query",
+                2: "Predictive Query", 
+                3: "Optimization Request",
+                4: "Monitoring Trigger",
+                5: "Pattern Analysis",
+                6: "Invalid Query"
+            },
+            "sample_device_used": True,
+            "processing_steps": [
+                "1. Resource Type Detection",
+                "2. Query Categorization", 
+                "3. Category-Specific Analysis",
+                "4. Response Generation"
+            ]
+        }
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"[PowerGuard] Error testing prompt system: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to test prompt: {str(e)}"
         ) 
