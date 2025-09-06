@@ -32,7 +32,8 @@
       "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/presentation_prompt.md)",
       "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/IMPLEMENTATION-SUMMARY.md )",
       "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/PROJECT-COMPLETION.md)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

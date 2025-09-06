@@ -199,7 +199,7 @@ def get_main_analysis_prompt(
     """Generate the main analysis prompt."""
     
     # Extract device information
-    device_info = device_data.get("deviceInfo", {})
+    device_info = device_data.get("deviceInfo") or {}
     battery_data = device_data.get("battery", {})
     memory_data = device_data.get("memory", {})
     cpu_data = device_data.get("cpu", {})

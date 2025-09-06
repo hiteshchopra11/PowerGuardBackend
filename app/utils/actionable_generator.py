@@ -6,7 +6,7 @@ import logging
 import uuid
 from typing import List, Dict, Optional, Set
 
-from app.config.app_categories import get_app_name, get_app_category
+from app.config.app_categories import get_app_name
 
 # Configure logging
 logger = logging.getLogger('powerguard_actionables')
