@@ -14,10 +14,17 @@
 
 ## ✨ Features
 
+### 🚀 Advanced AI Prompt System
+- **2-Step Query Processing**: Resource type detection (BATTERY/DATA/OTHER) → Query categorization (6 types)
+- **6 Query Categories**: Information, Predictive, Optimization, Monitoring, Pattern Analysis, Invalid
+- **Smart App Exclusion**: "Optimize data but keep WhatsApp running"
+- **Time Constraints**: "Save battery for the next 3 hours"
+- **Number Specifications**: "Show me top 5 battery-consuming apps"
+
+### 🔋 Core Optimization Features
 - 🔋 Smart battery optimization based on usage patterns
 - 📊 Data usage analysis and optimization
 - 📱 Intelligent app categorization and management
-- 🧠 AI-powered prompt analysis for user intent
 - 💡 Context-aware optimization strategies
 - 🔄 Hybrid rule-based and LLM-powered analysis
 - 🧩 Smart critical app protection

@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python test:*)",
+      "Bash(python run:*)",
+      "Bash(curl:*)",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/prompt_test_results_*.json)",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/TESTING.md )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/real_api_test.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_10_percent_battery_scenario.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_prompts.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_battery_query.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_case_runner.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/automated_test.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_battery_data_combinations.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_single_scenario.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_critical_scenarios.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_single.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/single_test.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/run_all_tests.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/seed_test_data.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/android_request_test.py)",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/benchmark.py )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/battery_data_combination_results.txt )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/real_api_test_results.txt )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/scenario_result_*.json)",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/temp_*.json)",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_*.json)",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/test_results.txt )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/description.txt )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/milestone_one.txt )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/presentation_prompt.md)",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/IMPLEMENTATION-SUMMARY.md )",
+      "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/PROJECT-COMPLETION.md)",
+      "Bash(tree:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
