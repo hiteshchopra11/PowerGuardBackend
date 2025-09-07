@@ -1,3 +1,4 @@
+
 import os
 from groq import Groq
 from dotenv import load_dotenv
@@ -7,13 +8,14 @@ from sqlalchemy.orm import Session
 from app.database import UsagePattern
 import logging
 from datetime import datetime
-import time
-import random
 
 # Import our new utility modules
 from app.utils.strategy_analyzer import determine_strategy
 from app.utils.insight_generator import generate_insights
 from app.utils.actionable_generator import generate_actionables, is_information_request, ACTIONABLE_TYPES
+
+# Import new prompt system
+from app.prompts.query_processor import QueryProcessor
 
 # Configure logging
 logging.basicConfig(
@@ -51,10 +53,65 @@ def get_historical_patterns(db: Session, device_id: str) -> Dict[str, str]:
     return result
 
 def analyze_device_data(device_data: Dict[str, Any], db: Session) -> Dict[str, Any]:
-    """Process device data through Groq LLM and get optimization recommendations"""
+    """Process device data through new AI prompt system and get optimization recommendations"""
     logger.info(f"[PowerGuard] Analyzing device data for device: {device_data.get('deviceId', 'unknown')}")
     
     # Extract prompt if present
+    prompt = device_data.get("prompt", "").strip() if device_data.get("prompt") is not None else ""
+    
+    # If prompt is provided, use new query processing system
+    if prompt:
+        return analyze_with_new_prompt_system(device_data, db, prompt)
+    else:
+        # Fallback to original system for backward compatibility
+        return analyze_with_legacy_system(device_data, db)
+
+def analyze_with_new_prompt_system(device_data: Dict[str, Any], db: Session, prompt: str) -> Dict[str, Any]:
+    """Analyze using the new Android app-style prompt system"""
+    logger.info(f"[PowerGuard] Using new prompt system for query: '{prompt}'")
+    
+    try:
+        # Get historical patterns for pattern analysis
+        device_id = device_data.get('deviceId', '')
+        historical_patterns = get_historical_patterns(db, device_id) if device_id else {}
+        past_usage_patterns_text = format_historical_patterns(historical_patterns)
+        
+        # Initialize query processor
+        query_processor = QueryProcessor(groq_client)
+        
+        # Process the query using new system
+        analysis_result = query_processor.process_query(
+            user_query=prompt,
+            device_data=device_data,
+            past_usage_patterns=past_usage_patterns_text
+        )
+        
+        # Transform result to match expected backend response format
+        response = transform_analysis_result(analysis_result, device_data)
+        
+        # Store usage patterns if it's an optimization request
+        resource_type = analysis_result.get('resourceType', 'OTHER')
+        category = analysis_result.get('queryCategory', 6)
+        
+        # Only store patterns for optimization requests (category 3) and pattern analysis (category 5)
+        if category in [3, 5] and resource_type != 'OTHER':
+            try:
+                store_usage_patterns_new(device_data, db, analysis_result)
+            except Exception as db_error:
+                logger.error(f"[PowerGuard] Database error storing patterns: {str(db_error)}")
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"[PowerGuard] Error in new prompt system: {str(e)}", exc_info=True)
+        # Fallback to legacy system on error
+        return analyze_with_legacy_system(device_data, db)
+
+def analyze_with_legacy_system(device_data: Dict[str, Any], db: Session) -> Dict[str, Any]:
+    """Original analysis system for backward compatibility"""
+    logger.info(f"[PowerGuard] Using legacy analysis system")
+    
+    # Extract prompt if present  
     prompt = device_data.get("prompt", "").strip() if device_data.get("prompt") is not None else ""
     
     try:
@@ -545,52 +602,164 @@ def calculate_performance_score(device_data: Dict[str, Any]) -> int:
         logger.error(f"Error calculating performance score: {str(e)}")
         return 50  # Default fallback score
 
-def format_apps(apps):
-    """Format apps data for the prompt"""
-    logger.debug(f"[PowerGuard] Formatting data for {len(apps)} apps")
-    result = ""
+
+# New helper functions for the Android app-style prompt system
+
+def format_historical_patterns(historical_patterns: Dict[str, str]) -> str:
+    """Format historical patterns for use in prompts."""
+    if not historical_patterns:
+        return "No historical usage patterns available."
+    
+    pattern_lines = []
+    for package_name, pattern in historical_patterns.items():
+        pattern_lines.append(f"- {package_name}: {pattern}")
+    
+    return "\n".join(pattern_lines)
+
+def transform_analysis_result(analysis_result: Dict[str, Any], device_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Transform new prompt system result to match expected backend response format."""
+    
+    # Map new format to legacy format
+    legacy_actionables = []
+    for actionable in analysis_result.get("actionable", []):
+        legacy_actionable = {
+            "id": f"action_{int(datetime.now().timestamp())}_{len(legacy_actionables)}",
+            "type": actionable.get("type", "").upper(),
+            "description": actionable.get("description", ""),
+            "parameters": actionable.get("parameters", {}),
+            "reason": f"Based on {analysis_result.get('resourceType', 'resource')} analysis"
+        }
+        
+        # Add package name and newMode if available in parameters
+        params = actionable.get("parameters", {})
+        if "packageName" in params:
+            legacy_actionable["packageName"] = params["packageName"]
+        if "newMode" in params:
+            legacy_actionable["newMode"] = params["newMode"]
+        
+        legacy_actionables.append(legacy_actionable)
+    
+    # Map insights to legacy format
+    legacy_insights = []
+    for insight in analysis_result.get("insights", []):
+        legacy_insight = {
+            "type": insight.get("type", "General"),
+            "title": insight.get("title", ""),
+            "description": insight.get("description", ""),
+            "severity": insight.get("severity", "MEDIUM").lower()
+        }
+        legacy_insights.append(legacy_insight)
+    
+    # Calculate estimated savings based on actionables and resource type
+    estimated_savings = calculate_estimated_savings(
+        analysis_result.get("resourceType", "OTHER"),
+        legacy_actionables
+    )
+    
+    # Determine response type
+    category = analysis_result.get("queryCategory", 6)
+    resource_type = analysis_result.get("resourceType", "OTHER")
+    
+    if category in [1, 2]:  # Information or predictive queries
+        response_type = "information"
+    elif category == 6:  # Invalid query
+        response_type = "error"
+    else:
+        response_type = "optimization"
+    
+    return {
+        "id": f"gen_{int(datetime.now().timestamp())}",
+        "success": True,
+        "timestamp": int(datetime.now().timestamp()),
+        "message": "Analysis completed successfully",
+        "responseType": response_type,
+        "actionable": legacy_actionables,
+        "insights": legacy_insights,
+        "batteryScore": analysis_result.get("batteryScore", 50.0),
+        "dataScore": analysis_result.get("dataScore", 50.0), 
+        "performanceScore": analysis_result.get("performanceScore", 50.0),
+        "estimatedSavings": estimated_savings,
+        "processing_metadata": analysis_result.get("processing_metadata", {})
+    }
+
+def calculate_estimated_savings(resource_type: str, actionables: List[Dict[str, Any]]) -> Dict[str, float]:
+    """Calculate estimated savings based on resource type and actionables."""
+    savings = {
+        "batteryMinutes": 0.0,
+        "dataMB": 0.0
+    }
+    
+    # Base savings per actionable type
+    battery_savings_per_action = {
+        "SET_STANDBY_BUCKET": 15.0,
+        "KILL_APP": 25.0,
+        "MANAGE_WAKE_LOCKS": 20.0,
+        "THROTTLE_CPU_USAGE": 10.0
+    }
+    
+    data_savings_per_action = {
+        "RESTRICT_BACKGROUND_DATA": 30.0,
+        "SET_STANDBY_BUCKET": 10.0,
+        "KILL_APP": 15.0
+    }
+    
+    # Calculate savings based on actionables
+    for actionable in actionables:
+        action_type = actionable.get("type", "")
+        
+        if resource_type in ["BATTERY", "OTHER"]:
+            if action_type in battery_savings_per_action:
+                savings["batteryMinutes"] += battery_savings_per_action[action_type]
+        
+        if resource_type in ["DATA", "OTHER"]:
+            if action_type in data_savings_per_action:
+                savings["dataMB"] += data_savings_per_action[action_type]
+    
+    # Apply resource-specific multipliers
+    if resource_type == "BATTERY":
+        savings["batteryMinutes"] *= 1.5  # Focus multiplier
+    elif resource_type == "DATA":
+        savings["dataMB"] *= 1.5  # Focus multiplier
+    
+    return savings
+
+def store_usage_patterns_new(device_data: Dict[str, Any], db: Session, analysis_result: Dict[str, Any]) -> None:
+    """Store usage patterns based on new analysis result."""
     try:
-        # Ensure apps is a list
-        if not isinstance(apps, list):
-            logger.warning("[PowerGuard] Apps data is not a list")
-            return "No valid app data available.\n"
+        device_id = device_data.get("deviceId")
+        if not device_id:
+            logger.warning("[PowerGuard] Cannot store patterns: Missing device ID")
+            return
         
-        # Sort apps by battery usage (descending) and take top 5
-        sorted_apps = sorted(apps, key=lambda x: float(x.get('batteryUsage', 0) or 0), reverse=True)[:5]
+        # Create usage pattern based on analysis
+        resource_type = analysis_result.get("resourceType", "OTHER")
+        category = analysis_result.get("queryCategory", 6)
+        timestamp = int(datetime.now().timestamp())
         
-        for app in sorted_apps:
-            try:
-                # Get app name and package name safely
-                app_name = app.get('appName', 'Unknown App')
-                package_name = app.get('packageName', 'unknown.package')
-                
-                # Get time values safely and convert to minutes
-                foreground_time = float(app.get('foregroundTime', 0)) / 60
-                background_time = float(app.get('backgroundTime', 0)) / 60
-                
-                # Get battery usage safely
-                battery_usage = float(app.get('batteryUsage', 0) or 0)
-                
-                # Get data usage safely
-                data_usage = app.get('dataUsage', {})
-                if not isinstance(data_usage, dict):
-                    data_usage = {}
-                foreground_data = float(data_usage.get('foreground', 0) or 0)
-                background_data = float(data_usage.get('background', 0) or 0)
-                total_data = foreground_data + background_data
-                
-                # Format the app entry
-                result += f"- {app_name} ({package_name}): {foreground_time:.1f}min foreground, {background_time:.1f}min background\n"
-                result += f"  Battery: {battery_usage:.1f}%, Data: {total_data:.1f}MB\n"
-            except (ValueError, TypeError, AttributeError) as e:
-                logger.warning(f"[PowerGuard] Error formatting app data: {str(e)}")
-                continue
+        # Store a general usage pattern for this analysis
+        pattern_description = f"Query analysis: {resource_type} optimization, category {category}"
         
-        # If no apps were successfully formatted
-        if not result:
-            result = "No valid app data available.\n"
+        # Check if general pattern exists
+        existing = db.query(UsagePattern).filter(
+            UsagePattern.deviceId == device_id,
+            UsagePattern.packageName == "system_analysis"
+        ).first()
         
-        return result
+        if existing:
+            existing.pattern = pattern_description
+            existing.timestamp = timestamp
+        else:
+            new_pattern = UsagePattern(
+                deviceId=device_id,
+                packageName="system_analysis",
+                pattern=pattern_description,
+                timestamp=timestamp
+            )
+            db.add(new_pattern)
+        
+        db.commit()
+        logger.debug(f"[PowerGuard] Stored new analysis pattern for device {device_id}")
+        
     except Exception as e:
-        logger.error(f"[PowerGuard] Error in format_apps: {str(e)}")
-        return "Error formatting app data.\n" 
+        logger.error(f"[PowerGuard] Error storing new usage patterns: {str(e)}", exc_info=True)
+        db.rollback()

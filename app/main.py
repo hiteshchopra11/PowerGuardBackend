@@ -38,16 +38,18 @@ logger = logging.getLogger('powerguard_api')
 app = FastAPI(
     title="PowerGuard AI Backend",
     description="""
-    PowerGuard AI Backend is a battery optimization service that uses AI to analyze device usage patterns
-    and provide actionable recommendations for better battery life.
+    PowerGuard AI Backend is an advanced battery and data optimization service that uses AI to analyze device usage patterns
+    and provide actionable recommendations for better resource management.
     
     ## Features
-    * Device usage analysis
-    * Battery optimization recommendations
-    * Usage pattern tracking
-    * Historical data analysis
-    * AI-powered insights
-    * User-directed optimizations via prompts
+    * Advanced AI-powered query processing with 6 category types
+    * Battery and data optimization recommendations
+    * Smart resource type detection (BATTERY/DATA/OTHER)
+    * Information, predictive, optimization, monitoring, and pattern analysis queries
+    * Usage pattern tracking and historical analysis
+    * Exclusion handling for critical apps
+    * User-directed optimizations via natural language prompts
+    * Android app-compatible prompt system
     * Hybrid rule-based and LLM prompt classification
     
     ## API Endpoints
@@ -96,10 +98,6 @@ app = FastAPI(
         {
             "name": "Database",
             "description": "Endpoints for database management"
-        },
-        {
-            "name": "Testing",
-            "description": "Test endpoints for development and testing"
         }
     ]
 )
@@ -196,24 +194,39 @@ async def analyze_data(
     db: Session = Depends(get_db)
 ):
     """
-    Analyze device data and return optimization recommendations.
+    Analyze device data using advanced AI prompt system and return optimization recommendations.
     
-    This endpoint processes device usage data through an AI model to generate:
-    * Actionable recommendations for battery and data optimization
-    * Insights about device usage patterns
-    * Battery, data, and performance scores
-    * Estimated resource savings
+    ## New AI Prompt System Features:
+    This endpoint now uses a sophisticated 2-step analysis process similar to the Android app:
     
-    The response includes:
-    * List of specific actions to take
-    * Insights discovered during analysis
-    * Scores measuring efficiency and health
-    * Estimated savings in battery life and data usage
+    **Step 1: Resource Type Detection**
+    - Automatically detects if your query is about BATTERY, DATA, or OTHER resources
     
-    Optional 'prompt' field:
-    * Allows users to specify optimization goals (e.g., "save battery life", "reduce data usage")
-    * Customizes the analysis to focus on the user's specific needs
-    * Examples: "Optimize battery life", "Reduce network data usage", "I'm low on battery"
+    **Step 2: Query Categorization**
+    - Category 1: Information Queries ("Which apps use most battery?")
+    - Category 2: Predictive Queries ("Can I watch Netflix with current battery?")
+    - Category 3: Optimization Requests ("Save my battery for 3 hours")
+    - Category 4: Monitoring Triggers ("Notify when battery drops below 15%")
+    - Category 5: Pattern Analysis ("Optimize based on my usage patterns")
+    - Category 6: Invalid/Unrelated Queries
+    
+    ## Smart Features:
+    * **App Exclusion Handling**: "Optimize data but keep WhatsApp running"
+    * **Time Constraints**: "Save battery for the next 3 hours"
+    * **Number Specifications**: "Show me top 5 battery-consuming apps"
+    * **Critical App Protection**: Automatically protects messaging, navigation, email apps
+    
+    ## Response Types:
+    * **Information Responses**: Insights only, no actionables
+    * **Optimization Responses**: Both actionables and insights
+    * **Predictive Responses**: Yes/no answers with explanations
+    
+    ## Prompt Examples:
+    - "Which apps use the most battery?" (Information)
+    - "Can I stream video for 2 hours?" (Predictive) 
+    - "Optimize my data usage but keep Gmail working" (Optimization with exclusion)
+    - "Notify me when battery hits 20%" (Monitoring)
+    - "Optimize based on my typical evening usage" (Pattern Analysis)
     
     Response Example:
     ```json
@@ -317,6 +330,24 @@ async def analyze_data(
                     if item["type"] not in ALLOWED_ACTIONABLE_TYPES:
                         logger.warning(f"[PowerGuard] Converting unknown actionable type {item['type']} to SET_STANDBY_BUCKET")
                         item["type"] = "SET_STANDBY_BUCKET"
+                    
+                    # Ensure required fields exist with sensible defaults
+                    if "parameters" not in item or not isinstance(item.get("parameters"), dict):
+                        item["parameters"] = {}
+                    if "description" not in item:
+                        item["description"] = ""
+                    if "reason" not in item:
+                        item["reason"] = ""
+                    # Default newMode based on actionable type if missing
+                    if "newMode" not in item:
+                        default_modes_by_type = {
+                            "RESTRICT_BACKGROUND_DATA": "restricted",
+                            "SET_STANDBY_BUCKET": "restricted",
+                            "KILL_APP": "terminated",
+                            "MANAGE_WAKE_LOCKS": "restricted",
+                            "THROTTLE_CPU_USAGE": "throttled",
+                        }
+                        item["newMode"] = default_modes_by_type.get(item["type"], "restricted")
                     
                     valid_actionable.append(item)
                 response["actionable"] = valid_actionable
@@ -506,8 +537,8 @@ async def get_all_entries(db: Session = Depends(get_db)):
         for entry in entries:
             result.append({
                 "id": entry.id,
-                "device_id": entry.device_id,
-                "package_name": entry.package_name,
+                "device_id": entry.deviceId,
+                "package_name": entry.packageName,
                 "pattern": entry.pattern,
                 "timestamp": datetime.fromtimestamp(entry.timestamp).strftime('%Y-%m-%d %H:%M:%S'),
                 "raw_timestamp": entry.timestamp
@@ -520,259 +551,4 @@ async def get_all_entries(db: Session = Depends(get_db)):
             detail=f"Failed to fetch database entries: {str(e)}"
         )
 
-@app.get("/", tags=["Testing"])
-async def root():
-    """
-    Root endpoint to check if the service is running.
-    
-    Returns:
-    * Simple message indicating the service is operational
-    
-    Response Example:
-    ```json
-    {
-        "message": "PowerGuard AI Backend is running"
-    }
-    ```
-    """
-    return {"message": "PowerGuard AI Backend is running"}
-
-@app.get("/api/test/with-prompt/{prompt}", tags=["Testing"])
-async def test_with_prompt(prompt: str):
-    """
-    Test endpoint that returns a sample response based on the provided prompt.
-    This endpoint uses the actual strategy determination but with sample data.
-    """
-    logger.info(f"[PowerGuard] Test endpoint called with prompt: '{prompt}'")
-    
-    # Create sample device data
-    device_data = {
-        "deviceId": "test-device-001",
-        "timestamp": int(datetime.now().timestamp()),
-        "battery": {
-            "level": 45.0,
-            "health": 95.0,
-            "temperature": 35.0
-        },
-        "memory": {
-            "total": 8000000000,
-            "used": 4000000000,
-            "free": 4000000000
-        },
-        "cpu": {
-            "usage": 45.0,
-            "temperature": 45.0
-        },
-        "network": {
-            "dataUsed": 100.5,
-            "wifiEnabled": True,
-            "mobileDataEnabled": False
-        },
-        "apps": [
-            {
-                "packageName": "com.whatsapp",
-                "batteryUsage": 5.2,
-                "dataUsage": 20.1,
-                "foregroundTime": 10
-            },
-            {
-                "packageName": "com.google.android.apps.maps",
-                "batteryUsage": 18.5,
-                "dataUsage": 35.7,
-                "foregroundTime": 30
-            },
-            {
-                "packageName": "com.instagram",
-                "batteryUsage": 15.4,
-                "dataUsage": 45.3,
-                "foregroundTime": 25
-            }
-        ],
-        "prompt": prompt
-    }
-    
-    # Get strategy from prompt analyzer
-    from app.prompt_analyzer import classify_with_llm
-    from app.utils.strategy_analyzer import determine_strategy
-    from app.utils.insight_generator import generate_insights
-    from app.utils.actionable_generator import generate_actionables
-    
-    # Analyze prompt
-    prompt_analysis = classify_with_llm(prompt)
-    strategy = determine_strategy(device_data, prompt)
-    
-    # Generate insights and actionables
-    insights = generate_insights(strategy, device_data, False, prompt)
-    actionables = generate_actionables(strategy, device_data)
-    
-    # Create response
-    response = {
-        "id": f"test_{int(datetime.now().timestamp())}",
-        "success": True,
-        "timestamp": int(datetime.now().timestamp()),
-        "message": "Test response generated successfully",
-        "actionable": actionables,
-        "insights": insights,
-        "batteryScore": 60.0,
-        "dataScore": 80.0,
-        "performanceScore": 70.0,
-        "estimatedSavings": {
-            "batteryMinutes": 30.0,
-            "dataMB": 20.0
-        }
-    }
-    
-    logger.info(f"[PowerGuard] Generated test response with {len(response['actionable'])} actionable items and {len(response['insights'])} insights")
-    return response
-
-@app.get("/api/test/no-prompt", tags=["Testing"])
-async def test_no_prompt():
-    """
-    Test endpoint that returns a sample response without a prompt.
-    This endpoint does not call the LLM, it just returns a sample response.
-    
-    Returns:
-    * A sample ActionResponse without considering a prompt
-    
-    Response Example:
-    ```json
-    {
-        "id": "test_1686123456",
-        "success": true,
-        "timestamp": 1686123456.789,
-        "message": "Test response generated successfully",
-        "actionable": [
-            {
-                "id": "test-1",
-                "type": "MANAGE_WAKE_LOCKS",
-                "packageName": "com.example.app",
-                "description": "Manage wake locks for app",
-                "reason": "App is consuming excessive battery",
-                "newMode": "restricted",
-                "parameters": {}
-            }
-        ],
-        "insights": [
-            {
-                "type": "TestInsight",
-                "title": "Test Insight",
-                "description": "This is a test insight",
-                "severity": "medium"
-            }
-        ],
-        "batteryScore": 80.0,
-        "dataScore": 70.0,
-        "performanceScore": 75.0,
-        "estimatedSavings": {
-            "batteryMinutes": 60.0,
-            "dataMB": 30.0
-        }
-    }
-    ```
-    """
-    logger.info("[PowerGuard] Test endpoint called without prompt")
-    
-    # Generate a sample response without a prompt
-    response = ActionResponse.example_response()
-    
-    logger.info(f"[PowerGuard] Generated sample response with {len(response.actionable)} actionable items and {len(response.insights)} insights")
-    return response
-
-@app.post("/api/debug/app-values", tags=["Testing"])
-async def debug_app_values(data: DeviceData = Body(...)):
-    """
-    Debug endpoint to examine the battery usage values for all apps in the request.
-    
-    Returns:
-        Dictionary with app names and their battery usage values
-    """
-    result = {
-        "battery_values": []
-    }
-    
-    try:
-        # Process each app
-        for app in data.apps:
-            app_info = {
-                "app_name": app.appName,
-                "package_name": app.packageName,
-                "battery_usage": app.batteryUsage,
-                "battery_usage_type": str(type(app.batteryUsage))
-            }
-            result["battery_values"].append(app_info)
-            
-        return result
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error processing app values: {str(e)}"
-        )
-
-@app.post("/api/test/seed-pattern", tags=["Testing"])
-async def seed_test_pattern(pattern_data: dict = Body(...), db: Session = Depends(get_db)):
-    """
-    Test endpoint to seed the database with a usage pattern.
-    This is used for testing the impact of usage patterns on recommendations.
-    
-    Parameters:
-    * pattern_data: Dictionary containing deviceId, packageName, pattern, and timestamp
-    
-    Returns:
-    * Success message if pattern is seeded successfully
-    * Error message with details if seeding fails
-    
-    Response Example:
-    ```json
-    {
-        "status": "success",
-        "message": "Pattern seeded successfully"
-    }
-    ```
-    """
-    try:
-        device_id = pattern_data.get("deviceId")
-        package_name = pattern_data.get("packageName")
-        pattern_text = pattern_data.get("pattern")
-        timestamp = pattern_data.get("timestamp", int(datetime.now().timestamp()))
-        
-        if not device_id or not package_name or not pattern_text:
-            raise HTTPException(
-                status_code=400,
-                detail="Missing required fields: deviceId, packageName, and pattern are required"
-            )
-        
-        # Check if pattern already exists
-        existing_pattern = db.query(UsagePattern).filter(
-            UsagePattern.deviceId == device_id,
-            UsagePattern.packageName == package_name
-        ).first()
-        
-        if existing_pattern:
-            # Update existing pattern
-            existing_pattern.pattern = pattern_text
-            existing_pattern.timestamp = timestamp
-            logger.debug(f"Updated test pattern for device {device_id}, package {package_name}")
-        else:
-            # Create new pattern
-            db_pattern = UsagePattern(
-                deviceId=device_id,
-                packageName=package_name,
-                pattern=pattern_text,
-                timestamp=timestamp
-            )
-            db.add(db_pattern)
-            logger.debug(f"Created new test pattern for device {device_id}, package {package_name}")
-        
-        db.commit()
-        
-        return {
-            "status": "success",
-            "message": "Pattern seeded successfully"
-        }
-    
-    except Exception as e:
-        logger.error(f"Error seeding test pattern: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to seed test pattern: {str(e)}"
-        ) 
+# Testing-only routes have been removed for production readiness.
