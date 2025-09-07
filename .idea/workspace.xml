@@ -6,6 +6,36 @@
   <component name="ChangeListManager">
     <list default="true" id="f7e6375e-17aa-47ac-bac3-c38b807667be" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ARCHITECTURE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/IMPLEMENTATION-SUMMARY.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJECT-COMPLETION.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TESTING.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android_request_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/power_guard.db" beforeDir="false" afterPath="$PROJECT_DIR$/power_guard.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/presentation_prompt.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenario_result_1744220150.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenario_result_1744220158.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenario_result_1744220163.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenario_result_1744220532.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenario_result_1744220541.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/single_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/temp_data_strategy.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/temp_device_data.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_10_percent_battery_scenario.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_battery_data_combinations.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_battery_query.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_case_runner.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_constraint.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_critical_scenarios.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_prompts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_single.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_single_scenario.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_yesno_low.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests_groq.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests_offline.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,21 +50,21 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "hiteshchopra11"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;hiteshchopra11&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/hiteshchopra11/PowerGuardBackend.git",
-    "accountId": "de15be88-59bb-4de3-ae2d-5b7b454378e0"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/hiteshchopra11/PowerGuardBackend.git&quot;,
+    &quot;accountId&quot;: &quot;de15be88-59bb-4de3-ae2d-5b7b454378e0&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="32L3XV5yMRfr8ijIp17VG59bnnR" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -46,7 +76,8 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "refactor",
+    "git-widget-placeholder": "refactor-clean",
+    "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/hitesh.chopra/Desktop/PowerGuardBackend",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -54,12 +85,14 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "preferences.pluginManager",
+    "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
+        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-PY-252.25557.178" />
         <option value="bundled-python-sdk-ce6832f46686-7b97d883f26b-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.25557.178" />
       </set>
     </attachedChunks>
@@ -71,7 +104,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1757186065336</updated>
-      <workItem from="1757186077950" duration="11315000" />
+      <workItem from="1757186077950" duration="11769000" />
+      <workItem from="1757237288087" duration="669000" />
     </task>
     <task id="LOCAL-00001" summary="Removed unnecessary code">
       <option name="closed" value="true" />
@@ -110,6 +144,17 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Removed unnecessary code" />
