@@ -7,14 +7,6 @@ from datetime import datetime
 
 # Available tests to run
 TEST_SCRIPTS = {
-    "single": {
-        "script": "test_single.py",
-        "description": "Simple single prompt test"
-    },
-    "prompt": {
-        "script": "test_prompt_api.py",
-        "description": "Multiple prompt tests"
-    },
     "automated": {
         "script": "automated_test.py",
         "description": "Comprehensive automated test suite"

@@ -299,88 +299,14 @@ def main():
     # Use custom URL if provided
     api_url = args.url
     
-    # Create a wrapper for run_benchmark to use custom URL
-    def run_benchmark_with_url(prompt_type, num_requests, concurrent, payload_size, timeout, test_endpoint):
-        """Wrapper for run_benchmark to use custom URL"""
-        prompt = TEST_PROMPTS.get(prompt_type)
-        prompt_desc = f"'{prompt}'" if prompt else "None"
-        
-        if test_endpoint:
-            if prompt:
-                url = f"{api_url}/api/test/with-prompt/{prompt}"
-            else:
-                url = f"{api_url}/api/test/no-prompt"
-            method = "GET"
-        else:
-            url = f"{api_url}/api/analyze"
-            method = "POST"
-        
-        print(f"Running benchmark with:")
-        print(f"  Prompt type: {prompt_type} ({prompt_desc})")
-        print(f"  Endpoint: {url} ({method})")
-        print(f"  Payload size: {payload_size}")
-        print(f"  Requests: {num_requests}")
-        print(f"  Concurrency: {'Enabled' if concurrent else 'Disabled'}")
-        print(f"  Timeout: {timeout} seconds")
-        print("Starting benchmark...")
-        
-        results = []
-        
-        if concurrent:
-            # Generate payloads in advance
-            payloads = [
-                generate_test_payload(prompt, payload_size) for _ in range(num_requests)
-            ]
-            
-            # Make concurrent requests
-            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-                if test_endpoint:
-                    # For test endpoints, we don't need payloads
-                    futures = [executor.submit(
-                        lambda u: measure_response_time(u, {}, timeout),
-                        url
-                    ) for _ in range(num_requests)]
-                else:
-                    futures = [executor.submit(
-                        measure_response_time,
-                        url, payload, timeout
-                    ) for payload in payloads]
-                
-                for i, future in enumerate(concurrent.futures.as_completed(futures)):
-                    try:
-                        result = future.result()
-                        results.append(result)
-                        print(f"  Request {i+1}/{num_requests} completed in {result['response_time']:.2f} seconds")
-                    except Exception as e:
-                        results.append({
-                            "start_time": time.time(),
-                            "response_time": None,
-                            "status_code": None,
-                            "success": False,
-                            "error": str(e)
-                        })
-                        print(f"  Request {i+1}/{num_requests} failed: {str(e)}")
-        else:
-            # Make sequential requests
-            for i in range(num_requests):
-                if test_endpoint:
-                    # For test endpoints, we don't need a payload
-                    result = measure_response_time(url, {}, timeout)
-                else:
-                    payload = generate_test_payload(prompt, payload_size)
-                    result = measure_response_time(url, payload, timeout)
-                
-                results.append(result)
-                print(f"  Request {i+1}/{num_requests} completed in {result['response_time']:.2f} seconds")
-        
-        return results
-    
-    # Run benchmark with the appropriate function
-    run_benchmark_fn = run_benchmark_with_url if api_url != BASE_URL else run_benchmark
+    # Update global BASE_URL if custom URL provided
+    if api_url != BASE_URL:
+        global BASE_URL
+        BASE_URL = api_url
     
     # Run benchmark
     start_time = time.time()
-    results = run_benchmark_fn(
+    results = run_benchmark(
         args.prompt, args.requests, args.concurrent, 
         args.size, args.timeout, args.test
     )
