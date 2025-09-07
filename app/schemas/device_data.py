@@ -1,21 +1,41 @@
+# This file contains schema definitions for PowerGuard device data.
+# The main models are defined in app/models.py
+# This file is kept for compatibility but should reference the main models.
+
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import List, Dict, Optional
 from datetime import datetime
 
-class DeviceDataSchema(BaseModel):
-    device_id: str = Field(..., description="Unique identifier for the device")
-    timestamp: datetime = Field(..., description="Timestamp of the measurement")
-    power_consumption: float = Field(..., description="Power consumption in kWh")
-    temperature: Optional[float] = Field(None, description="Temperature in Celsius")
-    status: str = Field(..., description="Current status of the device")
+# Import the actual models used by the API
+from ..models import (
+    DeviceData,
+    BatteryInfo,
+    MemoryInfo,
+    CpuInfo,
+    NetworkInfo,
+    AppInfo,
+    DeviceInfo,
+    SettingsData,
+    DataUsageInfo,
+    ActionResponse,
+    ActionableItem,
+    InsightItem,
+    EstimatedSavings
+)
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "device_id": "device_001",
-                "timestamp": "2024-03-20T10:00:00",
-                "power_consumption": 2.5,
-                "temperature": 25.5,
-                "status": "active"
-            }
-        } 
+# Re-export the main models for backwards compatibility
+__all__ = [
+    'DeviceData',
+    'BatteryInfo', 
+    'MemoryInfo',
+    'CpuInfo',
+    'NetworkInfo',
+    'AppInfo',
+    'DeviceInfo',
+    'SettingsData',
+    'DataUsageInfo',
+    'ActionResponse',
+    'ActionableItem',
+    'InsightItem',
+    'EstimatedSavings'
+]

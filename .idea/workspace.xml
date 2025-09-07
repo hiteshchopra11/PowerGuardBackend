@@ -4,18 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7e6375e-17aa-47ac-bac3-c38b807667be" name="Changes" comment="Removed unncessary code">
-      <change beforePath="$PROJECT_DIR$/battery_data_combination_results.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmark.py" beforeDir="false" afterPath="$PROJECT_DIR$/benchmark.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo_prompt_analysis.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/description.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/milestone_one.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/real_api_test_results.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_all_tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_all_tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seed_test_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/seed_test_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_request.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_results.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_yesno.json" beforeDir="false" />
+    <list default="true" id="f7e6375e-17aa-47ac-bac3-c38b807667be" name="Changes" comment="Code cleanup">
+      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/schemas/device_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/schemas/device_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +76,7 @@
       <option name="presentableId" value="Default" />
       <updated>1757186065336</updated>
       <workItem from="1757186077950" duration="11769000" />
-      <workItem from="1757237288087" duration="1579000" />
+      <workItem from="1757237288087" duration="1878000" />
     </task>
     <task id="LOCAL-00001" summary="Removed unnecessary code">
       <option name="closed" value="true" />
@@ -127,7 +118,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757237974916</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Code cleanup">
+      <option name="closed" value="true" />
+      <created>1757238912218</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1757238912218</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -148,6 +147,7 @@
     <MESSAGE value="Removed unnecessary code" />
     <MESSAGE value="Changes" />
     <MESSAGE value="Removed unncessary code" />
-    <option name="LAST_COMMIT_MESSAGE" value="Removed unncessary code" />
+    <MESSAGE value="Code cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Code cleanup" />
   </component>
 </project>
