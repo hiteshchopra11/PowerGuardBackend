@@ -32,7 +32,15 @@
       "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/presentation_prompt.md)",
       "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/IMPLEMENTATION-SUMMARY.md )",
       "Bash(/Users/hitesh.chopra/Desktop/PowerGuardBackend/PROJECT-COMPLETION.md)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

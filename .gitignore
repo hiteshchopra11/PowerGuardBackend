@@ -28,3 +28,44 @@ celerybeat-schedule
 *.db
 *.sqlite3
 .DS_Store
+.claude
+.cursor
+.vscode
+
+# Security - Additional protection against secrets
+*.key
+*.pem
+*.p12
+.secrets
+config/secrets.json
+**/secrets/**
+
+# IDE and Editor files
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+
+# Test results and temporary files
+*_results.txt
+*_result_*.json
+scenario_result_*.json
+prompt_test_results_*.json
+temp_*.json
+test_results.txt
+battery_data_combination_results.txt
+real_api_test_results.txt
+
+# Project-specific files that shouldn't be versioned
+description.txt
+milestone_one.txt
+demo_prompt_analysis.py
+
+# Database files (already covered by *.db but being explicit)
+power_guard.db
+*.sqlite
+*.sqlite3
+
+# Deployment and configuration files
+render.yaml

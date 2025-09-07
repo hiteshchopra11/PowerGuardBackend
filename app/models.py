@@ -78,6 +78,9 @@ class AppInfo(BaseModel):
     targetSdkVersion: int
     installTime: float
     updatedTime: float
+    alarmWakeups: Optional[int] = 0
+    currentPriority: Optional[str] = "UNKNOWN"
+    bucket: Optional[str] = "ACTIVE"
     
     @model_validator(mode='after')
     def validate_negative_values(self):
@@ -114,6 +117,9 @@ class DeviceData(BaseModel):
     deviceInfo: Optional[DeviceInfo] = None
     settings: Optional[SettingsData] = None
     prompt: str
+    currentDataMb: Optional[float] = None
+    totalDataMb: Optional[float] = None
+    pastUsagePatterns: Optional[List[str]] = []
 
     def model_dump(self, **kwargs):
         data = super().model_dump(**kwargs)
@@ -193,10 +199,15 @@ class Actionable(BaseModel):
 class ActionableItem(BaseModel):
     id: str
     type: str
-    packageName: Optional[str] = None
     description: str
+    package_name: Optional[str] = None
+    estimated_battery_savings: Optional[float] = 0.0
+    estimated_data_savings: Optional[float] = 0.0
+    severity: Optional[int] = 1
+    new_mode: Optional[str] = None
+    enabled: Optional[bool] = True
+    throttle_level: Optional[str] = None
     reason: str
-    newMode: str
     parameters: Dict[str, Any]
 
 class InsightItem(BaseModel):
@@ -214,6 +225,7 @@ class ActionResponse(BaseModel):
     success: bool
     timestamp: float
     message: str
+    responseType: str = "BATTERY_OPTIMIZATION"
     actionable: List[ActionableItem]
     insights: List[InsightItem]
     batteryScore: float = Field(ge=0, le=100, description="Battery health score from 0-100")

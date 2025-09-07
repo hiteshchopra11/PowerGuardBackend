@@ -1,119 +1,153 @@
 # PowerGuard AI Backend
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Python-3.9+-blue.svg" alt="Python 3.9+">
-  <img src="https://img.shields.io/badge/FastAPI-0.95+-green.svg" alt="FastAPI">
-  <img src="https://img.shields.io/badge/LLM-Powered-orange.svg" alt="LLM Powered">
+  <img src="https://img.shields.io/badge/Python-3.12+-blue.svg" alt="Python 3.12+">
+  <img src="https://img.shields.io/badge/FastAPI-0.115+-green.svg" alt="FastAPI">
+  <img src="https://img.shields.io/badge/LLM-Groq%20Powered-orange.svg" alt="Groq LLM Powered">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
 </div>
 
-<p align="center">An intelligent battery and data optimization service that uses AI to analyze device usage patterns and provide actionable recommendations for better battery life and data usage.</p>
-
-![image](https://github.com/user-attachments/assets/127536c3-aa29-48f9-86dc-0c3ee7933a3c)
+<p align="center">An advanced AI-powered backend service that intelligently analyzes Android device usage patterns and provides contextual optimization recommendations for battery life and data usage through natural language processing.</p>
 
 
-## ✨ Features
+## ✨ Key Features
 
-### 🚀 Advanced AI Prompt System
-- **2-Step Query Processing**: Resource type detection (BATTERY/DATA/OTHER) → Query categorization (6 types)
-- **6 Query Categories**: Information, Predictive, Optimization, Monitoring, Pattern Analysis, Invalid
-- **Smart App Exclusion**: "Optimize data but keep WhatsApp running"
-- **Time Constraints**: "Save battery for the next 3 hours"
-- **Number Specifications**: "Show me top 5 battery-consuming apps"
+### 🧠 Advanced AI Query Processing
+- **6 Query Categories**: Information, Predictive, Optimization, Monitoring, Routing, Pattern Analysis
+- **3 Resource Types**: Battery, Data, and Performance optimization
+- **Natural Language Understanding**: Processes complex user prompts with contextual awareness
+- **Smart Intent Detection**: Distinguishes between information requests and action requests
 
-### 🔋 Core Optimization Features
-- 🔋 Smart battery optimization based on usage patterns
-- 📊 Data usage analysis and optimization
-- 📱 Intelligent app categorization and management
-- 💡 Context-aware optimization strategies
-- 🔄 Hybrid rule-based and LLM-powered analysis
-- 🧩 Smart critical app protection
-- 🎯 Battery level-based optimization
-- ⏱️ Time constraint-aware recommendations
-- 💬 Natural language processing for user requests
-- 🔒 Protected app handling for critical applications
-- 📈 Performance scoring and savings estimation
+### 🎯 Intelligent Optimization Engine
+- **Battery Level-Based Strategies**: Adapts aggressiveness from Minimal (>50%) to Very Aggressive (≤10%)
+- **Critical App Protection**: Automatically protects messaging, navigation, email, and work apps
+- **Constraint Processing**: Handles time limits ("need 3 hours") and data limits ("500MB left")
+- **5 Actionable Types**: Standby bucket management, background data restriction, app termination, wake lock management, CPU throttling
 
-## 🔒 Lock Screen Experience
-
-PowerGuard integrates seamlessly with your device's lock screen, providing at-a-glance access to essential battery and data optimization features:
-
-- Clean, modern interface with time and date display
-- Quick access buttons for battery and data optimization
-- Smart Travel Mode toggle for optimized settings while traveling
-- Voice-enabled AI assistant for hands-free optimization
-- Beautiful background that adapts to your device theme
-- Minimal, non-intrusive design that complements your lock screen
-
-## 🚀 API Endpoints
-
-- `POST /api/analyze` - Analyze device data and get optimization recommendations
-- `GET /api/patterns/{device_id}` - Get usage patterns for a specific device
-- `POST /api/reset-db` - Reset the database (use with caution)
-- `GET /api/all-entries` - Get all database entries
-- `GET /api/test/with-prompt/{prompt}` - Test endpoint that generates a sample response based on a prompt
-- `GET /api/test/no-prompt` - Test endpoint that generates a sample response with default settings
+### 🔄 Hybrid Analysis Architecture
+- **Rule-Based Pre-processing**: Fast initial categorization and constraint extraction
+- **LLM-Powered Deep Analysis**: Groq integration for nuanced understanding and recommendations
+- **Usage Pattern Learning**: SQLite-based historical analysis and pattern recognition
+- **Retry Mechanisms**: Exponential backoff for API reliability
 
 ## 🏗️ System Architecture
 
-```mermaid
-graph TD
-    A[Android App] -->|Device Data| B[PowerGuard Backend]
-    B -->|Analysis Request| C[Groq LLM Service]
-    B -->|Store/Retrieve| D[(SQLite DB)]
-    
-    subgraph "PowerGuard Backend"
-        B1[FastAPI Server]
-        B2[Data Processor]
-        B3[Pattern Analyzer]
-        B4[Rate Limiter]
-        B5[Prompt Analyzer]
-        B6[Strategy Determiner]
-        B7[Error Handler]
-        B8[Actionable Generator]
-        B1 --> B2
-        B1 --> B4
-        B2 --> B3
-        B2 --> B5
-        B5 --> B6
-        B6 --> B8
-        B1 --> B7
-    end
-    
-    subgraph "Groq LLM Service"
-        C1[LLM Model]
-        C2[Pattern Recognition]
-        C3[Recommendation Engine]
-        C4[Constraint Analysis]
-        C1 --> C2
-        C2 --> C3
-        C1 --> C4
-        C4 --> C3
-    end
+PowerGuard follows a modular, layered architecture designed for scalability and maintainability:
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Android App   │───▶│  FastAPI Server  │───▶│   Groq LLM      │
+│   (Client)      │    │                  │    │   Service       │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌──────────────────┐
+                       │   SQLite DB      │
+                       │  (Usage Patterns)│
+                       └──────────────────┘
 ```
 
-## 📊 Smart Prompt Analysis Flow
+### Core Components
 
-```mermaid
-graph TD
-    A[User Prompt] --> B[Information or Optimization Request?]
-    B -->|Information| C[Extract Resource Type]
-    B -->|Optimization| D[Extract Constraints]
-    C --> E[Generate Information Insights]
-    D --> F[Identify Critical Apps]
-    D --> G[Extract Time Constraints]
-    D --> H[Extract Data Constraints]
-    F --> I[Strategy Generation]
-    G --> I
-    H --> I
-    I --> J[Battery Level Analysis]
-    J --> K[Determine Aggressiveness]
-    K --> L[Generate Actionables]
-    K --> M[Generate Optimization Insights]
-    L --> N[Final Response]
-    M --> N
-    E --> N
+- **FastAPI Server** (`app/main.py`): REST API with rate limiting and validation
+- **Query Processor** (`app/prompts/query_processor.py`): Advanced prompt analysis with 6 categories
+- **Strategy Analyzer** (`app/utils/strategy_analyzer.py`): Battery-level based strategy determination
+- **Actionable Generator** (`app/utils/actionable_generator.py`): Creates specific device actions
+- **Insight Generator** (`app/utils/insight_generator.py`): Generates user-friendly explanations
+- **LLM Service** (`app/llm_service.py`): Groq API integration with retry logic
+- **Database Layer** (`app/database.py`): SQLAlchemy ORM with usage pattern storage
+
+## 🚀 API Endpoints
+
+| Method | Endpoint | Description | Security Level |
+|--------|----------|-------------|----------------|
+| `POST` | `/api/analyze` | **Main Analysis Endpoint** - Process device data with optional user prompt | Rate Limited |
+| `GET` | `/api/patterns/{device_id}` | Retrieve historical usage patterns for specific device | Public |
+| `POST` | `/api/reset-db` | ⚠️ **DANGEROUS** - Completely reset database | Restricted |
+| `GET` | `/api/all-entries` | Get all database entries for debugging | Development Only |
+
+### Analysis Request Format
+```json
+{
+  "deviceId": "unique-device-identifier",
+  "timestamp": 1686123456,
+  "prompt": "Save my battery for next 3 hours", // Optional
+  "battery": {
+    "level": 25,
+    "temperature": 35,
+    "isCharging": false,
+    "voltage": 3800,
+    "health": 1,
+    "capacity": 4000
+  },
+  "memory": {
+    "totalRam": 8192,
+    "availableRam": 4096,
+    "lowMemory": false
+  },
+  "cpu": {
+    "usage": 15,
+    "temperature": 45
+  },
+  "network": {
+    "type": "wifi",
+    "strength": 85,
+    "dataUsage": {"foreground": 100, "background": 50}
+  },
+  "apps": [
+    {
+      "packageName": "com.whatsapp",
+      "appName": "WhatsApp",
+      "batteryUsage": 5.2,
+      "dataUsage": {"foreground": 20, "background": 5},
+      "foregroundTime": 300,
+      "backgroundTime": 150
+    }
+  ]
+}
 ```
+
+## 🧠 AI Query Processing System
+
+PowerGuard's advanced query processing system categorizes and handles different types of user requests:
+
+### 6 Query Categories
+
+| Category | Description | Example Prompts | Response Type |
+|----------|-------------|-----------------|---------------|
+| **INFORMATION** | Requesting current usage data | "What apps use most battery?", "Show data usage" | Insights only, no actions |
+| **PREDICTIVE** | Future planning questions | "Will battery last 3 hours?", "Can I stream video?" | Predictions with conditional advice |
+| **OPTIMIZATION** | Direct optimization requests | "Save battery", "Reduce data usage" | Actionables + insights |
+| **MONITORING** | Setting up alerts/tracking | "Alert me when battery is low" | Configuration actions |
+| **ROUTING** | App-specific management | "Manage WhatsApp settings" | Targeted app actions |
+| **PATTERN_ANALYSIS** | Usage pattern insights | "Why is battery draining fast?" | Deep analysis insights |
+
+### 3 Resource Types
+
+- **BATTERY**: Power consumption optimization
+- **DATA**: Network usage optimization  
+- **OTHER**: Performance, storage, general optimization
+
+## 🔋 Battery Level-Based Optimization Strategy
+
+PowerGuard adapts its optimization aggressiveness based on current battery level and user constraints:
+
+| Battery Level | Strategy | Approach | Example Actions |
+|--------------|----------|----------|----------------|
+| **≤10% (Critical)** | Very Aggressive | Maximum power conservation | Kill non-critical apps, force dark mode, disable sync |
+| **≤30% (Low)** | Aggressive | Strong background restrictions | Limit background refresh, reduce location services |
+| **≤50% (Moderate)** | Balanced | Focus on problematic apps | Optimize high-drain apps, normal sync intervals |
+| **>50% (High)** | Minimal | Light optimizations only | Target extreme battery consumers only |
+
+### 5 Actionable Types
+
+PowerGuard generates specific device actions using these categories:
+
+1. **SET_STANDBY_BUCKET** - App standby state management (Active, Working Set, Frequent, Rare, Restricted)
+2. **RESTRICT_BACKGROUND_DATA** - Network access control for background processes
+3. **KILL_APP** - Immediate app termination for critical battery saving
+4. **MANAGE_WAKE_LOCKS** - Power management lock control
+5. **THROTTLE_CPU_USAGE** - CPU frequency and usage limitations
 
 ## 🔄 Data Flow
 
@@ -540,57 +574,141 @@ PowerGuard recognizes these critical app categories that are often protected dur
 
 ## 🛠️ Setup and Installation
 
-1. Clone the repository
-2. Create a virtual environment:
+### Prerequisites
+- Python 3.12+
+- Groq API key ([Get one here](https://console.groq.com/))
+
+### Installation Steps
+
+1. **Clone and setup environment**:
    ```bash
+   git clone <repository-url>
+   cd PowerGuardBackend
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
-3. Install dependencies:
+
+2. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
-4. Set up environment variables:
+
+3. **Configure environment**:
+   ```bash
+   # Create .env file
+   echo "GROQ_API_KEY=your_groq_api_key_here" > .env
    ```
-   GROQ_API_KEY=your_api_key_here
+
+4. **Initialize database**:
+   ```bash
+   python -c "from app.database import Base, engine; Base.metadata.create_all(bind=engine)"
    ```
-5. Run the application:
+
+5. **Start the server**:
    ```bash
    python run.py
+   # Server starts at http://localhost:8000
    ```
 
-## 🧪 Testing the Application
+## 🧪 Testing & Validation
 
-PowerGuard includes several test scripts to verify its functionality:
+PowerGuard includes comprehensive testing tools:
 
-1. **Run All Tests**:
-   ```bash
-   python run_all_tests.py
-   ```
+### Quick Test
+```bash
+# Test API with curl
+curl -X POST "http://localhost:8000/api/analyze" \
+  -H "Content-Type: application/json" \
+  -d @test_request.json
+```
 
-2. **Test Specific Prompts**:
-   ```bash
-   python test_case_runner.py --prompt "Save my battery"
-   ```
+### Comprehensive Testing
+```bash
+# Run all tests
+python run_all_tests.py
 
-3. **Test with Automated Scenarios**:
-   ```bash
-   python automated_test.py
-   ```
+# Automated scenario testing
+python automated_test.py
 
-4. **Benchmark Performance**:
-   ```bash
-   python benchmark.py --prompt battery --requests 20
-   ```
+# Real API integration test
+python real_api_test.py
+```
 
-For more details on testing options, see the [TESTING.md](TESTING.md) documentation.
+### Development Tools
+```bash
+# Seed test data
+python seed_test_data.py
+
+# Database inspection
+python inspect_db.py
+
+# Reset database (⚠️ destructive)
+python reset_db.py
+```
 
 ## 📚 API Documentation
 
-Access the interactive API documentation at:
-- Swagger UI: `/docs`
-- ReDoc: `/redoc`
+Once the server is running, access interactive documentation at:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+## 🗂️ Project Structure
+
+```
+PowerGuardBackend/
+├── app/
+│   ├── main.py                 # FastAPI server and endpoints
+│   ├── models.py              # Pydantic data models
+│   ├── database.py            # SQLAlchemy ORM setup
+│   ├── llm_service.py         # Groq LLM integration
+│   ├── prompts/
+│   │   ├── query_processor.py  # 6-category query analysis
+│   │   └── system_prompts.py   # LLM system prompts
+│   └── utils/
+│       ├── strategy_analyzer.py    # Battery strategy logic
+│       ├── actionable_generator.py # Action generation
+│       └── insight_generator.py    # User insight creation
+├── tests/                     # Unit tests
+├── run.py                     # Development server
+├── requirements.txt           # Dependencies
+├── CLAUDE.md                  # Development instructions
+└── README.md                  # This file
+```
+
+## 🔧 Development Commands
+
+All available commands are documented in `CLAUDE.md`. Key commands:
+
+```bash
+# Development server
+python run.py
+
+# Testing
+python run_all_tests.py
+python automated_test.py
+python real_api_test.py
+
+# Database management
+python seed_test_data.py
+python inspect_db.py
+python reset_db.py  # ⚠️ Destructive
+```
+
+## 🤝 Contributing
+
+1. Follow the architecture patterns established in the codebase
+2. Use the hybrid rule-based + LLM approach for new features
+3. Maintain the 6-category query processing system
+4. Add tests for new functionality
+5. Update CLAUDE.md with new development commands
 
 ## 📄 License
 
-MIT License 
+MIT License
+
+---
+
+<div align="center">
+  <strong>PowerGuard AI Backend</strong><br>
+  Intelligent Android optimization powered by Groq LLM
+</div> 

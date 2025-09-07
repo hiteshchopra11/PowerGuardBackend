@@ -254,23 +254,3 @@ class QueryProcessor:
         }
 
 # Utility functions for backward compatibility
-def process_user_query(
-    user_query: str,
-    device_data: Dict[str, Any], 
-    groq_client: Groq,
-    past_usage_patterns: Optional[str] = None
-) -> Dict[str, Any]:
-    """
-    Convenience function to process a user query.
-    
-    Args:
-        user_query: User's query string
-        device_data: Device data dictionary
-        groq_client: Groq client instance
-        past_usage_patterns: Optional past usage patterns
-        
-    Returns:
-        Analysis result dictionary
-    """
-    processor = QueryProcessor(groq_client)
-    return processor.process_query(user_query, device_data, past_usage_patterns)

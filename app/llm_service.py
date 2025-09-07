@@ -1,3 +1,4 @@
+
 import os
 from groq import Groq
 from dotenv import load_dotenv
@@ -7,8 +8,6 @@ from sqlalchemy.orm import Session
 from app.database import UsagePattern
 import logging
 from datetime import datetime
-import time
-import random
 
 # Import our new utility modules
 from app.utils.strategy_analyzer import determine_strategy
@@ -603,55 +602,6 @@ def calculate_performance_score(device_data: Dict[str, Any]) -> int:
         logger.error(f"Error calculating performance score: {str(e)}")
         return 50  # Default fallback score
 
-def format_apps(apps):
-    """Format apps data for the prompt"""
-    logger.debug(f"[PowerGuard] Formatting data for {len(apps)} apps")
-    result = ""
-    try:
-        # Ensure apps is a list
-        if not isinstance(apps, list):
-            logger.warning("[PowerGuard] Apps data is not a list")
-            return "No valid app data available.\n"
-        
-        # Sort apps by battery usage (descending) and take top 5
-        sorted_apps = sorted(apps, key=lambda x: float(x.get('batteryUsage', 0) or 0), reverse=True)[:5]
-        
-        for app in sorted_apps:
-            try:
-                # Get app name and package name safely
-                app_name = app.get('appName', 'Unknown App')
-                package_name = app.get('packageName', 'unknown.package')
-                
-                # Get time values safely and convert to minutes
-                foreground_time = float(app.get('foregroundTime', 0)) / 60
-                background_time = float(app.get('backgroundTime', 0)) / 60
-                
-                # Get battery usage safely
-                battery_usage = float(app.get('batteryUsage', 0) or 0)
-                
-                # Get data usage safely
-                data_usage = app.get('dataUsage', {})
-                if not isinstance(data_usage, dict):
-                    data_usage = {}
-                foreground_data = float(data_usage.get('foreground', 0) or 0)
-                background_data = float(data_usage.get('background', 0) or 0)
-                total_data = foreground_data + background_data
-                
-                # Format the app entry
-                result += f"- {app_name} ({package_name}): {foreground_time:.1f}min foreground, {background_time:.1f}min background\n"
-                result += f"  Battery: {battery_usage:.1f}%, Data: {total_data:.1f}MB\n"
-            except (ValueError, TypeError, AttributeError) as e:
-                logger.warning(f"[PowerGuard] Error formatting app data: {str(e)}")
-                continue
-        
-        # If no apps were successfully formatted
-        if not result:
-            result = "No valid app data available.\n"
-        
-        return result
-    except Exception as e:
-        logger.error(f"[PowerGuard] Error in format_apps: {str(e)}")
-        return "Error formatting app data.\n"
 
 # New helper functions for the Android app-style prompt system
 
