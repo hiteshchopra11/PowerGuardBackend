@@ -28,3 +28,14 @@ celerybeat-schedule
 *.db
 *.sqlite3
 .DS_Store
+.claude
+.cursor
+.vscode
+
+# Security - Additional protection against secrets
+*.key
+*.pem
+*.p12
+.secrets
+config/secrets.json
+**/secrets/**
