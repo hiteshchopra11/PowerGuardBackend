@@ -8,11 +8,15 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
 </div>
 
-<p align="center">A production-ready AI-powered backend service that intelligently analyzes Android device usage patterns and provides contextual optimization recommendations through advanced natural language processing.</p>
+<p align="center">An AI-powered backend service that intelligently analyzes Android device usage patterns and provides contextual optimization recommendations through advanced natural language processing.</p>
+
+<p align="center">
+  <strong>📱 Android App Available:</strong> <a href="https://github.com/hiteshchopra11/PowerGuard">PowerGuard Android Client</a>
+</p>
 
 ## 🏗️ Architecture
 
-PowerGuard follows a **Service-Oriented MVC Architecture** designed for scalability, maintainability, and testability:
+PowerGuard follows a **Service-Oriented Architecture** with clear separation of concerns:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -21,7 +25,6 @@ PowerGuard follows a **Service-Oriented MVC Architecture** designed for scalabil
 │ Controllers (API Layer)     │ FastAPI Routers & HTTP Handling      │
 │ Services (Business Logic)   │ Core Analysis & Optimization Logic   │
 │ Repositories (Data Access)  │ Database Operations & Patterns       │
-│ Models (Database)          │ SQLAlchemy ORM Entities               │
 │ Schemas (API Contracts)    │ Pydantic Request/Response Models      │
 │ Core (Infrastructure)      │ Database, Config, Exceptions         │
 └─────────────────────────────────────────────────────────────────────┘
@@ -30,40 +33,43 @@ PowerGuard follows a **Service-Oriented MVC Architecture** designed for scalabil
 ### Directory Structure
 ```
 app/
-├── controllers/            # API Layer (FastAPI routers)
+├── controllers/            # API endpoints
 │   ├── analysis.py        # /api/analyze endpoint
 │   ├── patterns.py        # /api/patterns/* endpoints
 │   └── health.py          # /api/reset-db endpoint
-├── services/              # Business Logic Layer
-│   ├── analysis_service.py    # Main orchestration
+├── services/              # Business logic
+│   ├── analysis_service.py    # Main orchestration service
 │   ├── pattern_service.py     # Usage pattern management
-│   ├── scoring_service.py     # Device score calculations
-│   └── llm_service.py         # LLM integration
-├── repositories/          # Data Access Layer
-│   ├── base.py            # Base repository pattern
+│   ├── scoring_service.py     # Device scoring calculations
+│   └── llm_service.py         # LLM integration service
+├── repositories/          # Data access layer
 │   └── usage_pattern_repository.py
-├── models/                # Database Models (SQLAlchemy)
-│   └── usage_pattern.py   # Usage patterns entity
-├── schemas/               # API Contracts (Pydantic)
+├── schemas/               # Pydantic models
 │   ├── device_data.py     # Request schemas
 │   └── response.py        # Response schemas
-├── core/                  # Core Infrastructure
+├── core/                  # Infrastructure
 │   ├── database.py        # Database configuration
 │   ├── config.py          # Application settings
 │   └── exceptions.py      # Custom exceptions
-├── prompts/               # LLM Prompt Management
-│   ├── query_processor.py # 2-step query analysis
+├── prompts/               # LLM prompt management
+│   ├── query_processor.py # 3-step query analysis
 │   └── system_prompts.py  # Prompt templates
-├── utils/                 # Legacy utilities (being phased out)
-└── main.py               # FastAPI app setup
+├── config/                # App configuration
+│   ├── app_categories.py  # Critical app definitions
+│   └── strategy_config.py # Optimization strategies
+├── utils/                 # Utility modules
+│   ├── strategy_analyzer.py  # Strategy determination
+│   ├── actionable_generator.py  # Action generation
+│   └── insight_generator.py    # Insight generation
+└── main.py               # FastAPI application setup
 ```
 
-## 🧠 Advanced Prompt Request/Response Strategy
+## 🧠 Advanced Query Processing System
 
-PowerGuard implements a sophisticated **3-Step AI Query Processing System**:
+PowerGuard implements a sophisticated **3-Step AI Query Processing System** via `app.prompts.query_processor:QueryProcessor`:
 
 ### Step 1: Resource Type Detection
-First, the system classifies user queries into resource categories:
+Classifies user queries into resource categories:
 
 ```python
 # Examples of resource type classification
@@ -74,11 +80,11 @@ First, the system classifies user queries into resource categories:
 
 **Supported Resource Types:**
 - **BATTERY**: Power consumption optimization
-- **DATA**: Network usage optimization
+- **DATA**: Network usage optimization  
 - **OTHER**: Performance, storage, general optimization
 
 ### Step 2: Query Categorization
-The system then categorizes queries into 6 distinct types:
+Categorizes queries into 6 distinct types:
 
 | Category | Intent | Example | Response Strategy |
 |----------|--------|---------|------------------|
@@ -90,7 +96,7 @@ The system then categorizes queries into 6 distinct types:
 | **6. INVALID** | Unrelated queries | "What's the weather?" | **Error guidance** |
 
 ### Step 3: Context-Aware Analysis
-The system generates responses using category-specific prompt templates with:
+Generates responses using category-specific prompt templates with:
 
 - **Device Context**: Battery level, memory, CPU, network status
 - **App Analysis**: Usage patterns, consumption metrics
@@ -150,23 +156,23 @@ PowerGuard generates specific device actions using these standardized types:
    ```
 
 ### Battery-Level Adaptive Strategy
-PowerGuard adapts optimization aggressiveness based on current battery level:
+PowerGuard adapts optimization aggressiveness based on current battery level (implemented in `app.utils.strategy_analyzer:determine_strategy`):
 
 | Battery Level | Strategy | Actionable Intensity | Example Actions |
 |--------------|----------|---------------------|----------------|
-| **≤10% (Critical)** | Very Aggressive | Maximum restrictions | Kill non-critical apps, force sleep mode |
+| **≤10% (Critical)** | Very Aggressive | Maximum restrictions | Kill non-critical apps, restrict background activity |
 | **≤30% (Low)** | Aggressive | Strong limitations | Restrict background activity, reduce sync |
 | **≤50% (Moderate)** | Balanced | Targeted optimization | Focus on problematic apps only |
 | **>50% (High)** | Minimal | Light optimization | Target extreme consumers only |
 
 ### Critical App Protection
-The system automatically protects essential apps during optimization:
+The system automatically protects essential apps during optimization (defined in `app.config.app_categories:APP_CATEGORIES`):
 
-- **Messaging**: WhatsApp, Messenger, Telegram, Signal, WeChat
-- **Navigation**: Google Maps, Waze, Apple Maps, HERE Maps  
-- **Email**: Gmail, Outlook, ProtonMail, Apple Mail
-- **Work/Productivity**: Slack, Teams, Zoom, Office apps
-- **Health & Safety**: Health monitoring, Emergency services
+- **Messaging**: WhatsApp, Messenger, Viber
+- **Navigation**: Google Maps, Waze, Mapbox  
+- **Email**: Gmail, Outlook, Yahoo Mail
+- **Social**: Facebook, Twitter, Instagram, Snapchat
+- **Media**: Spotify, Netflix, YouTube, Pandora
 
 ## 🔄 Request/Response Flow
 
@@ -242,11 +248,12 @@ sequenceDiagram
 {
   "deviceId": "unique-device-001",
   "timestamp": 1686123456.0,
-  "prompt": "Save battery for 3 hours", // Optional
+  "prompt": "Save battery for 3 hours",
   "battery": {
     "level": 25.0,
     "temperature": 35.0,
     "isCharging": false,
+    "chargingType": "none",
     "voltage": 3.8,
     "health": 95,
     "capacity": 4000.0,
@@ -283,6 +290,9 @@ sequenceDiagram
       "processName": "com.whatsapp",
       "appName": "WhatsApp",
       "isSystemApp": false,
+      "lastUsed": 1686123456.0,
+      "foregroundTime": 3600.0,
+      "backgroundTime": 1800.0,
       "batteryUsage": 15.0,
       "dataUsage": {
         "foreground": 10.0,
@@ -290,17 +300,34 @@ sequenceDiagram
         "rxBytes": 100000.0,
         "txBytes": 50000.0
       },
-      "foregroundTime": 3600.0,
-      "backgroundTime": 1800.0,
       "memoryUsage": 128.0,
       "cpuUsage": 5.0,
       "notifications": 3,
       "crashes": 0,
       "versionName": "1.0.0",
       "versionCode": 1,
-      "targetSdkVersion": 30
+      "targetSdkVersion": 30,
+      "installTime": 1686000000.0,
+      "updatedTime": 1686100000.0,
+      "alarmWakeups": 2,
+      "currentPriority": "NORMAL",
+      "bucket": "ACTIVE"
     }
-  ]
+  ],
+  "deviceInfo": {
+    "manufacturer": "Samsung",
+    "model": "Galaxy S21",
+    "osVersion": "13",
+    "sdkVersion": 33,
+    "screenOnTime": 18000
+  },
+  "settings": {
+    "powerSaveMode": false,
+    "dataSaver": false,
+    "batteryOptimization": true,
+    "adaptiveBattery": true,
+    "autoSync": true
+  }
 }
 ```
 
@@ -311,14 +338,19 @@ sequenceDiagram
   "success": true,
   "timestamp": 1686123456.789,
   "message": "Analysis completed successfully",
-  "responseType": "optimization", // information|optimization|error
+  "responseType": "optimization",
   "actionable": [
     {
       "id": "action_1686123456_0",
       "type": "SET_STANDBY_BUCKET",
       "description": "Limit Instagram background activity",
       "package_name": "com.instagram.android",
+      "estimated_battery_savings": 15.0,
+      "estimated_data_savings": 0.0,
+      "severity": 2,
       "new_mode": "restricted",
+      "enabled": true,
+      "throttle_level": null,
       "reason": "High battery usage with moderate screen time",
       "parameters": {
         "packageName": "com.instagram.android",
@@ -405,31 +437,6 @@ python automated_test.py
 python inspect_db.py
 python reset_db.py  # ⚠️ Destructive
 ```
-
-### API Documentation
-- **Interactive Docs**: http://localhost:8000/docs
-- **Alternative UI**: http://localhost:8000/redoc
-
-## 🏛️ Architecture Benefits
-
-### Service-Oriented Design
-- **Controllers**: Handle HTTP concerns only
-- **Services**: Contain business logic, testable in isolation  
-- **Repositories**: Abstract database operations
-- **Clean Dependencies**: Controllers → Services → Repositories → Models
-
-### Maintainability Features
-- **Single Responsibility**: Each layer has one clear purpose
-- **Dependency Injection**: Easy testing and mocking
-- **Custom Exceptions**: Structured error handling
-- **Modular Structure**: Add features without breaking existing code
-
-### Production Readiness
-- **Rate Limiting**: Built-in API protection
-- **Structured Logging**: Comprehensive request/error tracking
-- **Input Validation**: Pydantic schema validation
-- **Error Handling**: Graceful failure recovery
-- **Database Transactions**: Data consistency guarantees
 
 ## 📄 License
 
