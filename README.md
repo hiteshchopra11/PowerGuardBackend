@@ -4,703 +4,432 @@
   <img src="https://img.shields.io/badge/Python-3.12+-blue.svg" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/FastAPI-0.115+-green.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/LLM-Groq%20Powered-orange.svg" alt="Groq LLM Powered">
+  <img src="https://img.shields.io/badge/Architecture-Service%20Oriented-purple.svg" alt="Service Oriented">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
 </div>
 
-<p align="center">An advanced AI-powered backend service that intelligently analyzes Android device usage patterns and provides contextual optimization recommendations for battery life and data usage through natural language processing.</p>
+<p align="center">A production-ready AI-powered backend service that intelligently analyzes Android device usage patterns and provides contextual optimization recommendations through advanced natural language processing.</p>
 
+## 🏗️ Architecture
 
-## ✨ Key Features
-
-### 🧠 Advanced AI Query Processing
-- **6 Query Categories**: Information, Predictive, Optimization, Monitoring, Routing, Pattern Analysis
-- **3 Resource Types**: Battery, Data, and Performance optimization
-- **Natural Language Understanding**: Processes complex user prompts with contextual awareness
-- **Smart Intent Detection**: Distinguishes between information requests and action requests
-
-### 🎯 Intelligent Optimization Engine
-- **Battery Level-Based Strategies**: Adapts aggressiveness from Minimal (>50%) to Very Aggressive (≤10%)
-- **Critical App Protection**: Automatically protects messaging, navigation, email, and work apps
-- **Constraint Processing**: Handles time limits ("need 3 hours") and data limits ("500MB left")
-- **5 Actionable Types**: Standby bucket management, background data restriction, app termination, wake lock management, CPU throttling
-
-### 🔄 Hybrid Analysis Architecture
-- **Rule-Based Pre-processing**: Fast initial categorization and constraint extraction
-- **LLM-Powered Deep Analysis**: Groq integration for nuanced understanding and recommendations
-- **Usage Pattern Learning**: SQLite-based historical analysis and pattern recognition
-- **Retry Mechanisms**: Exponential backoff for API reliability
-
-## 🏗️ System Architecture
-
-PowerGuard follows a modular, layered architecture designed for scalability and maintainability:
+PowerGuard follows a **Service-Oriented MVC Architecture** designed for scalability, maintainability, and testability:
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Android App   │───▶│  FastAPI Server  │───▶│   Groq LLM      │
-│   (Client)      │    │                  │    │   Service       │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌──────────────────┐
-                       │   SQLite DB      │
-                       │  (Usage Patterns)│
-                       └──────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                           SERVICE LAYERS                           │
+├─────────────────────────────────────────────────────────────────────┤
+│ Controllers (API Layer)     │ FastAPI Routers & HTTP Handling      │
+│ Services (Business Logic)   │ Core Analysis & Optimization Logic   │
+│ Repositories (Data Access)  │ Database Operations & Patterns       │
+│ Models (Database)          │ SQLAlchemy ORM Entities               │
+│ Schemas (API Contracts)    │ Pydantic Request/Response Models      │
+│ Core (Infrastructure)      │ Database, Config, Exceptions         │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Core Components
+### Directory Structure
+```
+app/
+├── controllers/            # API Layer (FastAPI routers)
+│   ├── analysis.py        # /api/analyze endpoint
+│   ├── patterns.py        # /api/patterns/* endpoints
+│   └── health.py          # /api/reset-db endpoint
+├── services/              # Business Logic Layer
+│   ├── analysis_service.py    # Main orchestration
+│   ├── pattern_service.py     # Usage pattern management
+│   ├── scoring_service.py     # Device score calculations
+│   └── llm_service.py         # LLM integration
+├── repositories/          # Data Access Layer
+│   ├── base.py            # Base repository pattern
+│   └── usage_pattern_repository.py
+├── models/                # Database Models (SQLAlchemy)
+│   └── usage_pattern.py   # Usage patterns entity
+├── schemas/               # API Contracts (Pydantic)
+│   ├── device_data.py     # Request schemas
+│   └── response.py        # Response schemas
+├── core/                  # Core Infrastructure
+│   ├── database.py        # Database configuration
+│   ├── config.py          # Application settings
+│   └── exceptions.py      # Custom exceptions
+├── prompts/               # LLM Prompt Management
+│   ├── query_processor.py # 2-step query analysis
+│   └── system_prompts.py  # Prompt templates
+├── utils/                 # Legacy utilities (being phased out)
+└── main.py               # FastAPI app setup
+```
 
-- **FastAPI Server** (`app/main.py`): REST API with rate limiting and validation
-- **Query Processor** (`app/prompts/query_processor.py`): Advanced prompt analysis with 6 categories
-- **Strategy Analyzer** (`app/utils/strategy_analyzer.py`): Battery-level based strategy determination
-- **Actionable Generator** (`app/utils/actionable_generator.py`): Creates specific device actions
-- **Insight Generator** (`app/utils/insight_generator.py`): Generates user-friendly explanations
-- **LLM Service** (`app/llm_service.py`): Groq API integration with retry logic
-- **Database Layer** (`app/database.py`): SQLAlchemy ORM with usage pattern storage
+## 🧠 Advanced Prompt Request/Response Strategy
+
+PowerGuard implements a sophisticated **3-Step AI Query Processing System**:
+
+### Step 1: Resource Type Detection
+First, the system classifies user queries into resource categories:
+
+```python
+# Examples of resource type classification
+"Save my battery" → BATTERY
+"Reduce data usage" → DATA  
+"Make phone faster" → OTHER
+```
+
+**Supported Resource Types:**
+- **BATTERY**: Power consumption optimization
+- **DATA**: Network usage optimization
+- **OTHER**: Performance, storage, general optimization
+
+### Step 2: Query Categorization
+The system then categorizes queries into 6 distinct types:
+
+| Category | Intent | Example | Response Strategy |
+|----------|--------|---------|------------------|
+| **1. INFORMATION** | Data inquiry | "Which apps use most battery?" | **Insights only**, no actionables |
+| **2. PREDICTIVE** | Future planning | "Will battery last 3 hours?" | **Yes/No answers** with explanations |
+| **3. OPTIMIZATION** | Direct optimization | "Save my battery" | **Actionables + insights** |
+| **4. MONITORING** | Alert setup | "Notify when battery < 20%" | **Configuration actions** |
+| **5. PATTERN_ANALYSIS** | Usage insights | "Optimize based on my patterns" | **Historical analysis** |
+| **6. INVALID** | Unrelated queries | "What's the weather?" | **Error guidance** |
+
+### Step 3: Context-Aware Analysis
+The system generates responses using category-specific prompt templates with:
+
+- **Device Context**: Battery level, memory, CPU, network status
+- **App Analysis**: Usage patterns, consumption metrics
+- **User Constraints**: Time limits, data limits, critical apps
+- **Historical Patterns**: Past usage data for personalization
+
+## 🎯 Intelligent Response Generation
+
+### Actionable Types
+PowerGuard generates specific device actions using these standardized types:
+
+1. **SET_STANDBY_BUCKET** - App standby state management
+   ```json
+   {
+     "type": "SET_STANDBY_BUCKET",
+     "packageName": "com.facebook.katana",
+     "newMode": "restricted", // active|working_set|frequent|rare|restricted
+     "description": "Limit Facebook background activity"
+   }
+   ```
+
+2. **RESTRICT_BACKGROUND_DATA** - Network access control
+   ```json
+   {
+     "type": "RESTRICT_BACKGROUND_DATA", 
+     "packageName": "com.instagram.android",
+     "description": "Block Instagram background data usage"
+   }
+   ```
+
+3. **KILL_APP** - Immediate app termination
+   ```json
+   {
+     "type": "KILL_APP",
+     "packageName": "com.spotify.music", 
+     "description": "Force close Spotify to save battery"
+   }
+   ```
+
+4. **MANAGE_WAKE_LOCKS** - Power management control
+   ```json
+   {
+     "type": "MANAGE_WAKE_LOCKS",
+     "packageName": "com.snapchat.android",
+     "description": "Prevent Snapchat from keeping device awake"
+   }
+   ```
+
+5. **THROTTLE_CPU_USAGE** - CPU frequency limitation
+   ```json
+   {
+     "type": "THROTTLE_CPU_USAGE",
+     "packageName": "com.rovio.angrybirds",
+     "throttleLevel": "moderate",
+     "description": "Reduce CPU usage for games"
+   }
+   ```
+
+### Battery-Level Adaptive Strategy
+PowerGuard adapts optimization aggressiveness based on current battery level:
+
+| Battery Level | Strategy | Actionable Intensity | Example Actions |
+|--------------|----------|---------------------|----------------|
+| **≤10% (Critical)** | Very Aggressive | Maximum restrictions | Kill non-critical apps, force sleep mode |
+| **≤30% (Low)** | Aggressive | Strong limitations | Restrict background activity, reduce sync |
+| **≤50% (Moderate)** | Balanced | Targeted optimization | Focus on problematic apps only |
+| **>50% (High)** | Minimal | Light optimization | Target extreme consumers only |
+
+### Critical App Protection
+The system automatically protects essential apps during optimization:
+
+- **Messaging**: WhatsApp, Messenger, Telegram, Signal, WeChat
+- **Navigation**: Google Maps, Waze, Apple Maps, HERE Maps  
+- **Email**: Gmail, Outlook, ProtonMail, Apple Mail
+- **Work/Productivity**: Slack, Teams, Zoom, Office apps
+- **Health & Safety**: Health monitoring, Emergency services
+
+## 🔄 Request/Response Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as Android App
+    participant Controller as Analysis Controller
+    participant Service as Analysis Service
+    participant LLM as LLM Service
+    participant QP as Query Processor
+    participant Repo as Pattern Repository
+    participant DB as SQLite Database
+
+    Client->>Controller: POST /api/analyze + device data + prompt
+    Controller->>Service: analyze_device_data()
+    
+    alt With Prompt
+        Service->>LLM: analyze_with_prompt()
+        LLM->>QP: process_query()
+        QP->>QP: Step 1: Detect resource type (BATTERY/DATA/OTHER)
+        QP->>QP: Step 2: Categorize query (1-6)
+        QP->>QP: Step 3: Generate context-aware analysis
+        QP-->>LLM: Analysis result
+        LLM-->>Service: Transformed response
+    else No Prompt  
+        Service->>Service: Use legacy rule-based analysis
+    end
+    
+    Service->>Repo: Store usage patterns
+    Repo->>DB: Save patterns
+    DB-->>Repo: Confirm storage
+    Repo-->>Service: Success
+    Service-->>Controller: Complete analysis result
+    Controller-->>Client: JSON response with actionables + insights
+```
+
+## 🛠️ Tech Stack
+
+### Core Technologies
+- **Python 3.12+** - Modern Python with type hints
+- **FastAPI 0.115+** - High-performance async web framework
+- **Pydantic** - Data validation and serialization
+- **SQLAlchemy** - SQL toolkit and ORM
+- **SQLite** - Embedded database for usage patterns
+
+### AI/ML Stack
+- **Groq API** - High-speed LLM inference (Llama-3.1-8b-instant)
+- **Custom Prompt Engineering** - 6-category query classification system
+- **JSON Mode** - Structured LLM responses for reliability
+
+### Architecture & Patterns
+- **Service-Oriented Architecture** - Clean separation of concerns
+- **Repository Pattern** - Abstract data access layer
+- **Dependency Injection** - FastAPI's built-in DI system
+- **Custom Exception Handling** - Structured error management
+
+### Development Tools
+- **Uvicorn** - ASGI server for development
+- **python-dotenv** - Environment variable management
+- **Logging** - Structured application logging
 
 ## 🚀 API Endpoints
 
-| Method | Endpoint | Description | Security Level |
-|--------|----------|-------------|----------------|
-| `POST` | `/api/analyze` | **Main Analysis Endpoint** - Process device data with optional user prompt | Rate Limited |
-| `GET` | `/api/patterns/{device_id}` | Retrieve historical usage patterns for specific device | Public |
-| `POST` | `/api/reset-db` | ⚠️ **DANGEROUS** - Completely reset database | Restricted |
-| `GET` | `/api/all-entries` | Get all database entries for debugging | Development Only |
+| Method | Endpoint | Description | Request Body |
+|--------|----------|-------------|--------------|
+| `POST` | `/api/analyze` | **Main Analysis** - Process device data with optional prompt | `DeviceData` schema |
+| `GET` | `/api/patterns/{device_id}` | Get historical usage patterns | None |
+| `GET` | `/api/all-entries` | Get all database entries | None |
+| `POST` | `/api/reset-db` | ⚠️ Reset database | None |
 
-### Analysis Request Format
+### Request Schema Example
 ```json
 {
-  "deviceId": "unique-device-identifier",
-  "timestamp": 1686123456,
-  "prompt": "Save my battery for next 3 hours", // Optional
+  "deviceId": "unique-device-001",
+  "timestamp": 1686123456.0,
+  "prompt": "Save battery for 3 hours", // Optional
   "battery": {
-    "level": 25,
-    "temperature": 35,
+    "level": 25.0,
+    "temperature": 35.0,
     "isCharging": false,
-    "voltage": 3800,
-    "health": 1,
-    "capacity": 4000
+    "voltage": 3.8,
+    "health": 95,
+    "capacity": 4000.0,
+    "currentNow": 500.0
   },
   "memory": {
-    "totalRam": 8192,
-    "availableRam": 4096,
-    "lowMemory": false
+    "totalRam": 8000000000.0,
+    "availableRam": 4000000000.0,
+    "lowMemory": false,
+    "threshold": 1000000000.0
   },
   "cpu": {
-    "usage": 15,
-    "temperature": 45
+    "usage": 45.0,
+    "temperature": 45.0,
+    "frequencies": [1800.0, 2400.0]
   },
   "network": {
     "type": "wifi",
-    "strength": 85,
-    "dataUsage": {"foreground": 100, "background": 50}
+    "strength": 85.0,
+    "isRoaming": false,
+    "dataUsage": {
+      "foreground": 100.0,
+      "background": 50.0,
+      "rxBytes": 1000000.0,
+      "txBytes": 500000.0
+    },
+    "activeConnectionInfo": "WiFi connected",
+    "linkSpeed": 866.0,
+    "cellularGeneration": "4G"
   },
   "apps": [
     {
       "packageName": "com.whatsapp",
+      "processName": "com.whatsapp",
       "appName": "WhatsApp",
-      "batteryUsage": 5.2,
-      "dataUsage": {"foreground": 20, "background": 5},
-      "foregroundTime": 300,
-      "backgroundTime": 150
+      "isSystemApp": false,
+      "batteryUsage": 15.0,
+      "dataUsage": {
+        "foreground": 10.0,
+        "background": 5.0,
+        "rxBytes": 100000.0,
+        "txBytes": 50000.0
+      },
+      "foregroundTime": 3600.0,
+      "backgroundTime": 1800.0,
+      "memoryUsage": 128.0,
+      "cpuUsage": 5.0,
+      "notifications": 3,
+      "crashes": 0,
+      "versionName": "1.0.0",
+      "versionCode": 1,
+      "targetSdkVersion": 30
     }
   ]
 }
 ```
 
-## 🧠 AI Query Processing System
-
-PowerGuard's advanced query processing system categorizes and handles different types of user requests:
-
-### 6 Query Categories
-
-| Category | Description | Example Prompts | Response Type |
-|----------|-------------|-----------------|---------------|
-| **INFORMATION** | Requesting current usage data | "What apps use most battery?", "Show data usage" | Insights only, no actions |
-| **PREDICTIVE** | Future planning questions | "Will battery last 3 hours?", "Can I stream video?" | Predictions with conditional advice |
-| **OPTIMIZATION** | Direct optimization requests | "Save battery", "Reduce data usage" | Actionables + insights |
-| **MONITORING** | Setting up alerts/tracking | "Alert me when battery is low" | Configuration actions |
-| **ROUTING** | App-specific management | "Manage WhatsApp settings" | Targeted app actions |
-| **PATTERN_ANALYSIS** | Usage pattern insights | "Why is battery draining fast?" | Deep analysis insights |
-
-### 3 Resource Types
-
-- **BATTERY**: Power consumption optimization
-- **DATA**: Network usage optimization  
-- **OTHER**: Performance, storage, general optimization
-
-## 🔋 Battery Level-Based Optimization Strategy
-
-PowerGuard adapts its optimization aggressiveness based on current battery level and user constraints:
-
-| Battery Level | Strategy | Approach | Example Actions |
-|--------------|----------|----------|----------------|
-| **≤10% (Critical)** | Very Aggressive | Maximum power conservation | Kill non-critical apps, force dark mode, disable sync |
-| **≤30% (Low)** | Aggressive | Strong background restrictions | Limit background refresh, reduce location services |
-| **≤50% (Moderate)** | Balanced | Focus on problematic apps | Optimize high-drain apps, normal sync intervals |
-| **>50% (High)** | Minimal | Light optimizations only | Target extreme battery consumers only |
-
-### 5 Actionable Types
-
-PowerGuard generates specific device actions using these categories:
-
-1. **SET_STANDBY_BUCKET** - App standby state management (Active, Working Set, Frequent, Rare, Restricted)
-2. **RESTRICT_BACKGROUND_DATA** - Network access control for background processes
-3. **KILL_APP** - Immediate app termination for critical battery saving
-4. **MANAGE_WAKE_LOCKS** - Power management lock control
-5. **THROTTLE_CPU_USAGE** - CPU frequency and usage limitations
-
-## 🔄 Data Flow
-
-```mermaid
-sequenceDiagram
-    participant App as Android App
-    participant API as PowerGuard API
-    participant RL as Rate Limiter
-    participant PA as Prompt Analyzer
-    participant SD as Strategy Determiner
-    participant AG as Actionable Generator
-    participant DB as SQLite DB
-    participant LLM as Groq LLM
-    
-    App->>API: POST /api/analyze with prompt
-    API->>RL: Check Rate Limit
-    RL-->>API: Rate Limit OK
-    Note over API: Validate Request
-    API->>PA: Analyze User Prompt
-    PA->>LLM: Send prompt for classification
-    LLM-->>PA: Prompt classification
-    PA->>SD: Determine Strategy
-    API->>DB: Get Historical Patterns
-    DB-->>API: Return Patterns
-    SD->>AG: Generate Actionables
-    API->>LLM: Send Analysis Request with strategy
-    Note over LLM: Process with Retry Logic
-    LLM-->>API: Generate Recommendations
-    API->>DB: Store New Patterns
-    DB-->>API: Confirm Storage
-    API-->>App: Return Recommendations
-```
-
-## 🧩 Components
-
-1. **Client Application**
-   - Android app collecting device data
-   - Sends usage statistics to backend
-   - Receives and displays recommendations
-
-2. **Backend Service**
-   - FastAPI-based REST API
-   - SQLite database for data persistence
-   - Integration with Groq LLM
-   - Usage pattern analysis
-   - Strategy determination
-   - Actionable generation
-
-3. **AI Service**
-   - Groq LLM for intelligent analysis
-   - Pattern recognition
-   - Recommendation generation
-   - Prompt classification
-
-## 🔋 Battery Level Based Strategies
-
-PowerGuard adapts its optimization strategy based on current battery level:
-
-| Battery Level | Strategy | Approach | Example Actions |
-|--------------|----------|----------|----------------|
-| ≤10% (Critical) | Very Aggressive | Maximum restrictions on non-critical apps, significant UI optimizations | Kill background processes, force dark mode, limit sync, restrict GPS |
-| ≤30% (Low) | Aggressive | Strong restrictions on background activity, moderate UI optimizations | Restrict background refresh, moderate sync intervals, reduce location precision |
-| ≤50% (Moderate) | Balanced | Balanced approach focusing on problematic apps | Optimize problematic apps, normal sync intervals, standard UI settings |
-| >50% (High) | Minimal | Light optimizations only for the most resource-intensive apps | Target only extremely high battery consumers, normal operation for most apps |
-
-## 🗣️ Using Prompts for Directed Optimization
-
-The PowerGuard system supports user-directed optimizations through the optional `prompt` field in the `/api/analyze` endpoint. This feature allows users to specify their optimization goals in natural language, and the system will adjust its analysis and recommendations accordingly.
-
-### Prompt Types and Examples
-
-#### Information Requests
-
-| Request Type | Example Prompts | System Response |
-|--------------|----------------|-----------------|
-| Battery Usage Information | "What apps are using the most battery?" | Returns insights about battery-consuming apps without actionable recommendations |
-| Data Usage Information | "Which apps are using the most data?" | Returns insights about data-consuming apps without actionable recommendations |
-| General Information | "Show me my usage patterns" | Returns general usage insights without specific actionable recommendations |
-
-#### Optimization Requests
-
-| Request Type | Example Prompts | System Response |
-|--------------|----------------|-----------------|
-| Battery Optimization | "Optimize battery life", "Save power", "Make battery last longer" | Generates battery-focused optimization actions |
-| Data Optimization | "Reduce data usage", "Save network data", "Optimize internet usage" | Generates data-focused optimization actions |
-| Combined Optimization | "Optimize both battery and data", "Save resources", "Make phone more efficient" | Balanced optimization for both battery and data |
-| Specific Actions | "Kill battery-draining apps", "Restrict background data", "Turn off unnecessary services" | Generates very specific actions matching the request |
-| Critical App Protection | "Keep WhatsApp working", "I need maps and messages", "Don't touch my email app" | Protects specified apps while optimizing others |
-| Time Constraints | "Need battery to last 4 hours", "Make phone last until tonight", "Save battery until I get home" | Adjusts strategy aggressiveness based on time requirement |
-| Data Constraints | "I only have 500MB left", "Save data, almost at my limit", "Strict data saving mode" | Focuses heavily on data optimization |
-| Complex Constraints | "I'm traveling for 3 hours and need maps and messaging but save battery" | Comprehensive strategy balancing all constraints |
-
-### Critical App Categories
-
-PowerGuard recognizes these critical app categories that are often protected during optimization:
-
-1. **Messaging Apps**: WhatsApp, Messenger, Telegram, Signal, WeChat
-2. **Navigation Apps**: Google Maps, Waze, Apple Maps, Mapbox, HERE Maps
-3. **Email Apps**: Gmail, Outlook, ProtonMail, Apple Mail
-4. **Work/Productivity**: Slack, Teams, Zoom, Office apps, Google Workspace
-5. **Health & Safety**: Health monitoring, Emergency services, Safety alerts
-
-## 📝 Sample API Responses
-
-### Example 1: Battery Optimization
-
-**Request:**
+### Response Schema Example
 ```json
 {
-  "deviceId": "example-device-001",
-  "timestamp": 1686123456,
-  "battery": { "level": 15 },
-  "apps": [
-    {"packageName": "com.whatsapp", "batteryUsage": 5.2, "dataUsage": 20.1, "foregroundTime": 10},
-    {"packageName": "com.instagram", "batteryUsage": 15.4, "dataUsage": 45.3, "foregroundTime": 25},
-    {"packageName": "com.facebook.katana", "batteryUsage": 12.1, "dataUsage": 30.2, "foregroundTime": 15}
-  ],
-  "prompt": "Save my battery"
-}
-```
-
-**Response:**
-```json
-{
-  "id": "resp-12345",
+  "id": "gen_1686123456",
   "success": true,
-  "timestamp": 1686123458,
-  "message": "Battery optimization strategy applied",
+  "timestamp": 1686123456.789,
+  "message": "Analysis completed successfully",
+  "responseType": "optimization", // information|optimization|error
   "actionable": [
     {
-      "id": "act-001",
-      "type": "app_restriction",
-      "packageName": "com.facebook.katana",
-      "description": "Restrict Facebook background activity",
-      "reason": "High battery consumption (12.1%) with moderate usage time",
-      "newMode": "restricted",
-      "parameters": {"backgroundRestriction": true}
-    },
-    {
-      "id": "act-002",
-      "type": "app_restriction",
-      "packageName": "com.instagram",
-      "description": "Limit Instagram refresh rate",
-      "reason": "Highest battery consumption (15.4%)",
-      "newMode": "optimized",
-      "parameters": {"backgroundRefresh": "reduced"}
-    },
-    {
-      "id": "act-003",
-      "type": "system_setting",
-      "description": "Reduce screen brightness by 15%",
-      "reason": "Low battery level (15%) requires aggressive power saving",
-      "newMode": "power_saving",
-      "parameters": {"brightnessReduction": 15}
+      "id": "action_1686123456_0",
+      "type": "SET_STANDBY_BUCKET",
+      "description": "Limit Instagram background activity",
+      "package_name": "com.instagram.android",
+      "new_mode": "restricted",
+      "reason": "High battery usage with moderate screen time",
+      "parameters": {
+        "packageName": "com.instagram.android",
+        "newMode": "restricted"
+      }
     }
   ],
   "insights": [
     {
-      "type": "battery_usage",
-      "title": "Instagram is your top battery consumer",
-      "description": "Instagram is using 15.4% of your battery. The recommended restrictions should save approximately 7-9% battery usage.",
+      "type": "BATTERY",
+      "title": "Instagram is consuming high battery",
+      "description": "Instagram used 18.5% battery in the last 24 hours with moderate usage time.",
       "severity": "high"
-    },
-    {
-      "type": "strategy_info",
-      "title": "Aggressive battery saving strategy applied",
-      "description": "Your battery level is low (15%), so we've applied aggressive optimizations to extend battery life.",
-      "severity": "info"
     }
   ],
-  "batteryScore": 35,
-  "dataScore": 72,
-  "performanceScore": 65,
+  "batteryScore": 75.0,
+  "dataScore": 85.0, 
+  "performanceScore": 80.0,
   "estimatedSavings": {
-    "batteryMinutes": 45,
-    "dataMB": 15
+    "batteryMinutes": 120.0,
+    "dataMB": 50.0
   }
 }
 ```
 
-### Example 2: Information Request
+## 📝 Prompt Examples
 
-**Request:**
-```json
-{
-  "deviceId": "example-device-001",
-  "timestamp": 1686123456,
-  "battery": { "level": 75 },
-  "apps": [
-    {"packageName": "com.whatsapp", "batteryUsage": 5.2, "dataUsage": 20.1, "foregroundTime": 10},
-    {"packageName": "com.instagram", "batteryUsage": 15.4, "dataUsage": 45.3, "foregroundTime": 25},
-    {"packageName": "com.facebook.katana", "batteryUsage": 12.1, "dataUsage": 30.2, "foregroundTime": 15}
-  ],
-  "prompt": "What apps are using the most battery?"
-}
+### Information Queries
+```
+"Which apps use the most battery?" → Insights only, no actionables
+"Show me my data usage breakdown" → Data analysis without changes
+"What's consuming my memory?" → Memory usage insights
 ```
 
-**Response:**
-```json
-{
-  "id": "resp-12346",
-  "success": true,
-  "timestamp": 1686123460,
-  "message": "Battery usage information provided",
-  "actionable": [],
-  "insights": [
-    {
-      "type": "battery_usage",
-      "title": "Instagram is your top battery consumer",
-      "description": "Instagram is using 15.4% of your battery over the last 24 hours.",
-      "severity": "high"
-    },
-    {
-      "type": "battery_usage",
-      "title": "Facebook is your second highest battery consumer",
-      "description": "Facebook is using 12.1% of your battery over the last 24 hours.",
-      "severity": "medium"
-    },
-    {
-      "type": "battery_usage",
-      "title": "WhatsApp has moderate battery usage",
-      "description": "WhatsApp is using 5.2% of your battery over the last 24 hours.",
-      "severity": "low"
-    },
-    {
-      "type": "information_only",
-      "title": "Battery Information Request",
-      "description": "This is an information-only response with no optimization actions.",
-      "severity": "info"
-    }
-  ],
-  "batteryScore": 68,
-  "dataScore": 72,
-  "performanceScore": 75,
-  "estimatedSavings": {
-    "batteryMinutes": 0,
-    "dataMB": 0
-  }
-}
+### Optimization Requests
+```
+"Save my battery" → Battery-focused actionables + insights
+"Reduce data usage" → Data-focused optimizations  
+"Optimize everything" → Balanced battery + data optimization
+"I need battery to last 4 hours" → Time-constrained optimization
 ```
 
-### Example 3: Critical App Protection
-
-**Request:**
-```json
-{
-  "deviceId": "example-device-001",
-  "timestamp": 1686123456,
-  "battery": { "level": 25 },
-  "apps": [
-    {"packageName": "com.whatsapp", "batteryUsage": 5.2, "dataUsage": 20.1, "foregroundTime": 10},
-    {"packageName": "com.google.android.apps.maps", "batteryUsage": 18.5, "dataUsage": 35.7, "foregroundTime": 30},
-    {"packageName": "com.instagram", "batteryUsage": 15.4, "dataUsage": 45.3, "foregroundTime": 25},
-    {"packageName": "com.facebook.katana", "batteryUsage": 12.1, "dataUsage": 30.2, "foregroundTime": 15}
-  ],
-  "prompt": "I'm traveling for 3 hours and need maps and messaging"
-}
+### Critical App Protection
+```
+"Optimize battery but keep WhatsApp running" → Protect WhatsApp, optimize others
+"I need maps and messaging for travel" → Protect navigation + messaging apps
+"Don't touch my work apps" → Protect productivity apps during optimization
 ```
 
-**Response:**
-```json
-{
-  "id": "resp-12347",
-  "success": true,
-  "timestamp": 1686123462,
-  "message": "Optimization with critical app protection applied",
-  "actionable": [
-    {
-      "id": "act-001",
-      "type": "app_protection",
-      "packageName": "com.google.android.apps.maps",
-      "description": "Google Maps protected for navigation",
-      "reason": "You mentioned needing maps for traveling",
-      "newMode": "normal",
-      "parameters": {"protectionLevel": "full"}
-    },
-    {
-      "id": "act-002",
-      "type": "app_protection",
-      "packageName": "com.whatsapp",
-      "description": "WhatsApp protected for messaging",
-      "reason": "You mentioned needing messaging",
-      "newMode": "normal",
-      "parameters": {"protectionLevel": "full"}
-    },
-    {
-      "id": "act-003",
-      "type": "app_restriction",
-      "packageName": "com.instagram",
-      "description": "Restrict Instagram completely",
-      "reason": "High battery and data usage with non-critical functionality",
-      "newMode": "restricted",
-      "parameters": {"backgroundRestriction": true, "dataRestriction": true}
-    },
-    {
-      "id": "act-004",
-      "type": "app_restriction",
-      "packageName": "com.facebook.katana",
-      "description": "Restrict Facebook completely",
-      "reason": "High battery and data usage with non-critical functionality",
-      "newMode": "restricted",
-      "parameters": {"backgroundRestriction": true, "dataRestriction": true}
-    },
-    {
-      "id": "act-005",
-      "type": "system_setting",
-      "description": "Enable battery saver mode",
-      "reason": "Low battery level (25%) with 3-hour time constraint",
-      "newMode": "power_saving",
-      "parameters": {"batterySaverEnabled": true}
-    }
-  ],
-  "insights": [
-    {
-      "type": "constraint_analysis",
-      "title": "Critical apps protected for 3-hour journey",
-      "description": "Google Maps and WhatsApp have been protected to ensure they function normally during your 3-hour travel period.",
-      "severity": "info"
-    },
-    {
-      "type": "battery_usage",
-      "title": "Google Maps is your top battery consumer",
-      "description": "Maps uses significant battery (18.5%). Keep your phone charged while navigating if possible.",
-      "severity": "high"
-    },
-    {
-      "type": "strategy_info",
-      "title": "Aggressive optimization applied to non-critical apps",
-      "description": "Non-essential apps like Instagram and Facebook have been restricted to maximize battery life for your 3-hour journey.",
-      "severity": "info"
-    }
-  ],
-  "batteryScore": 28,
-  "dataScore": 35,
-  "performanceScore": 55,
-  "estimatedSavings": {
-    "batteryMinutes": 95,
-    "dataMB": 65
-  }
-}
-```
-
-### Example 4: Data Constraint
-
-**Request:**
-```json
-{
-  "deviceId": "example-device-001",
-  "timestamp": 1686123456,
-  "battery": { "level": 65 },
-  "apps": [
-    {"packageName": "com.whatsapp", "batteryUsage": 5.2, "dataUsage": 20.1, "foregroundTime": 10},
-    {"packageName": "com.youtube", "batteryUsage": 22.5, "dataUsage": 350.7, "foregroundTime": 45},
-    {"packageName": "com.spotify.music", "batteryUsage": 8.4, "dataUsage": 120.3, "foregroundTime": 35}
-  ],
-  "prompt": "I only have 500MB data left this month"
-}
-```
-
-**Response:**
-```json
-{
-  "id": "resp-12348",
-  "success": true,
-  "timestamp": 1686123464,
-  "message": "Data conservation strategy applied",
-  "actionable": [
-    {
-      "id": "act-001",
-      "type": "app_restriction",
-      "packageName": "com.youtube",
-      "description": "Restrict YouTube to Wi-Fi only",
-      "reason": "Extremely high data usage (350.7MB)",
-      "newMode": "data_restricted",
-      "parameters": {"dataRestriction": "wifi_only"}
-    },
-    {
-      "id": "act-002",
-      "type": "app_restriction",
-      "packageName": "com.spotify.music",
-      "description": "Set Spotify to data saving mode",
-      "reason": "High data usage (120.3MB)",
-      "newMode": "data_saving",
-      "parameters": {"dataRestriction": "savings_mode"}
-    },
-    {
-      "id": "act-003",
-      "type": "system_setting",
-      "description": "Enable Data Saver system-wide",
-      "reason": "Limited data remaining (500MB constraint)",
-      "newMode": "data_saving",
-      "parameters": {"dataSaverEnabled": true}
-    }
-  ],
-  "insights": [
-    {
-      "type": "data_usage",
-      "title": "YouTube is your top data consumer",
-      "description": "YouTube has used 350.7MB of data. Restricting it to Wi-Fi could save you approximately 300-350MB per month.",
-      "severity": "critical"
-    },
-    {
-      "type": "data_usage",
-      "title": "Spotify is your second highest data consumer",
-      "description": "Spotify has used 120.3MB of data. Using data saving mode or downloading playlists on Wi-Fi could save 100-120MB per month.",
-      "severity": "high"
-    },
-    {
-      "type": "constraint_analysis",
-      "title": "Data conservation plan for 500MB limit",
-      "description": "The recommended actions should help you stay within your 500MB remaining data limit for the month.",
-      "severity": "info"
-    }
-  ],
-  "batteryScore": 68,
-  "dataScore": 25,
-  "performanceScore": 78,
-  "estimatedSavings": {
-    "batteryMinutes": 15,
-    "dataMB": 420
-  }
-}
-```
-
-## 🛠️ Setup and Installation
+## 🛠️ Setup & Development
 
 ### Prerequisites
 - Python 3.12+
 - Groq API key ([Get one here](https://console.groq.com/))
 
-### Installation Steps
-
-1. **Clone and setup environment**:
-   ```bash
-   git clone <repository-url>
-   cd PowerGuardBackend
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure environment**:
-   ```bash
-   # Create .env file
-   echo "GROQ_API_KEY=your_groq_api_key_here" > .env
-   ```
-
-4. **Initialize database**:
-   ```bash
-   python -c "from app.database import Base, engine; Base.metadata.create_all(bind=engine)"
-   ```
-
-5. **Start the server**:
-   ```bash
-   python run.py
-   # Server starts at http://localhost:8000
-   ```
-
-## 🧪 Testing & Validation
-
-PowerGuard includes comprehensive testing tools:
-
-### Quick Test
+### Quick Start
 ```bash
-# Test API with curl
-curl -X POST "http://localhost:8000/api/analyze" \
-  -H "Content-Type: application/json" \
-  -d @test_request.json
-```
+# Clone and setup
+git clone <repository-url>
+cd PowerGuardBackend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-### Comprehensive Testing
-```bash
-# Run all tests
-python run_all_tests.py
+# Install dependencies  
+pip install -r requirements.txt
 
-# Automated scenario testing
-python automated_test.py
+# Configure environment
+echo "GROQ_API_KEY=your_groq_api_key_here" > .env
 
-# Real API integration test
-python real_api_test.py
-```
-
-### Development Tools
-```bash
-# Seed test data
-python seed_test_data.py
-
-# Database inspection
-python inspect_db.py
-
-# Reset database (⚠️ destructive)
-python reset_db.py
-```
-
-## 📚 API Documentation
-
-Once the server is running, access interactive documentation at:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-## 🗂️ Project Structure
-
-```
-PowerGuardBackend/
-├── app/
-│   ├── main.py                 # FastAPI server and endpoints
-│   ├── models.py              # Pydantic data models
-│   ├── database.py            # SQLAlchemy ORM setup
-│   ├── llm_service.py         # Groq LLM integration
-│   ├── prompts/
-│   │   ├── query_processor.py  # 6-category query analysis
-│   │   └── system_prompts.py   # LLM system prompts
-│   └── utils/
-│       ├── strategy_analyzer.py    # Battery strategy logic
-│       ├── actionable_generator.py # Action generation
-│       └── insight_generator.py    # User insight creation
-├── tests/                     # Unit tests
-├── run.py                     # Development server
-├── requirements.txt           # Dependencies
-├── CLAUDE.md                  # Development instructions
-└── README.md                  # This file
-```
-
-## 🔧 Development Commands
-
-All available commands are documented in `CLAUDE.md`. Key commands:
-
-```bash
-# Development server
+# Start development server
 python run.py
+# Server runs at http://localhost:8000
+```
 
-# Testing
+### Testing
+```bash
+# Run comprehensive test suite
 python run_all_tests.py
-python automated_test.py
-python real_api_test.py
 
-# Database management
-python seed_test_data.py
+# Test specific scenarios
+python automated_test.py
+
+# Database tools
 python inspect_db.py
 python reset_db.py  # ⚠️ Destructive
 ```
 
-## 🤝 Contributing
+### API Documentation
+- **Interactive Docs**: http://localhost:8000/docs
+- **Alternative UI**: http://localhost:8000/redoc
 
-1. Follow the architecture patterns established in the codebase
-2. Use the hybrid rule-based + LLM approach for new features
-3. Maintain the 6-category query processing system
-4. Add tests for new functionality
-5. Update CLAUDE.md with new development commands
+## 🏛️ Architecture Benefits
+
+### Service-Oriented Design
+- **Controllers**: Handle HTTP concerns only
+- **Services**: Contain business logic, testable in isolation  
+- **Repositories**: Abstract database operations
+- **Clean Dependencies**: Controllers → Services → Repositories → Models
+
+### Maintainability Features
+- **Single Responsibility**: Each layer has one clear purpose
+- **Dependency Injection**: Easy testing and mocking
+- **Custom Exceptions**: Structured error handling
+- **Modular Structure**: Add features without breaking existing code
+
+### Production Readiness
+- **Rate Limiting**: Built-in API protection
+- **Structured Logging**: Comprehensive request/error tracking
+- **Input Validation**: Pydantic schema validation
+- **Error Handling**: Graceful failure recovery
+- **Database Transactions**: Data consistency guarantees
 
 ## 📄 License
 
@@ -710,5 +439,5 @@ MIT License
 
 <div align="center">
   <strong>PowerGuard AI Backend</strong><br>
-  Intelligent Android optimization powered by Groq LLM
-</div> 
+  Production-ready Android optimization powered by advanced AI
+</div>
