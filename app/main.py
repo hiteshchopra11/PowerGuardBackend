@@ -289,7 +289,8 @@ async def analyze_data(
                 "id": f"gen_{int(datetime.now().timestamp())}",
                 "success": True,
                 "timestamp": int(datetime.now().timestamp()),
-                "message": "Analysis completed successfully"
+                "message": "Analysis completed successfully",
+                "responseType": "BATTERY_OPTIMIZATION"
             }
             
             # Set default values for missing fields
@@ -338,8 +339,25 @@ async def analyze_data(
                         item["description"] = ""
                     if "reason" not in item:
                         item["reason"] = ""
-                    # Default newMode based on actionable type if missing
-                    if "newMode" not in item:
+                    
+                    # Handle field name changes from packageName to package_name
+                    if "packageName" in item:
+                        item["package_name"] = item.pop("packageName")
+                    
+                    # Set default values for new required fields
+                    if "estimated_battery_savings" not in item:
+                        item["estimated_battery_savings"] = 10.0  # Default battery savings
+                    if "estimated_data_savings" not in item:
+                        item["estimated_data_savings"] = 5.0   # Default data savings
+                    if "severity" not in item:
+                        item["severity"] = 2  # Default severity (1-5 scale)
+                    if "enabled" not in item:
+                        item["enabled"] = True
+                    if "throttle_level" not in item:
+                        item["throttle_level"] = None
+                    
+                    # Default new_mode based on actionable type if missing
+                    if "new_mode" not in item and "newMode" not in item:
                         default_modes_by_type = {
                             "RESTRICT_BACKGROUND_DATA": "restricted",
                             "SET_STANDBY_BUCKET": "restricted",
@@ -347,7 +365,10 @@ async def analyze_data(
                             "MANAGE_WAKE_LOCKS": "restricted",
                             "THROTTLE_CPU_USAGE": "throttled",
                         }
-                        item["newMode"] = default_modes_by_type.get(item["type"], "restricted")
+                        item["new_mode"] = default_modes_by_type.get(item["type"], "restricted")
+                    elif "newMode" in item:
+                        # Convert newMode to new_mode for consistency
+                        item["new_mode"] = item.pop("newMode")
                     
                     valid_actionable.append(item)
                 response["actionable"] = valid_actionable
@@ -424,8 +445,14 @@ async def analyze_data(
             logger.info(f"[PowerGuard] Storing insights as usage patterns")
             try:
                 for insight in response['insights']:
+                    # Check both packageName and package_name for compatibility
+                    package_name = None
                     if 'packageName' in insight.get('parameters', {}):
                         package_name = insight['parameters']['packageName']
+                    elif 'package_name' in insight.get('parameters', {}):
+                        package_name = insight['parameters']['package_name']
+                    
+                    if package_name:
                         pattern_text = f"{insight['title']}: {insight['description']}"
                         
                         # Check if pattern already exists
@@ -466,6 +493,7 @@ async def analyze_data(
             "success": False,
             "timestamp": int(datetime.now().timestamp()),
             "message": f"Error processing device data: {str(e)}",
+            "responseType": "ERROR",
             "actionable": [],
             "insights": [],
             "batteryScore": 50,
